@@ -1,6 +1,6 @@
 vendor/rails:
   :type: git
-  :repository: http://github.com/rails/rails.git
+  :repository: git://github.com/rails/rails.git
   :revision: v2.3.2.1
 vendor/plugins/calendar_date_select:
   :type: git
