@@ -12,7 +12,7 @@
 #new_account.form{:style => "display: none"}= render :partial => "accounts/form"
 
 #data.content{:style => visible?(!blank_slate?)}
-
+  
   %h2#accounts_summary_header
     %span.actions= link_to_function "Add an account", "Accounts.revealForm()"
     Accounts summary
@@ -22,3 +22,6 @@
   - if subscription.tags.any?
     %h2 Tags
     = render :partial => "tags/cloud"
+
+  %h2 Recent transactions
+  %table#recent_entries.entries= render(subscription.events.recent.last) 
