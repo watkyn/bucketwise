@@ -1,5 +1,15 @@
 === (new)
 
+* Don't save line-items if they are blank [Jamis Buck]
+
+* Allow bucket-reallocation line items to be removed [Jamis Buck]
+
+* Show bucket split option when editing single-line-item events [Jamis Buck]
+
+* Fixed bug that wouldn't let you have a negative starting balance for new accounts [Jamis Buck]
+
+* Fixed bug that included an implicit "aside" bucket in the total bucket count [Tony Eichelberger]
+
 * Simple budget reporting [Jamis Buck]
 
 * Fix bug in account deletion that would leave (e.g.) transfer line items in an inconsistent state [Jamis Buck]
