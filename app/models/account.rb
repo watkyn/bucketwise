@@ -1,6 +1,7 @@
 class Account < ActiveRecord::Base
   DEFAULT_BUCKET_NAME = "General"
-
+  DEFAULT_BUCKET_DISPLAY_SIZE = 5
+  
   belongs_to :subscription
   belongs_to :author, :class_name => "User", :foreign_key => "user_id"
 
@@ -24,7 +25,7 @@ class Account < ActiveRecord::Base
       detect { |bucket| bucket.role == "default" }
     end
 
-    def recent(n=5)
+    def recent(n=DEFAULT_BUCKET_DISPLAY_SIZE)
       find(:all, :limit => n, :order => "updated_at DESC").sort_by(&:name)
     end
 
@@ -67,6 +68,10 @@ class Account < ActiveRecord::Base
     end
   end
 
+  def bucket_display_size
+    read_attribute(:bucket_display_size) || DEFAULT_BUCKET_DISPLAY_SIZE
+  end
+  
   def destroy
     transaction do
       cleanup_account_items

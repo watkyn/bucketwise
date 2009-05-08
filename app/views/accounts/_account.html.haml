@@ -2,8 +2,8 @@
   %th= link_to(account.name, account)
   = balance_cell(account, :classes => "total")
 - reset_cycle
-= render(account.buckets.recent)
-- if account.buckets.length > 5
+= render(account.buckets.recent(account.bucket_display_size))
+- if account.buckets.length > account.bucket_display_size
   %tr.bucket
     %td.more{:colspan => 2}
       &rarr;
