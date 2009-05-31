@@ -3,6 +3,7 @@ KNOWN ISSUES
 --------------------------------------------------------------------------
 
 * After adding an event with a new tag, the tag autocompletion won't pick up the new tag until the page is reloaded.
+* After adding an event with a new actor, the actor autocompletion won't pick up the new actor until the page is reloaded.
 * Merging one bucket into another can result in events having two line-items referencing the same bucket.
 
 --------------------------------------------------------------------------
@@ -18,14 +19,11 @@ FEATURES that would be nice to have someday (in no particular order)
 * better 404 and 500 error pages
 * searching
 * reporting
-* transaction templates ("saved" or "memorized" transactions)
 * scheduled transactions (occur automatically at specified intervals)
 * print stylesheet
 * oauth authentication for API
 * filter event views to show only events with a non-zero balance for the account in question
 * filter event views to show only deposits, or only expenses
-* normalize 'actor' so we can do actor-centric queries more efficiently
-* autocomplete actor field in event form
 * full-text searching on the memo field
 * show bucket and account balances next to names in drop-downs
 * make bucket reallocation work from bucket perma
@@ -33,3 +31,4 @@ FEATURES that would be nice to have someday (in no particular order)
 * graphical icons to replace the textual icons for various actions
 * add/edit transactions from the reconciliation view
 * statement API
+* show percentage of credit limit consumed, rather than simply using text color

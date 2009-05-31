@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20090508202957) do
+ActiveRecord::Schema.define(:version => 20090516072907) do
 
   create_table "account_items", :force => true do |t|
     t.integer "event_id",     :null => false
@@ -21,7 +21,7 @@ ActiveRecord::Schema.define(:version => 20090508202957) do
 
   add_index "account_items", ["account_id", "occurred_on"], :name => "index_account_items_on_account_id_and_occurred_on"
   add_index "account_items", ["event_id"], :name => "index_account_items_on_event_id"
-  add_index "account_items", ["occurred_on", "statement_id"], :name => "index_account_items_on_statement_id_and_occurred_on"
+  add_index "account_items", ["statement_id", "occurred_on"], :name => "index_account_items_on_statement_id_and_occurred_on"
 
   create_table "accounts", :force => true do |t|
     t.integer  "subscription_id",                    :null => false
@@ -32,9 +32,21 @@ ActiveRecord::Schema.define(:version => 20090508202957) do
     t.datetime "updated_at"
     t.integer  "balance",             :default => 0, :null => false
     t.integer  "bucket_display_size"
+    t.integer  "limit"
   end
 
-  add_index "accounts", ["name", "subscription_id"], :name => "index_accounts_on_subscription_id_and_name", :unique => true
+  add_index "accounts", ["subscription_id", "name"], :name => "index_accounts_on_subscription_id_and_name", :unique => true
+
+  create_table "actors", :force => true do |t|
+    t.integer  "subscription_id", :null => false
+    t.string   "name",            :null => false
+    t.string   "sort_name",       :null => false
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "actors", ["subscription_id", "sort_name"], :name => "index_actors_on_subscription_id_and_sort_name", :unique => true
+  add_index "actors", ["subscription_id", "updated_at"], :name => "index_actors_on_subscription_id_and_updated_at"
 
   create_table "buckets", :force => true do |t|
     t.integer  "account_id",                :null => false
@@ -53,17 +65,19 @@ ActiveRecord::Schema.define(:version => 20090508202957) do
     t.integer  "subscription_id", :null => false
     t.integer  "user_id",         :null => false
     t.date     "occurred_on",     :null => false
-    t.string   "actor",           :null => false
+    t.string   "actor_name",      :null => false
     t.integer  "check_number"
     t.datetime "created_at"
     t.datetime "updated_at"
     t.text     "memo"
+    t.integer  "actor_id"
   end
 
-  add_index "events", ["actor", "subscription_id"], :name => "index_events_on_subscription_id_and_actor"
-  add_index "events", ["check_number", "subscription_id"], :name => "index_events_on_subscription_id_and_check_number"
-  add_index "events", ["created_at", "subscription_id"], :name => "index_events_on_subscription_id_and_created_at"
-  add_index "events", ["occurred_on", "subscription_id"], :name => "index_events_on_subscription_id_and_occurred_on"
+  add_index "events", ["actor_id"], :name => "index_events_on_actor_id"
+  add_index "events", ["subscription_id", "actor_name"], :name => "index_events_on_subscription_id_and_actor"
+  add_index "events", ["subscription_id", "check_number"], :name => "index_events_on_subscription_id_and_check_number"
+  add_index "events", ["subscription_id", "created_at"], :name => "index_events_on_subscription_id_and_created_at"
+  add_index "events", ["subscription_id", "occurred_on"], :name => "index_events_on_subscription_id_and_occurred_on"
 
   create_table "line_items", :force => true do |t|
     t.integer "event_id",                  :null => false
@@ -104,7 +118,7 @@ ActiveRecord::Schema.define(:version => 20090508202957) do
   end
 
   add_index "tagged_items", ["event_id"], :name => "index_tagged_items_on_event_id"
-  add_index "tagged_items", ["occurred_on", "tag_id"], :name => "index_tagged_items_on_tag_id_and_occurred_on"
+  add_index "tagged_items", ["tag_id", "occurred_on"], :name => "index_tagged_items_on_tag_id_and_occurred_on"
 
   create_table "tags", :force => true do |t|
     t.integer  "subscription_id",                :null => false
@@ -114,8 +128,8 @@ ActiveRecord::Schema.define(:version => 20090508202957) do
     t.datetime "updated_at"
   end
 
-  add_index "tags", ["balance", "subscription_id"], :name => "index_tags_on_subscription_id_and_balance"
-  add_index "tags", ["name", "subscription_id"], :name => "index_tags_on_subscription_id_and_name", :unique => true
+  add_index "tags", ["subscription_id", "balance"], :name => "index_tags_on_subscription_id_and_balance"
+  add_index "tags", ["subscription_id", "name"], :name => "index_tags_on_subscription_id_and_name", :unique => true
 
   create_table "user_subscriptions", :force => true do |t|
     t.integer  "subscription_id", :null => false

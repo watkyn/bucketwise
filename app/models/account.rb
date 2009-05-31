@@ -1,14 +1,22 @@
 class Account < ActiveRecord::Base
   DEFAULT_BUCKET_NAME = "General"
-  DEFAULT_BUCKET_DISPLAY_SIZE = 5
-  
+
+  # When should the levels of credit cards be reached (in %)
+  DEFAULT_LIMIT_VALUES = {
+    :critical => 100,
+    :high => 80,
+    :medium => 30,
+    :low => 0
+  }
+
   belongs_to :subscription
   belongs_to :author, :class_name => "User", :foreign_key => "user_id"
 
   attr_accessor :starting_balance
-  attr_accessible :name, :role, :starting_balance
+  attr_accessible :name, :role, :limit, :starting_balance
 
   validates_presence_of :name
+  validates_presence_of :limit, :if => :credit_card?
   validates_uniqueness_of :name, :scope => :subscription_id, :case_sensitive => false
 
   has_many :buckets do
@@ -23,10 +31,6 @@ class Account < ActiveRecord::Base
 
     def default
       detect { |bucket| bucket.role == "default" }
-    end
-
-    def recent(n=DEFAULT_BUCKET_DISPLAY_SIZE)
-      find(:all, :limit => n, :order => "updated_at DESC").sort_by(&:name)
     end
 
     def with_defaults
@@ -106,7 +110,7 @@ class Account < ActiveRecord::Base
         amount = starting_balance[:amount].to_i
         role = amount > 0 ? "deposit" : "payment_source"
         subscription.events.create({:occurred_on => starting_balance[:occurred_on],
-            :actor => "Starting balance",
+            :actor_name => "Starting balance",
             :line_items => [{:account_id => id, :bucket_id => buckets.default.id,
               :amount => amount, :role => role}]
           }, :user => author)

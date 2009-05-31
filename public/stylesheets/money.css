@@ -48,6 +48,10 @@ div#header h1 span.actions a {
   color: #696;
 }
 
+div#header h1 span.title a {
+  color: #696;
+}
+
 div#header h1 span.actions a:hover {
   color: #00f;
 }
@@ -273,7 +277,23 @@ span.check {
 }
 
 .negative {
-  color: red;
+  color: red !important;
+}
+
+.critical {
+  color: red !important;
+}
+
+.high {
+  color: brown !important;
+}
+
+.medium {
+  color: sandybrown !important;
+}
+
+.low {
+  color: green !important;
 }
 
 td.date, th.date {
@@ -520,28 +540,28 @@ div.transaction.expense span.expense_label { display: inline; }
 div.transaction.deposit span.deposit_label { display: inline; }
 div.transaction.transfer span.transfer_label { display: inline; }
 
-div.tag_select {
+div.autocomplete_select {
   background: white;
   border: 1px solid #ccc;
   padding: 0.5em;
 }
 
-div.tag_select ul {
+div.autocomplete_select ul {
   list-style-type: none;
   margin: 0;
   padding: 0;
 }
 
-div.tag_select li {
+div.autocomplete_select li {
   line-height: 1.1em;
   cursor: pointer;
 }
 
-div.tag_select li.selected {
+div.autocomplete_select li.selected {
   background: #ffd;
 }
 
-div.tag_select strong {
+div.autocomplete_select strong {
   font-weight: bold;
   color: black;
   background: transparent;
