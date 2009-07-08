@@ -19,9 +19,6 @@
 
 * Actor name autocompletion in forms [Jamis Buck]
 
-* Added bucket_display_size attribute to Account so more buckets
-  can be displayed on some accounts, and the default size for others [Tony Eichelberger]
-
 * Don't save line-items if they are blank [Jamis Buck]
 
 * Allow bucket-reallocation line items to be removed [Jamis Buck]

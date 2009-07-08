@@ -71,10 +71,6 @@ class Account < ActiveRecord::Base
       aside && aside.balance > 0 ? aside.balance : 0
     end
   end
-
-  def bucket_display_size
-    read_attribute(:bucket_display_size) || DEFAULT_BUCKET_DISPLAY_SIZE
-  end
   
   def destroy
     transaction do

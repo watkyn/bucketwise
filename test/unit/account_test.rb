@@ -134,16 +134,6 @@ class AccountTest < ActiveSupport::TestCase
     assert_equal(real_buckets.size + 1, default_buckets.size)
   end
   
-  test "default bucket display size should be used if field value is nil" do
-    assert_equal 5, Account.new.bucket_display_size
-  end
-
-  test "bucket display size should be used when field not nil" do
-    acct = accounts(:john_savings)
-    acct.bucket_display_size = 34
-    assert_equal 34, acct.bucket_display_size
-  end
-  
   private
 
     def new_account(options={})

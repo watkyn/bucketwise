@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20090516072907) do
+ActiveRecord::Schema.define(:version => 20090708023621) do
 
   create_table "account_items", :force => true do |t|
     t.integer "event_id",     :null => false
@@ -24,14 +24,13 @@ ActiveRecord::Schema.define(:version => 20090516072907) do
   add_index "account_items", ["occurred_on", "statement_id"], :name => "index_account_items_on_statement_id_and_occurred_on"
 
   create_table "accounts", :force => true do |t|
-    t.integer  "subscription_id",                    :null => false
-    t.integer  "user_id",                            :null => false
-    t.string   "name",                               :null => false
+    t.integer  "subscription_id",                :null => false
+    t.integer  "user_id",                        :null => false
+    t.string   "name",                           :null => false
     t.string   "role"
     t.datetime "created_at"
     t.datetime "updated_at"
-    t.integer  "balance",             :default => 0, :null => false
-    t.integer  "bucket_display_size"
+    t.integer  "balance",         :default => 0, :null => false
     t.integer  "limit"
   end
 
@@ -45,7 +44,7 @@ ActiveRecord::Schema.define(:version => 20090516072907) do
     t.datetime "updated_at"
   end
 
-  add_index "actors", ["subscription_id", "sort_name"], :name => "index_actors_on_subscription_id_and_sort_name", :unique => true
+  add_index "actors", ["sort_name", "subscription_id"], :name => "index_actors_on_subscription_id_and_sort_name", :unique => true
   add_index "actors", ["subscription_id", "updated_at"], :name => "index_actors_on_subscription_id_and_updated_at"
 
   create_table "buckets", :force => true do |t|
