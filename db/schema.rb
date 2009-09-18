@@ -44,7 +44,7 @@ ActiveRecord::Schema.define(:version => 20090708023621) do
     t.datetime "updated_at"
   end
 
-  add_index "actors", ["sort_name", "subscription_id"], :name => "index_actors_on_subscription_id_and_sort_name", :unique => true
+  add_index "actors", ["subscription_id", "sort_name"], :name => "index_actors_on_subscription_id_and_sort_name", :unique => true
   add_index "actors", ["subscription_id", "updated_at"], :name => "index_actors_on_subscription_id_and_updated_at"
 
   create_table "buckets", :force => true do |t|
