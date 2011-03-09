@@ -15,12 +15,9 @@ class AccountItem < ActiveRecord::Base
   after_create :increment_balance
   before_destroy :decrement_balance
 
-  named_scope :uncleared, lambda { |*args| AccountItem.options_for_uncleared(*args) }
+  named_scope :uncleared, lambda { |args| AccountItem.options_for_uncleared(args) }
   
-  def self.options_for_uncleared(*args)
-    raise ArgumentError, "too many arguments #{args.length} for 1" if args.length > 1
-
-    options = args.first || {}
+  def self.options_for_uncleared(options)
     raise ArgumentError, "expected Hash, got #{options.class}" unless options.is_a?(Hash)
     options = options.dup
 
@@ -32,7 +29,7 @@ class AccountItem < ActiveRecord::Base
       parameters << options[:with]
     end
 
-    { :conditions => [conditions, *parameters], :include => options[:include] }
+    { :conditions => [conditions, *parameters], :include => options[:include], :order => 'occurred_on' }
   end
 
   protected
