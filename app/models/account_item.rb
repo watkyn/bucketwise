@@ -29,7 +29,7 @@ class AccountItem < ActiveRecord::Base
       parameters << options[:with]
     end
 
-    { :conditions => [conditions, *parameters], :include => options[:include], :order => 'occurred_on' }
+    { :conditions => [conditions, *parameters], :include => options[:include], :order => 'occurred_on DESC' }
   end
 
   protected
