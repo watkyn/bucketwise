@@ -1,7 +1,7 @@
 class AccountsController < ApplicationController
   acceptable_includes :author, :buckets
 
-  before_filter :find_account, :except => %w(index create new)
+  before_filter :find_account, :except => %w(index create new change_password)
   before_filter :find_subscription, :only => %w(index create new)
 
   def index
@@ -61,6 +61,14 @@ class AccountsController < ApplicationController
     respond_to do |format|
       format.js
       format.xml { render :status => :unprocessable_entity, :xml => account.errors.to_xml }
+    end
+  end
+
+  def change_password
+    if params[:new_password]
+      user.password = params[:new_password]
+      user.save
+      redirect_to root_url
     end
   end
 

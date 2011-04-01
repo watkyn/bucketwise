@@ -12,4 +12,7 @@ ActionController::Routing::Routes.draw do |map|
     home.root
     home.connect ""
   end
+
+  map.change_password "change_password", :controller => "accounts", :action => "change_password"
 end
+
