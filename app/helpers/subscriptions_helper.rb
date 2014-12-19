@@ -14,14 +14,14 @@ module SubscriptionsHelper
     classes << "negative" if balance < 0
     classes << "current_balance"
 
-    if container.is_a?(Account) && container.credit_card? && !container.limit.blank?
-      percentage_used = container.limit.abs.to_i == 0 ? 100 :
-        ((container.balance.abs.to_f / container.limit.abs.to_f) * 100).to_i
-      classes << if percentage_used >= Account::DEFAULT_LIMIT_VALUES[:critical]:  "critical"
-                 elsif percentage_used >= Account::DEFAULT_LIMIT_VALUES[:high]:   "high"
-                 elsif percentage_used >= Account::DEFAULT_LIMIT_VALUES[:medium]: "medium"
-                 else  "low" end
-    end
+    #if container.is_a?(Account) && container.credit_card? && !container.limit.blank?
+      #percentage_used = container.limit.abs.to_i == 0 ? 100 :
+        #((container.balance.abs.to_f / container.limit.abs.to_f) * 100).to_i
+      #classes << if percentage_used >= Account::DEFAULT_LIMIT_VALUES[:critical]:  "critical"
+                 #elsif percentage_used >= Account::DEFAULT_LIMIT_VALUES[:high]:   "high"
+                 #elsif percentage_used >= Account::DEFAULT_LIMIT_VALUES[:medium]: "medium"
+                 #else  "low" end
+    #end
 
     content = format_amount(balance)
     if real_balance != balance
