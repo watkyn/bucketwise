@@ -3,6 +3,8 @@
 
 RAILS_ROOT = "#{File.dirname(__FILE__)}/.." unless defined?(RAILS_ROOT)
 
+ENV['RAILS_ENV'] = 'production'
+
 module Rails
   class << self
     def boot!
