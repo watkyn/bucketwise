@@ -1,4 +1,5 @@
-=== (unreleased)
+=== (1.2.0)
+* Added das method and helper for finding balances out of sync
 
 * Fix rounding error on ending balance for new statements [Cody Maggard]
 

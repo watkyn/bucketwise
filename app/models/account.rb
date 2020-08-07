@@ -71,6 +71,10 @@ class Account < ActiveRecord::Base
       aside && aside.balance > 0 ? aside.balance : 0
     end
   end
+
+  def has_mismatch_totals?
+    balance != buckets.sum(:balance)
+  end
   
   def destroy
     transaction do

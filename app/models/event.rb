@@ -77,6 +77,13 @@ class Event < ActiveRecord::Base
     end
   end
 
+  # delete all stuff, which is account_items and line_items
+  def das
+    line_items.delete_all
+    account_items.delete_all
+    self.delete
+  end
+
   def role=(role)
     unless %w(deposit expense reallocation transfer).include?(role.to_s)
       raise ArgumentError, "invalid role: #{role.inspect}"
