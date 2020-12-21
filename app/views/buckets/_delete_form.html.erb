@@ -8,7 +8,6 @@
   <p>
     Please select that other bucket:
     <p><%= "#{options_from_collection_for_select(possible_receiver_buckets, :id, :name, account.buckets.default.id)}" %></p>
-    <%= select_tag(:receiver_id, options_from_collection_for_select(possible_receiver_buckets, :id, :name, account.buckets.default.id)) %>
   </p>
   <p>
     <%= submit_tag "Merge and delete this bucket" %>
