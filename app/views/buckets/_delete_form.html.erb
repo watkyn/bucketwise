@@ -8,26 +8,10 @@
   <p>
     Please select that other bucket:
   </p>
-  <select id="receiver_id" name="receiver_id"><option value="431">Aside</option>
-        <option value="416">Birthdays</option>
-        <option value="410">Boys Room</option>
-        <option value="61">Car/Misc</option>
-        <option value="311">Christmas</option>
-        <option value="316">Farm Budget</option>
-        <option value="319">Garden</option>
-        <option value="411">Healthcare</option>
-        <option value="312">House Projects</option>
-        <option value="464">Kids Money From Grandma Pust</option>
-        <option value="185">Raw Money</option>
-        <option value="136">Taxes &amp; Insurance</option>
-        <option value="227">Wood &amp; Propane</option>
-        <option value="241">dahlia's account</option>
-        <option value="498">felicia's account</option>
-        <option value="243">honoria's account</option>
-        <option value="242">julia's account</option>
-        <option value="224">nathaniel's account</option>
-        <option value="415">timmy's account</option>
-        <option value="444">vacation</option>
+  <select id="receiver_id" name="receiver_id">
+    <% account.buckets.each do |b| %>
+      <option value="<%= b.id %>"><%= b.name %></option>
+    <% end %>
   </select>
   <p>
     <%= submit_tag "Merge and delete this bucket" %>
