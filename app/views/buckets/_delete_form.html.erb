@@ -2,7 +2,7 @@
   <fieldset>
     <legend>Delete/Merge</legend>
     <p>
-      <%= = To delete this bucket, you will need to move the transactions from "#{h(bucket.name)}" into another bucket. %>
+      <%= "To delete this bucket, you will need to move the transactions from #{h(bucket.name)} into another bucket." %>
     </p>
   </fieldset>
   <p>
@@ -11,7 +11,7 @@
   </p>
   <p>
     <%= submit_tag "Merge and delete this bucket" %>
-    <%= = or #{link_to_function("Cancel", "Buckets.cancelDelete()")} %>
+    <%= "or #{link_to_function("Cancel", "Buckets.cancelDelete()")}" %>
   </p>
 <% end %>
 
