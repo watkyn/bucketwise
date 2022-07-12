@@ -2,16 +2,16 @@
 production:
   adapter: postgresql
   database: buckets_production
-  username: rails
-  password: PYsUZ6reRH
+  username: <%= ENV['DATABASE_USERNAME'] %> 
+  password: <%= ENV['DATABASE_PASSWORD'] %>
   host: localhost
   port: 5432
 
 development:
   adapter: postgresql
   database: buckets_dev
-  username: rails
-  password: PYsUZ6reRH
+  username: <%= ENV['DATABASE_USERNAME'] %> 
+  password: <%= ENV['DATABASE_PASSWORD'] %>
   host: localhost
   port: 5432
 
