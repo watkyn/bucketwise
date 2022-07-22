@@ -1,5 +1,5 @@
 module Pageable
-  DEFAULT_PAGE_SIZE = 150
+  DEFAULT_PAGE_SIZE = 250
 
   def self.included(base)
     base.extend(ClassMethods)
