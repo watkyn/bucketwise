@@ -14,4 +14,5 @@ Rails::Initializer.run do |config|
   config.load_paths += %W( #{RAILS_ROOT}/app/concerns )
   config.time_zone = 'UTC'
   config.action_controller.session = YAML.load_file("#{RAILS_ROOT}/config/session.yml")
+  config.log_level = :error
 end
