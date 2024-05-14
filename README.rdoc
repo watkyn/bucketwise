@@ -46,3 +46,8 @@ If you want to use Capistrano to deploy BucketWise to a server of your own, you 
 
 This software is hereby placed in the public domain.
   - Jamis Buck (author), April 2009
+
+
+Notes:
+RUBY_CONFIGURE_OPTS="--with-openssl-dir=/usr/bin/openssl" rbenv install 1.8.7-p374
+gem install bundler -v 1.10.6
