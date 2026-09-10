@@ -1,0 +1,14 @@
+<turbo-stream action="remove" target="<%= dom_id(event) %>">
+</turbo-stream>
+
+<% zoomed = dom_id(event, :zoomed) %>
+<turbo-stream action="remove" target="<%= zoomed %>">
+</turbo-stream>
+
+<turbo-stream action="replace" target="accounts_summary">
+  <template>
+    <table id="accounts_summary">
+      <%= render(partial: "accounts/account", collection: subscription.accounts.reload, formats: [:html]) %>
+    </table>
+  </template>
+</turbo-stream>

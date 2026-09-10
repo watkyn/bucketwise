@@ -1,0 +1,29 @@
+<turbo-stream action="replace" target="recent_entries">
+  <template>
+    <table id="recent_entries" class="entries">
+      <%= render(partial: "events/event", collection: subscription.events.recent.last, formats: [:html]) %>
+    </table>
+  </template>
+</turbo-stream>
+
+<turbo-stream action="replace" target="accounts_summary">
+  <template>
+    <table id="accounts_summary">
+      <%= render(partial: "accounts/account", collection: subscription.accounts, formats: [:html]) %>
+    </table>
+  </template>
+</turbo-stream>
+
+<turbo-stream action="replace" target="new_event">
+  <template>
+    <div id="new_event" class="transaction form hidden" data-events-form-target="newEvent"></div>
+  </template>
+</turbo-stream>
+
+<turbo-stream action="append" target="new_event">
+  <template>
+    <div id="success_notice" class="notice">
+      <p>Your transaction has been recorded.</p>
+    </div>
+  </template>
+</turbo-stream>

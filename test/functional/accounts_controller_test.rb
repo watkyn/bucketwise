@@ -82,7 +82,7 @@ class AccountsControllerTest < ActionController::TestCase
   test "update should change account name and render javascript" do
     xhr :put, :update, :id => accounts(:john_checking).id, :account => { :name => "Hi!" }
     assert_response :success
-    assert_template "accounts/update.js.rjs"
+    assert_template "accounts/update"
     assert_equal subscriptions(:john), assigns(:subscription)
     assert_equal accounts(:john_checking), assigns(:account)
     assert_equal "Hi!", accounts(:john_checking, :reload).name

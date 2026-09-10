@@ -52,6 +52,7 @@ class TagsController < ApplicationController
     tag_ref.update!(tag_params)
     respond_to do |format|
       format.js
+      format.turbo_stream
       format.json { render json: tag_ref }
       format.xml { render xml: tag_ref }
     end

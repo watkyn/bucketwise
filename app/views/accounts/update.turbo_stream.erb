@@ -1,0 +1,11 @@
+<% if account.valid? %>
+<turbo-stream action="replace" target="<%= dom_id(account, :name) %>">
+  <template>
+    <h2 id="<%= dom_id(account, :name) %>">
+      <%= render partial: "accounts/name", locals: { account: account }, formats: [:html] %>
+    </h2>
+  </template>
+</turbo-stream>
+<% else %>
+<script>alert("The account could not be updated:\n\n<%= j account.errors.full_messages.join('\n') %>");</script>
+<% end %>

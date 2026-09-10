@@ -48,13 +48,14 @@ module EventsHelper
   end
 
   def select_account(section, accounts, selection)
-    select_tag "event[#{section}][account_id]", 
+    select_tag "event[#{section}][account_id]",
       options_for_select(
         (selection ? [] : [["", ""]]) +
           accounts.map { |acct| [acct.name, acct.id] },
         selection),
       :id => "account_for_#{section}",
-      :onchange => "Events.handleAccountChange(this, '#{section}')"
+      :"data-action" => "change->events-form#handleAccountChange",
+      :"data-section" => section
   end
 
   def select_bucket(section, options={})
@@ -74,10 +75,11 @@ module EventsHelper
 
     classes = ["bucket_for_#{section}", splittable ? "splittable" : nil]
 
-    select_tag "event[#{section}][bucket_id]", select_options,
+    select_tag "event[#{section}][bucket_id]", select_options.html_safe,
       :class => classes.compact.join(" "),
       :disabled => disabled,
-      :onchange => "Events.handleBucketChange(this, '#{section}')"
+      :"data-action" => "change->events-form#handleBucketChange",
+      :"data-section" => section
   end
 
   def event_for_form

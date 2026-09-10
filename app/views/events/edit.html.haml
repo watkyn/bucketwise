@@ -1,7 +1,5 @@
-:javascript
-  Events.return_to = #{(params[:return_to] || subscription_path(subscription)).to_json};
-
 #data.content
   %h2 Edit transaction
 
-  .transaction.edit.form{:class => @event.role.to_s}= render :partial => "events/form"
+  .transaction.edit.form{class: @event.role.to_s, "data-controller": "events-form", "data-events-form-return-to-value": (params[:return_to] || subscription_path(subscription)), "data-events-form-default-date-value": @event.occurred_on.strftime('%Y-%m-%d').to_json, "data-events-form-default-actor-value": @event.actor_name.to_json, "data-events-form-accounts-value": accounts_with_buckets.to_json, "data-events-form-tags-value": subscription.tags.map(&:name).sort.to_json, "data-events-form-actors-value": subscription.events.distinct.pluck(:actor_name).compact.to_json}
+    = render partial: "events/form"

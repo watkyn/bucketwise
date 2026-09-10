@@ -1,9 +1,5 @@
-:javascript
-  Events.return_to = #{(params[:return_to] || subscription_path(subscription)).to_json};
-  Events.defaultActor = "Bucket reallocation";
-  Events.defaultDate = #{Date.today.to_json};
-
 #data.content
   %h2 New transaction
 
-  .transaction.form{:class => @event.role.to_s}= render :partial => "events/form"
+  .transaction.form{class: @event.role.to_s, "data-controller": "events-form", "data-events-form-return-to-value": (params[:return_to] || subscription_path(subscription)), "data-events-form-default-actor-value": "Bucket reallocation", "data-events-form-default-date-value": Date.today.to_json, "data-events-form-accounts-value": accounts_with_buckets.to_json, "data-events-form-tags-value": subscription.tags.map(&:name).sort.to_json, "data-events-form-actors-value": subscription.events.distinct.pluck(:actor_name).compact.to_json}
+    = render partial: "events/form"

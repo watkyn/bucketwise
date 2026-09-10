@@ -1,34 +1,46 @@
-%fieldset#general_information
+%fieldset#general_information{data: {events_form_target: "generalInfo"}}
   %legend General Information
 
   %p
-    %span.expense_label <strong>When</strong> did this expense occur?
-    %span.deposit_label <strong>When</strong> did this deposit occur?
-    %span.transfer_label <strong>When</strong> did this transfer occur?
-    = form.calendar_date_select :occurred_on, :size => 10
+    %span.expense_label
+      %strong When
+      did this expense occur?
+    %span.deposit_label
+      %strong When
+      did this deposit occur?
+    %span.transfer_label
+      %strong When
+      did this transfer occur?
+    = form.date_field :occurred_on
 
   %p
-    %span.expense_label <strong>Who</strong> received the payment?
-    %span.deposit_label <strong>Where</strong> did this deposit come from?
-    %span.transfer_label <strong>What</strong> was this transfer for?
-    = form.text_field :actor_name, :size => 30
+    %span.expense_label
+      %strong Who
+      received the payment?
+    %span.deposit_label
+      %strong Where
+      did this deposit come from?
+    %span.transfer_label
+      %strong What
+      was this transfer for?
+    = form.text_field :actor_name, size: 30, "data-events-form-target": "actorName", "data-action": "input->events-form#checkActorName"
     - if form.object.new_record?
-      %span#recall_event{:style => "display: none"}= link_to_function "(recall)", "Events.recallEvent(#{subscription_events_path(subscription).to_json})"
+      %span#recall_event.hidden{data: {events_form_target: "recallEvent"}}
+        = link_to "(recall)", "#", "data-action": "click->events-form#recall", data: { url: subscription_events_path(subscription) }
 
-  #event_actor_name_select.autocomplete_select{:style => "display: none"}
-  = javascript_tag "Events.autocompleteActorField()"
+  #event_actor_name_select.autocomplete_select.hidden
+  %div{"data-controller": "autocomplete", "data-autocomplete-items-value": subscription.actors.sort_by(&:sort_name).map(&:name).to_json}
+    %input.hidden{type: "text", "data-autocomplete-target": "input", "data-action": "input->autocomplete#search keydown->autocomplete#navigate"}
+    %ul.hidden{"data-autocomplete-target": "list", class: "absolute z-50 bg-white border border-gray-300 rounded shadow-lg max-h-40 overflow-auto w-full"}
 
   %p
-    %span.expense_label <strong>How much</strong> was paid?
-    %span.deposit_label <strong>How much</strong> was deposited?
-    %span.transfer_label <strong>How much</strong> was transferred?
-    == $#{text_field_tag :amount, event_amount_value, :size => 8, :id => "expense_total", :class => "number", :onchange => "Events.updateUnassigned()"}
-
-  %p#memo_link{:style => visible?(!event_wants_memo?)}
-    <strong>Got more to say?</strong>
-    = link_to_function "Add a more verbose description...", "Events.revealMemo()"
-
-  %p#memo{:style => visible?(event_wants_memo?)}
-    Describe this transaction:
-    %br
-    = form.text_area :memo, :rows => 2, :cols => 70
+    %span.expense_label
+      %strong How much
+      was paid?
+    %span.deposit_label
+      %strong How much
+      was deposited?
+    %span.transfer_label
+      %strong How much
+      was transferred?
+    = "$#{text_field_tag :amount, event_amount_value, size: 8, id: "expense_total", class: "number", "data-events-form-target": "expenseTotal", "data-action": "input->events-form#updateAmount"}"

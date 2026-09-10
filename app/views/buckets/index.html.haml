@@ -1,19 +1,16 @@
-:javascript
-  Buckets.newEventUrl = #{new_subscription_event_path(subscription).to_json}
-
-#data.content
+#data.content{"data-controller": "filter-form"}
   .navigation
     = link_to "Dashboard", subscription_path(subscription)
-    = link_to "Transactions in #{h(account.name)}", account_path(account)
+    = link_to h(account.name), account_path(account)
 
   %h2
-    = balance_cell(account, :classes => %w(total balance), :tag => "span")
+    = balance_cell(account, classes: %w(total balance), tag: "span")
     == Buckets in #{h(account.name)}
 
-  = link_to_function(filter, "Filters.display()", :id => :filter_nubbin)
+  = link_to filter, "#", id: :filter_nubbin, "data-action": "click->filter-form#display"
 
-  #filter_form{:style => "display: none"}
-    = form_tag(account_buckets_path(account), :method => :get) do
+  #filter_form.hidden{data: {filter_form_target: "form"}}
+    = form_tag(account_buckets_path(account), method: :get) do
       %p
         Include:
         %label
@@ -30,18 +27,18 @@
       %p
         %label
           From:
-          = calendar_date_select_tag :from, filter.from, :size => 9
+          = date_field_tag :from, filter.from
         %label
           To:
-          = calendar_date_select_tag :to, filter.to, :size => 9
+          = date_field_tag :to, filter.to
 
       %p.actions
-        = submit_tag "Apply these criteria", :name => nil
+        = submit_tag "Apply these criteria", name: nil
         or
-        = link_to_function "cancel", "Filters.hide()"
+        = link_to "cancel", "#", "data-action": "click->filter-form#hide"
         - if filter.any?
           or
-          = link_to("reset this filter", account_buckets_path(account))
+          = link_to "reset this filter", account_buckets_path(account)
 
   %table#accounts_summary
     = render(buckets.sort_by(&:name))

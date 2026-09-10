@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bucketwise-green: #5f9;
+  --color-bucketwise-green-dark: #0a4;
+  --color-bucketwise-green-text: #073;
+  --color-bucketwise-green-light: #bfb;
+  --color-bucketwise-green-lighter: #dfd;
+  --color-bucketwise-green-border: #9c9;
+  --color-bucketwise-yellow: #ffd;
+  --color-bucketwise-gray: #ccc;
+  --color-bucketwise-gray-light: #eee;
+  --color-bucketwise-link: #00f;
+  --color-bucketwise-red: red;
+  --color-bucketwise-brown: brown;
+  --color-bucketwise-sandy: sandybrown;
+}

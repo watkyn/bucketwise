@@ -1,4 +1,4 @@
-= form_for(:account, @account, :url => subscription_accounts_path(subscription), :html => { :onsubmit => "if(!Accounts.submit()) return false", :id => "new_account_form" }) do |form|
+= form_for(:account, @account, url: subscription_accounts_path(subscription), html: { "data-action": "submit->accounts-form#validate", id: "new_account_form", "data-accounts-form-target": "form" }) do |form|
   - if form.object && !form.object.errors.empty?
     %fieldset.errors
       %legend Errors
@@ -12,41 +12,55 @@
     %legend Account info
 
     %p
-      %label{:for => "account_name"} <strong>Choose a name</strong> for this account:
-      = form.text_field :name, :class => "text"
+      %label{for: "account_name"}
+        %strong Choose a name
+        for this account:
+      = form.text_field :name, class: "text", "data-accounts-form-target": "nameField"
 
     %p
       %label
-        <strong>What kind</strong> of account is this?
-        = form.select :role, [["Checking", "checking"], ["Credit card", "credit-card"], ["Other", "other"]], {}, :onchange => "Accounts.showOrHideCreditLimit(this.value);"
+        %strong What kind
+        of account is this?
+        = form.select :role, [["Checking", "checking"], ["Credit card", "credit-card"], ["Other", "other"]], {}, "data-accounts-form-target": "roleField", "data-action": "change->accounts-form#toggleCreditLimit"
 
-    %p{:style => 'display: none;', :id => 'credit_limit_div'}
+    %p#credit_limit_div.hidden{data: {accounts_form_target: "limitDiv"}}
       %label
-        What is the <strong>credit limit</strong>:
-        == $#{form.text_field :limit, :class => "number", :size => 8}
+        What is the
+        %strong credit limit
+        \:
+        == $#{form.text_field :limit, class: "number", size: 8, "data-accounts-form-target": "creditLimitField"}
 
   - if form.object.nil? || form.object.new_record?
     %fieldset
       %legend Starting balance
 
       .instructions
-        %p <b>Take a look at your latest statement for this account.</b>
-        %p Note the <em>current balance</em> from the statement, as |
-          well as the <em>date the statement was issued</em>, and enter |
-          them below. |
-      = hidden_field_tag "account[starting_balance][amount]", ""
+        %p
+          %b Take a look at your latest statement for this account.
+        %p
+          Note the
+          %em current balance
+          from the statement, as
+          well as the
+          %em date the statement was issued
+          , and enter
+          them below.
+      = hidden_field_tag "account[starting_balance][amount]", "", "data-accounts-form-target": "startingBalance"
 
       %p
         %label
-          What is the <strong>current balance</strong>:
-          == $#{text_field_tag :current_balance, account_starting_balance_amount, :class => "number", :size => 8}
+          What is the
+          %strong current balance
+          \:
+          == $#{text_field_tag :current_balance, account_starting_balance_amount, class: "number", size: 8}
 
       %p
         %label
-          <strong>When</strong> was the statement issued:
-          = calendar_date_select_tag "account[starting_balance][occurred_on]", account_starting_balance_occurred_on, :size => 9
+          %strong When
+          was the statement issued:
+          = date_field_tag "account[starting_balance][occurred_on]", account_starting_balance_occurred_on
 
   %p
     = submit_tag "Create this account"
     or
-    = link_to_function "cancel", "Accounts.hideForm()"
+    = link_to "cancel", "#", "data-action": "click->accounts-form#hide"

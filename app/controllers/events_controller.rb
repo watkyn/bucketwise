@@ -15,6 +15,10 @@ class EventsController < ApplicationController
         json = events.to_json(eager_options(include: { tagged_items: { only: [:amount, :id], methods: :name }, line_items: { only: [:account_id, :bucket_id, :amount, :role] } }))
         render js: "Events.doneLoadingRecalledEvents(#{json})"
       end
+      format.turbo_stream do
+        json = events.as_json(eager_options(include: { tagged_items: { only: [:amount, :id], methods: :name }, line_items: { only: [:account_id, :bucket_id, :amount, :role] } }))
+        render json: json
+      end
       format.xml do
         render xml: events.to_xml(eager_options(root: "events"))
       end
@@ -24,6 +28,7 @@ class EventsController < ApplicationController
   def show
     respond_to do |format|
       format.js
+      format.turbo_stream
       format.json { render json: event.as_json(eager_options) }
       format.xml { render xml: event.to_xml(eager_options) }
     end
@@ -48,6 +53,7 @@ class EventsController < ApplicationController
     @event.save!
     respond_to do |format|
       format.js
+      format.turbo_stream
       format.json { render json: @event.as_json(include: [:line_items, :tagged_items]), status: :created, location: event_url(@event) }
       format.xml do
         render xml: @event.to_xml(include: [:line_items, :tagged_items]), status: :created, location: event_url(@event)
@@ -66,6 +72,7 @@ class EventsController < ApplicationController
     event.update!(event_params)
     respond_to do |format|
       format.js
+      format.turbo_stream { redirect_to(params[:return_to] || subscription_path(subscription)) }
       format.json { render json: event.as_json(include: [:line_items, :tagged_items]) }
       format.xml { render xml: event.to_xml(include: [:line_items, :tagged_items]) }
     end
@@ -81,6 +88,7 @@ class EventsController < ApplicationController
     event.destroy
     respond_to do |format|
       format.js
+      format.turbo_stream
       format.json { head :ok }
       format.xml { head :ok }
     end

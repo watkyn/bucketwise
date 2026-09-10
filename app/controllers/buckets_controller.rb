@@ -61,6 +61,7 @@ class BucketsController < ApplicationController
     bucket.update!(bucket_params)
     respond_to do |format|
       format.js
+      format.turbo_stream
       format.json { render json: bucket }
       format.xml { render xml: bucket.to_xml }
     end

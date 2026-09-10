@@ -1,29 +1,28 @@
-%p#tags_collapsed{:style => event_has_tags? ? "display: none" : nil}
+%p#tags_collapsed{class: event_has_tags? ? "hidden" : ""}
   &rarr;
-  = link_to_function "I'd like to add tags for this transaction...", "Events.revealTags()"
+  = link_to "I'd like to add tags for this transaction...", "#", "data-action": "click->events-form#revealTags"
 
-%fieldset#tags{:style => event_has_tags? ? nil : "display: none"}
+%fieldset#tags{class: event_has_tags? ? "" : "hidden", data: {events_form_target: "tags"}}
   %legend Tags
 
   %p
     Tags for this transaction:
     %br/
-    = text_field_tag "event[tags][list]", tag_list_for_event, :style => "width: 95%"
+    = text_field_tag "event[tags][list]", tag_list_for_event, style: "width: 95%", id: "event_tags_list"
     %br/
     %small Enter tag names, separated by commas, that will apply to this entire transaction.
 
-  #event_tags_list_select.autocomplete_select{:style => "display: none"}
-  = javascript_tag "Events.autocompleteTagField('event_tags_list', {tokens: ','});"
+  #event_tags_list_select.autocomplete_select.hidden
 
-  %p#tag_items_collapsed{:style => event_has_partial_tags? ? "display: none" : nil}
+  %p#tag_items_collapsed{class: event_has_partial_tags? ? "hidden" : ""}
     &rarr;
-    = link_to_function "I'd like to add tags for parts of this transaction...", "Events.revealPartialTags()"
+    = link_to "I'd like to add tags for parts of this transaction...", "#", "data-action": "click->events-form#revealPartialTags"
 
-  #tag_items{:style => event_has_partial_tags? ? nil : "display: none"}
+  #tag_items{class: event_has_partial_tags? ? "" : "hidden"}
     %p Specify an amount for each tag. That amount will then be marked by that tag.
 
-    %ol#tagged_items
+    %ol#tagged_items{data: {events_form_target: "taggedItems"}}
       - for_each_partial_tagged_item do |item|
-        %li= render :partial => "events/tagged_item", :locals => { :tagged_item => item }
+        %li= render partial: "events/tagged_item", locals: { tagged_item: item }
 
-    %p= link_to_function "More tags, please!", "Events.addTaggedItem()"
+    %p= link_to "More tags, please!", "#", "data-action": "click->events-form#addTaggedItem"

@@ -49,7 +49,7 @@ class BucketsControllerTest < ActionController::TestCase
   test "update should change bucket name and render javascript" do
     xhr :put, :update, :id => buckets(:john_checking_general).id, :bucket => { :name => "Hi!" }
     assert_response :success
-    assert_template "buckets/update.js.rjs"
+    assert_template "buckets/update"
     assert_equal subscriptions(:john), assigns(:subscription)
     assert_equal accounts(:john_checking), assigns(:account)
     assert_equal buckets(:john_checking_general), assigns(:bucket)

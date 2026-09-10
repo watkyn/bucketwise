@@ -1,4 +1,2 @@
-:javascript
-  Accounts.origin = #{subscription_url(subscription).to_json};
-
-#new_account.form= render :partial => "accounts/form"
+#new_account.form{data: {controller: "accounts-form", "accounts-form-origin-value": subscription_url(subscription)}}
+  = render partial: "accounts/form"

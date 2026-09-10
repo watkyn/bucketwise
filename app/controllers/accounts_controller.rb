@@ -62,6 +62,7 @@ class AccountsController < ApplicationController
     account.update!(account_params)
     respond_to do |format|
       format.js
+      format.turbo_stream
       format.json { render json: account }
       format.xml { render xml: account.to_xml }
     end

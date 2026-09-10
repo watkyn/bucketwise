@@ -1,2 +1,5 @@
-%span.actions== #{link_to_function("Rename", "Tags.rename(#{tag_path(tag_ref).to_json}, #{tag_ref.name.to_json}, #{form_authenticity_token.to_json})")} | #{link_to_function("Delete", "Tags.deleteTag()")}
+%span.actions
+  = link_to "Rename", "#", "data-action": "click->tags#rename", "data-url": tag_path(tag_ref), "data-name": tag_ref.name, "data-token": form_authenticity_token
+  |
+  = link_to "Delete", "#", "data-action": "click->tags#deleteTag"
 == Transactions tagged "#{h(tag_ref.name)}"

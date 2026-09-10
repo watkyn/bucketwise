@@ -1,0 +1,839 @@
+* {
+  font-family: helvetica, sans-serif;
+}
+
+body {
+  text-align: center;
+  margin: 0;
+}
+
+.fieldWithErrors {
+  padding: 1px;
+  background: red;
+}
+
+a {
+  color: #00f;
+  text-decoration: none;
+}
+
+strong {
+  font-weight: bold;
+  color: black;
+  background: #ffc;
+  padding: 2px;
+}
+
+div#header {
+  background: #5f9;
+  border-bottom: 1px solid #0a4;
+}
+
+div#header h1 {
+  font-size: 2em;
+  text-align: left;
+  width: 700px;
+  color: #073;
+  margin: 0 auto;
+  padding: 0.5em 0 0 0;
+}
+
+div#header h1 span.actions {
+  font-size: 50%;
+  float: right;
+  line-height: 2.5em;
+}
+
+div#header h1 span.actions a {
+  color: #696;
+}
+
+div#header h1 span.title a {
+  color: #696;
+}
+
+div#header h1 span.actions a:hover {
+  color: #00f;
+}
+
+div#container {
+  text-align: left;
+  width: 700px;
+  margin: 0 auto;
+}
+
+div#version {
+  margin-top: 2em;
+  border-top: 1px solid #ddd;
+  color: #ccc;
+  font-size: 80%;
+  text-align: right;
+  padding-top: 0.5em;
+  line-height: 1.2em;
+}
+
+div#version .version {
+  font-weight: bold;
+}
+
+div#version a {
+  color: #ccc;
+  font-weight: bold;
+  text-decoration: underline;
+}
+
+.header {
+  border-bottom: 1px solid #ccc;
+}
+
+.header h2 {
+  margin-top: 0.5em;
+  font-size: 1em;
+  color: #aaa;
+  margin-bottom: 0.5em;
+}
+
+.content {
+  margin: 1em;
+}
+
+.content h2 {
+  margin: 0 -0.5em 0em -0.5em;
+  padding: 0.2em 0.5em;
+  background: #bfb;
+  border-bottom: 1px solid #9c9;
+  font-size: 1.2em;
+}
+
+h2 span.balance {
+  float: right;
+}
+
+.content h2.anchor {
+  margin-bottom: 0;
+}
+
+.content h2 span.actions {
+  float: right;
+  font-size: 80%;
+  font-weight: normal;
+  margin-top: 0.25em;
+}
+
+.content h2 span.actions a {
+  opacity: 0.5;
+  text-decoration: underline;
+}
+
+.content h2 span.actions a:hover {
+  opacity: 1.0;
+}
+
+.content h2 span.back {
+  font-size: 80%;
+  white-space: nowrap;
+  color: #777;
+}
+
+.content h2 span.back a {
+  color: #57c;
+}
+
+.content h2 span.back a:hover {
+  color: #00f;
+}
+
+.navigation {
+  border-bottom: 1px solid #ccc;
+  margin: 0 -0.7em 1em -0.7em;
+  font-size: 80%;
+  color: #777;
+}
+
+.navigation a {
+  color: #77f;
+  border-left: 1px solid #ccc;
+  padding: 0 0.3em;
+}
+
+.navigation a:hover {
+  color: #00f;
+}
+
+#links a.highlight {
+  padding: 0.5em 0.2em;
+  background: #5f9;
+  color: #073;
+  border: 1px solid #0a4;
+  border-top: 1px solid #5f9;
+}
+
+.content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 2em;
+  clear: both;
+}
+
+td, th {
+  text-align: left;
+  vertical-align: top;
+}
+
+.account_links {
+  font-size: 90%;
+  opacity: 0.5;
+}
+
+.zoomed .account_links {
+  display: none;
+}
+
+.nubbin .zooming, .nubbin .zoomed {
+  display: none;
+}
+
+.zooming .nubbin .zoom, .zoomed .nubbin .zoom {
+  display: none;
+}
+
+.zooming .nubbin .zooming {
+  display: inline;
+}
+
+.zoomed .nubbin .zoomed {
+  display: inline;
+}
+
+tr.account {
+  line-height: 2em;
+  background: #bfb;
+}
+
+tr.account th {
+  font-weight: bold;
+}
+
+tr.account th a {
+  display: block;
+  color: #000;
+}
+
+tr.account td, tr.account th {
+  padding: 0 0.3em;
+  border-bottom: 1px solid #9c9;
+}
+
+tr.bucket {
+  font-size: 0.9em;
+}
+
+tr.bucket td {
+  padding: 0.25em 0.3em 0.25em 1em;
+}
+
+tr.bucket a.bucket {
+  display: block;
+  color: #000;
+}
+
+tr.bucket td.number {
+  opacity: 0.5;
+}
+
+tr.bucket td.more {
+  border-top: 1px dotted #ccc;
+  padding-left: 0;
+}
+
+tr.bucket td.more a {
+  color: #00f;
+  display: inline;
+}
+
+tr.even {
+  background: #ffd;
+}
+
+td.total {
+  font-weight: bold;
+}
+
+td.number, th.number {
+  text-align: right;
+  width: 1px;
+  padding-left: 0.5em;
+  white-space: nowrap;
+}
+
+span.real_balance {
+  font-size: 80%;
+  color: #999;
+}
+
+span.check {
+  font-size: 80%;
+  color: #999;
+}
+
+.negative {
+  color: red !important;
+}
+
+.critical {
+  color: red !important;
+}
+
+.high {
+  color: brown !important;
+}
+
+.medium {
+  color: sandybrown !important;
+}
+
+.low {
+  color: green !important;
+}
+
+td.date, th.date {
+  width: 1px;
+  padding-left: 0.3em;
+  padding-right: 0.5em;
+  color: #888;
+  white-space: nowrap;
+}
+
+.optional {
+  font-size: 80%;
+  color: #777;
+}
+
+table#accounts_summary {
+  margin-top: 0.5em;
+}
+
+table.entries {
+  margin-top: 0.5em;
+}
+
+table.entries th {
+  line-height: 2em;
+  background: #bfb;
+  padding: 0 0.3em;
+  border-bottom: 1px solid #9c9;
+}
+
+tr.current_balance th {
+  border-top: 1px solid #9c9;
+  background: #dfd;
+}
+
+table.entries tr td {
+  padding: 0.2em 0.4em;
+}
+
+table.entries tr.zoomed {
+  background: #ffa;
+}
+
+table.entries td.zoom {
+  padding: 0;
+  background: #eee;
+  border-bottom: 1px solid #ccc;
+}
+
+table.entries tr.odd.hover td {
+  background: #ffe;
+}
+
+table.entries tr.even.hover td {
+  background: #eed;
+}
+
+td.zoom div.detail {
+  margin: 0em 6em 1em;
+}
+
+div.detail p.tags {
+  font-size: 80%;
+  margin-top: 0.2em;
+  padding: 0.2em;
+  color: #666;
+}
+
+div.detail p.tags a {
+  color: #66f;
+  font-weight: bold;
+}
+
+div.detail p.tags a:hover {
+  color: #00c;
+}
+
+div.detail p.memo {
+  border: 1px solid #ccc;
+  background: white;
+  color: #555;
+  font-size: 80%;
+  margin-top: 0.5em;
+  padding: 0.5em;
+}
+
+td.zoom table {
+  background: #ffd;
+  margin: 0;
+  width: auto;
+  font-size: 80%;
+}
+
+td.zoom td {
+  padding: 0 1em;
+}
+
+td.zoom tr.odd td {
+}
+
+td.zoom tr.even td {
+  background: #eea;
+}
+
+.form {
+  background: #eee;
+  padding: 0.3em 1em;
+}
+
+.form input {
+  font-size: 1em;
+}
+
+.form textarea {
+  font-size: 1em;
+}
+
+.form select {
+  font-size: 1em;
+}
+
+.form fieldset {
+  border: 2px solid #ccc;
+  margin-top: 0.5em;
+  background: white;
+}
+
+.form fieldset legend {
+  color: #777;
+  font-size: 0.9em;
+  font-weight: bold;
+  background: white;
+  padding: 0 0.4em;
+}
+
+.form fieldset.errors {
+  border: 2px solid #f77;
+  background: #fcc;
+}
+
+.form fieldset.errors legend {
+  color: red;
+  background: #fcc;
+}
+
+.form fieldset.errors li {
+  color: red;
+}
+
+.form p {
+}
+
+.form .instructions {
+  font-size: 90%;
+  border: 1px solid #ccc;
+  background: #cfc;
+  padding: 0 1em;
+  color: #070;
+}
+
+.form .repayment_options a {
+  color: #77f;
+  text-decoration: underline;
+}
+
+.form .repayment_options a:hover {
+  color: #00f;
+}
+
+.form p small {
+  color: #c75;
+}
+
+div.transaction div.notice {
+  padding: 0 1em;
+  border: 2px solid #050;
+  background: #9f9;
+  color: #050;
+}
+
+div.transaction div.notice p {
+  margin: 0.5em 0;
+  padding-left: 24px;
+  background-image: url("/images/success16.png");
+  background-repeat: no-repeat;
+  background-position: left middle;
+}
+
+div.transaction #tags_collapsed {
+  border: 1px solid #ccc;
+  margin-top: 0.5em;
+  padding: 0.5em;
+}
+
+div#new_account {
+  width: 30em;
+  margin: 0 auto;
+}
+
+div#new_account input.text {
+  display: block;
+  font-size: 1.2em;
+  font-weight: bold;
+  color: #007;
+  padding: 0.1em;
+  margin: 0.25em;
+  width: 95%;
+}
+
+div#new_account div.role {
+  margin: 0.25em;
+  font-size: 0.9em;
+}
+
+input.number {
+  text-align: right;
+}
+
+.nubbin {
+  position: absolute;
+  padding: 0em 0.5em;
+}
+
+.nubbin a.button {
+  padding: 0.1em 0;
+  width: 1.5em;
+  text-align: center;
+  display: inline-block;
+  border: 1px solid #eee;
+}
+
+.nubbin a.button:hover {
+  background: #009;
+  color: white;
+}
+
+div.transaction.edit span.expense_label,
+div.transaction.edit span.deposit_label,
+div.transaction.edit span.transfer_label {
+  display: none;
+}
+
+div.transaction.expense span.expense_label { display: inline; }
+div.transaction.deposit span.deposit_label { display: inline; }
+div.transaction.transfer span.transfer_label { display: inline; }
+
+div.autocomplete_select {
+  background: white;
+  border: 1px solid #ccc;
+  padding: 0.5em;
+}
+
+div.autocomplete_select ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+div.autocomplete_select li {
+  line-height: 1.1em;
+  cursor: pointer;
+}
+
+div.autocomplete_select li.selected {
+  background: #ffd;
+}
+
+div.autocomplete_select strong {
+  font-weight: bold;
+  color: black;
+  background: transparent;
+  padding: 0;
+}
+
+div#cloud {
+  margin-top: 0.5em;
+}
+
+div#cloud a {
+  color: #aaf;
+  padding: 0.2em;
+}
+
+div#cloud a:hover {
+  color: #00f;
+}
+
+label.option {
+  display: block;
+  padding: 1em;
+  border: 1px solid #eee;
+  margin: 0.25em;
+}
+
+label.selected {
+  background: #ff7;
+  border: 1px solid #ccc;
+}
+
+/* ------------------------------------------------------------------ *
+ * LOGIN PAGE
+ * ------------------------------------------------------------------ */
+
+body.login {
+  background: #ccc;
+}
+
+body.login div.login_form {
+  width: 20em;
+  margin: 10em auto;
+  border: 2px solid #777;
+  background: white;
+  padding: 1em;
+}
+
+body.login .alert {
+  border: 1px solid #900;
+  background: #faa;
+  color: #500;
+  font-size: 90%;
+  padding: 0.5em;
+}
+
+body.login .notice {
+  border: 1px solid #090;
+  background: #afa;
+  color: #050;
+  font-size: 90%;
+  padding: 0.5em;
+}
+
+/* ------------------------------------------------------------------ *
+ * BLANK SLATE
+ * ------------------------------------------------------------------ */
+
+#blankslate h2 {
+  margin: 1em -0.5em;
+  padding: 0.2em 0.5em;
+  background: #bfb;
+  border-bottom: 1px solid #9c9;
+  font-size: 1.5em;
+}
+
+#blankslate p {
+  font-size: 1.1em;
+  line-height: 1.2em;
+}
+
+#blankslate p.create {
+  text-align: center;
+  font-size: 1.5em;
+}
+
+#blankslate p.create a {
+  text-decoration: underline;
+}
+
+/* ------------------------------------------------------------------ *
+ * ACCOUNT RECONCILIATION
+ * ------------------------------------------------------------------ */
+
+.statement table.general {
+  margin: 0;
+  margin-bottom: 1em;
+}
+
+.statement table.general th {
+  font-size: 80%;
+  color: #777;
+  white-space: nowrap;
+}
+
+.statement table.general td.occurred_on,
+.statement table.general th.occurred_on {
+  width: 40%;
+}
+
+.statement table.general td.starting_balance,
+.statement table.general th.starting_balance {
+  width: 20%;
+  text-align: right;
+}
+
+.statement table.general td.ending_balance,
+.statement table.general th.ending_balance {
+  width: 40%;
+  text-align: right;
+}
+
+.statement fieldset {
+  padding: 0;
+}
+
+.statement .subtotal {
+  border-top: 1px solid #ccc;
+  font-size: 80%;
+}
+
+.statement .settled {
+  float: right;
+  padding: 0.5em;
+}
+
+.statement .remaining {
+  float: left;
+  padding: 0.5em;
+}
+
+.statement .remaining .balanced {
+  color: #070;
+  font-weight: bold;
+}
+
+.uncleared {
+  margin: 0.5em;
+}
+
+.uncleared.expenses {
+  height: 12em;
+  overflow: auto;
+}
+
+.uncleared.checks {
+  height: 12em;
+  overflow: auto;
+}
+
+.uncleared.deposits {
+  height: 5em;
+  overflow: auto;
+}
+
+.uncleared table {
+  margin: 0;
+}
+
+.uncleared tr {
+  height: 1.4em;
+  cursor: pointer;
+}
+
+.uncleared td {
+  font-size: 80%;
+  vertical-align: bottom;
+}
+
+.uncleared td.checkbox {
+  width: 1px;
+  padding-right: 1em;
+}
+
+.uncleared td.date {
+  color: black;
+  padding-right: 1em;
+}
+
+.uncleared td.check {
+  width: 1px;
+  padding-right: 1em;
+}
+
+.uncleared tr.cleared td {
+  text-decoration: line-through;
+  color: #777;
+}
+
+.uncleared td {
+  padding: 0.2em;
+}
+
+.uncleared input {
+  margin: 0;
+}
+
+#balanced {
+  border: 1px solid #aca;
+  background: #cfc;
+  margin: 1em 0;
+}
+
+#balanced h3 {
+  margin: 0;
+  border-bottom: 1px solid #aca;
+  background: #070;
+  color: white;
+  padding: 0.5em;
+}
+
+#balanced p {
+  margin: 1em;
+}
+
+/* ------------------------------------------------------------------ *
+ * FILTERING
+ * ------------------------------------------------------------------ */
+
+#filter_nubbin {
+  margin-top: 0;
+  float: right;
+  border: 1px solid #575;
+  border-top: none;
+  background: #797;
+  text-align: center;
+  color: white;
+  padding: 0.1em 2em;
+  font-size: 60%;
+  display: block;
+}
+
+#filter_nubbin:hover {
+  background: #7b7;
+}
+
+#filter_form {
+  border: 1px solid #575;
+  border-top: none;
+  padding: 0;
+  background: #dfd;
+  font-size: 90%;
+  position: absolute;
+  z-index: 999;
+}
+
+#filter_form form {
+  margin: 0;
+  padding: 0;
+}
+
+#filter_form p {
+  margin: 0;
+  padding: 0.5em 1em;
+}
+
+#filter_form p.actions {
+  border-top: 1px solid #575;
+  background: #aca;
+}
+
+#filter_form input {
+  margin: 0;
+  padding: 0;
+  font-size: 1em;
+}

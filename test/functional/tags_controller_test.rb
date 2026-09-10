@@ -30,7 +30,7 @@ class TagsControllerTest < ActionController::TestCase
   test "update should change tag name and render javascript response" do
     xhr :put, :update, :id => tags(:john_lunch).id, :tag => { :name => "hijacked!" }
     assert_response :success
-    assert_template "tags/update.js.rjs"
+    assert_template "tags/update"
     assert_equal "hijacked!", tags(:john_lunch, :reload).name
   end
 

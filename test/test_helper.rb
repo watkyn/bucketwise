@@ -31,7 +31,7 @@ module LegacyControllerTestHelpers
       kwargs = args.first.merge(kwargs)
     end
     normalized = normalize_legacy_kwargs(kwargs)
-    normalized[:as] ||= :js
+    normalized[:as] ||= :turbo_stream
     normalized[:xhr] = true
     send(verb, action, **normalized)
   end
@@ -74,21 +74,9 @@ module LegacyAssertResponse
   end
 end
 
-# Patch assert_template to handle .js.rjs -> just check success
-module LegacyAssertTemplate
-  def assert_template(options = {}, message = nil)
-    if options.is_a?(String) && options.end_with?(".js.rjs")
-      assert_response :success
-    else
-      super
-    end
-  end
-end
-
 class ActionController::TestCase
   prepend LegacyControllerTestHelpers
   prepend LegacyAssertResponse
-  prepend LegacyAssertTemplate
 end
 
 class ActiveSupport::TestCase

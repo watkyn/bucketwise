@@ -1,0 +1,11 @@
+<% if bucket.valid? %>
+<turbo-stream action="replace" target="<%= dom_id(bucket, :name) %>">
+  <template>
+    <td id="<%= dom_id(bucket, :name) %>">
+      <%= render partial: "buckets/bucket_name_for_#{params[:view] || 'index'}", locals: { bucket: bucket }, formats: [:html] %>
+    </td>
+  </template>
+</turbo-stream>
+<% else %>
+<script>alert("The bucket could not be updated:\n\n<%= j bucket.errors.full_messages.join('\n') %>");</script>
+<% end %>

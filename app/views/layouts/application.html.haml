@@ -1,28 +1,26 @@
 !!!
-%html{:lang => "en"}
+%html{lang: "en"}
   %head
-    %meta{"http-equiv" => "Content-Type", :content => "text/html; charset=utf-8"}/
+    %meta{"http-equiv": "Content-Type", content: "text/html; charset=utf-8"}/
+    %meta{name: "viewport", content: "width=device-width, initial-scale=1"}/
     %title BucketWise
-    = stylesheet_link_tag "money"
-    = javascript_include_tag :all
-    = calendar_date_select_includes "default"
+    = stylesheet_link_tag "tailwind", "data-turbo-track": "reload"
+    = stylesheet_link_tag "money", "data-turbo-track": "reload"
+    = javascript_importmap_tags
 
-  %body
-    :javascript
-      Events.source = #{current_location.to_json};
+  %body{class: "bg-gray-50 min-h-screen", "data-controller": "events-source", "data-events-source-location-value": current_location.to_json}
+    #header.bg-bucketwise-green.border-b.border-bucketwise-green-dark
+      .max-w-3xl.mx-auto.px-4.py-3.flex.items-center.justify-between
+        %h1.text-2xl.font-bold.text-bucketwise-green-text
+          = link_to "BucketWise", root_path, class: "no-underline text-bucketwise-green-text hover:text-bucketwise-green-dark"
+        %span.text-sm
+          = link_to "log out", session_path, class: "text-gray-600 hover:text-blue-600", data: { turbo_method: :delete }
 
-    #header
-      %h1
-        %span.actions
-          = link_to "log out", session_path, :method => :delete
-        %span.title
-          = link_to "BucketWise", root_path
-
-    #container
+    #container.max-w-3xl.mx-auto.px-4.py-6
       = yield
-      #version
-        == BucketWise version: <span class="version">v#{BucketWise::Version::STRING} (rev <a href="https://github.com/jamis/bucketwise/commit/#{application_revision}">#{application_revision}</a>)</span>
+      #version.mt-8.border-t.border-gray-200.text-gray-400.text-xs.text-right.pt-2.leading-relaxed
+        == BucketWise version: <span class="font-bold">v#{BucketWise::Version::STRING} (rev <a href="https://github.com/jamis/bucketwise/commit/#{application_revision}" class="text-gray-400 font-bold underline">#{application_revision}</a>)</span>
         %br
-        == Last deployed: <span class="version">#{application_last_deployed}</span>
+        == Last deployed: <span class="font-bold">#{application_last_deployed}</span>
         %br
-        = link_to "change password", change_password_url
+        = link_to "change password", change_password_url, class: "text-gray-400 font-bold underline hover:text-blue-600"

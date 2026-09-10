@@ -36,7 +36,7 @@ class EventsControllerTest < ActionController::TestCase
   test "show via ajax should load subscription and event and render javascript" do
     xhr :get, :show, :id => events(:john_lunch).id
     assert_response :success
-    assert_template "events/show.js.rjs"
+    assert_template "events/show"
     assert_equal subscriptions(:john), assigns(:subscription)
     assert_equal events(:john_lunch), assigns(:event)
   end
@@ -56,18 +56,18 @@ class EventsControllerTest < ActionController::TestCase
       assert_response :success
     end
 
-    assert_template "events/create.js.rjs"
+    assert_template "events/create"
     assert_equal subscriptions(:john), assigns(:subscription)
     assert_equal "Somebody", assigns(:event).actor_name
   end
 
-  test "update via ajax should load subscription and event, update event and render javascript" do
+  test "update via ajax should load subscription and event, update event and redirect back to caller" do
     event = events(:john_checking_starting_balance)
     xhr :post, :update, :id => event.id,
       :event => { :occurred_on => event.occurred_on.to_s, :actor_name => "Updated: #{event.actor_name}" }
 
-    assert_response :success
-    assert_template "events/update.js.rjs"
+    assert_response :redirect
+    assert_redirected_to subscription_url(subscriptions(:john))
     assert_equal subscriptions(:john), assigns(:subscription)
     assert_equal events(:john_checking_starting_balance), assigns(:event)
     assert events(:john_checking_starting_balance, :reload).actor_name.starts_with?("Updated: ")
@@ -79,7 +79,7 @@ class EventsControllerTest < ActionController::TestCase
       assert_response :success
     end
 
-    assert_template "events/destroy.js.rjs"
+    assert_template "events/destroy"
     assert_equal subscriptions(:john), assigns(:subscription)
     assert_equal events(:john_lunch), assigns(:event)
     assert !Event.exists?(events(:john_lunch).id)
