@@ -1,7 +1,7 @@
 class SessionsController < ApplicationController
-  skip_before_filter :authenticate
+  skip_before_action :authenticate
 
-  layout nil
+  layout false
 
   def new
   end
@@ -11,14 +11,14 @@ class SessionsController < ApplicationController
 
     if @user.nil?
       flash[:failed] = true
-      redirect_to(new_session_url)
+      redirect_to new_session_path
     else
       session[:user_id] = @user.id
 
       if @user.subscriptions.length > 1
-        redirect_to(subscriptions_url)
+        redirect_to subscriptions_path
       else
-        redirect_to(subscription_url(@user.subscriptions.first))
+        redirect_to subscription_path(@user.subscriptions.first)
       end
     end
   end
@@ -26,6 +26,6 @@ class SessionsController < ApplicationController
   def destroy
     flash[:logged_out] = true
     session[:user_id] = nil
-    redirect_to(new_session_url)
+    redirect_to new_session_path
   end
 end

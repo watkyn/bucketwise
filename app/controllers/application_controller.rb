@@ -1,18 +1,11 @@
-# Filters added to this controller apply to all controllers in the application.
-# Likewise, all the methods added will be available for all controllers.
-
 class ApplicationController < ActionController::Base
   include OptionHandler
 
-  helper :all
+  protect_from_forgery with: :exception
 
-  protect_from_forgery
+  before_action :authenticate
 
-  before_filter :authenticate
-
-  filter_parameter_logging :password
-
-  rescue_from ActiveRecord::RecordNotFound, :with => :render_404
+  rescue_from ActiveRecord::RecordNotFound, with: :render_404
 
   protected
 
@@ -31,7 +24,7 @@ class ApplicationController < ActionController::Base
           @user = User.authenticate(user_name, password)
         end
       else
-        redirect_to(new_session_url)
+        redirect_to new_session_path
       end
     end
 
@@ -42,27 +35,27 @@ class ApplicationController < ActionController::Base
 
     def render_404
       respond_to do |format|
-        format.html { render :file => "#{RAILS_ROOT}/public/404.html", :status => :not_found }
+        format.html { render file: Rails.root.join("public/404.html"), status: :not_found, layout: false }
+        format.json { head :not_found }
         format.xml  { head :not_found }
+        format.js   { head :not_found }
+        format.any  { head :not_found }
       end
     end
 
     def via_api?
-      request.format == Mime::XML
+      request.format.json? || request.format.xml?
     end
     helper_method :via_api?
 
   private
 
     def self.acceptable_includes(*list)
-      includes = read_inheritable_attribute(:acceptable_includes) || []
-
+      @acceptable_includes ||= Set.new
       if list.any?
-        includes = Set.new(list.map(&:to_s)) + includes
-        write_inheritable_attribute(:acceptable_includes, includes)
+        @acceptable_includes = Set.new(list.map(&:to_s)) + @acceptable_includes
       end
-
-      includes
+      @acceptable_includes
     end
 
     def acceptable_includes
@@ -74,7 +67,6 @@ class ApplicationController < ActionController::Base
         list = acceptable_includes & params[:include].split(/,/)
         append_to_options(options, :include, list.map(&:to_sym)) if list.any?
       end
-
-      return options
+      options
     end
 end

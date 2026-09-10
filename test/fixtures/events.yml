@@ -5,72 +5,72 @@
 john_checking_starting_balance:
   subscription: john
   user: john
-  occurred_on: <%= 60.days.ago.to_date.to_s(:db) %>
+  occurred_on: <%= 60.days.ago.to_date.to_fs(:db) %>
   actor: john_starting_balance
   actor_name: Starting balance
   check_number: ~
-  created_at: <%= (60.days.ago + 1.hour).utc.to_s(:db) %>
-  updated_at: <%= (60.days.ago + 1.hour).utc.to_s(:db) %>
+  created_at: <%= (60.days.ago + 1.hour).utc.to_fs(:db) %>
+  updated_at: <%= (60.days.ago + 1.hour).utc.to_fs(:db) %>
 
 john_lunch:
   subscription: john
   user: john
-  occurred_on: <%= 59.days.ago.to_date.to_s(:db) %>
+  occurred_on: <%= 59.days.ago.to_date.to_fs(:db) %>
   actor_name: Sandwich Central
   actor: john_sandwich_central
   check_number: ~
-  created_at: <%= 59.days.ago.utc.to_s(:db) %>
-  updated_at: <%= 59.days.ago.utc.to_s(:db) %>
+  created_at: <%= 59.days.ago.utc.to_fs(:db) %>
+  updated_at: <%= 59.days.ago.utc.to_fs(:db) %>
 
 john_bill_pay:
   subscription: john
   user: john
-  occurred_on: <%= 58.days.ago.to_date.to_s(:db) %>
+  occurred_on: <%= 58.days.ago.to_date.to_fs(:db) %>
   actor_name: MasterCard Co.
   actor: john_mastercard_co
   check_number: 1234
-  created_at: <%= 58.days.ago.utc.to_s(:db) %>
-  updated_at: <%= 58.days.ago.utc.to_s(:db) %>
+  created_at: <%= 58.days.ago.utc.to_fs(:db) %>
+  updated_at: <%= 58.days.ago.utc.to_fs(:db) %>
 
 john_reallocate_from:
   subscription: john
   user: john
-  occurred_on: <%= 57.days.ago.to_date.to_s(:db) %>
+  occurred_on: <%= 57.days.ago.to_date.to_fs(:db) %>
   actor_name: Bucket reallocation
   actor: john_bucket_reallocation
   check_number: ~
-  created_at: <%= 57.days.ago.utc.to_s(:db) %>
-  updated_at: <%= 57.days.ago.utc.to_s(:db) %>
+  created_at: <%= 57.days.ago.utc.to_fs(:db) %>
+  updated_at: <%= 57.days.ago.utc.to_fs(:db) %>
 
 john_reallocate_to:
   subscription: john
   user: john
-  occurred_on: <%= 56.days.ago.to_date.to_s(:db) %>
+  occurred_on: <%= 56.days.ago.to_date.to_fs(:db) %>
   actor_name: Bucket reallocation
   actor: john_bucket_reallocation
   check_number: ~
-  created_at: <%= 56.days.ago.utc.to_s(:db) %>
-  updated_at: <%= 56.days.ago.utc.to_s(:db) %>
+  created_at: <%= 56.days.ago.utc.to_fs(:db) %>
+  updated_at: <%= 56.days.ago.utc.to_fs(:db) %>
 
 john_lunch_again:
   subscription: john
   user: john
-  occurred_on: <%= 55.days.ago.to_date.to_s(:db) %>
+  occurred_on: <%= 55.days.ago.to_date.to_fs(:db) %>
   actor_name: Sandwich Central
   actor: john_sandwich_central
   check_number: ~
-  created_at: <%= 55.days.ago.utc.to_s(:db) %>
-  updated_at: <%= 55.days.ago.utc.to_s(:db) %>
+  created_at: <%= 55.days.ago.utc.to_fs(:db) %>
+  updated_at: <%= 55.days.ago.utc.to_fs(:db) %>
 
 john_bare_mastercard:
   subscription: john
   user: john
-  occurred_on: <%= 54.days.ago.to_date.to_s(:db) %>
+  occurred_on: <%= 54.days.ago.to_date.to_fs(:db) %>
   actor_name: Auto fuel
   actor: john_auto_fuel
   check_number: ~
-  created_at: <%= 54.days.ago.utc.to_s(:db) %>
-  updated_at: <%= 54.days.ago.utc.to_s(:db) %>
+  created_at: <%= 54.days.ago.utc.to_fs(:db) %>
+  updated_at: <%= 54.days.ago.utc.to_fs(:db) %>
 
 # --------------------------------------------------------------
 # tim
@@ -79,9 +79,9 @@ john_bare_mastercard:
 tim_checking_starting_balance:
   subscription: tim
   user: tim
-  occurred_on: <%= 59.days.ago.to_date.to_s(:db) %>
+  occurred_on: <%= 59.days.ago.to_date.to_fs(:db) %>
   actor_name: Starting balance
   actor: tim_starting_balance
   check_number: ~
-  created_at: <%= (59.days.ago + 1.hour).utc.to_s(:db) %>
-  updated_at: <%= (59.days.ago + 1.hour).utc.to_s(:db) %>
+  created_at: <%= (59.days.ago + 1.hour).utc.to_fs(:db) %>
+  updated_at: <%= (59.days.ago + 1.hour).utc.to_fs(:db) %>

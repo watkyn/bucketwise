@@ -1,22 +1,20 @@
-class Statement < ActiveRecord::Base
-  belongs_to :account
-  has_many :account_items, :extend => CategorizedItems, :dependent => :nullify
+class Statement < ApplicationRecord
+  belongs_to :account, optional: true
+  has_many :account_items, extend: CategorizedItems, dependent: :nullify
 
   before_create :initialize_starting_balance
   after_save :associate_account_items_with_self
 
-  named_scope :pending, :conditions => { :balanced_at => nil }
-  named_scope :balanced, :conditions => "balanced_at IS NOT NULL"
+  scope :pending, -> { where(balanced_at: nil) }
+  scope :balanced, -> { where.not(balanced_at: nil) }
 
-  attr_accessible :occurred_on, :ending_balance, :cleared
-
-  validates_presence_of :occurred_on, :ending_balance
+  validates :occurred_on, presence: true
+  validates :ending_balance, presence: true
 
   def ending_balance=(amount)
-    if amount.is_a?(Float) || amount =~ /[.,]/
+    if amount.is_a?(Float) || (amount.is_a?(String) && amount =~ /[.,]/)
       amount = (amount.to_s.tr(",", "").to_f * 100).round
     end
-
     super(amount)
   end
 
@@ -35,7 +33,7 @@ class Statement < ActiveRecord::Base
 
   def unsettled_balance(reload=false)
     @unsettled_balance = nil if reload
-    @unsettled_balance ||= starting_balance + settled_balance(reload) - ending_balance
+    @unsettled_balance ||= starting_balance.to_i + settled_balance(reload) - ending_balance.to_i
   end
 
   def cleared=(ids)
@@ -46,7 +44,7 @@ class Statement < ActiveRecord::Base
   protected
 
     def initialize_starting_balance
-      self.starting_balance ||= account.statements.balanced.last.try(:ending_balance) || 0
+      self.starting_balance ||= account.statements.balanced.order(:occurred_on).last&.ending_balance || 0
     end
 
     def associate_account_items_with_self
@@ -55,38 +53,26 @@ class Statement < ActiveRecord::Base
 
       account_items.clear
 
-      ids = connection.select_values(sanitize_sql([<<-SQL.squish, account_id, ids_to_clear]))
-        SELECT ai.id
-          FROM account_items ai
-         WHERE ai.account_id = ?
-           AND ai.id IN (?)
-      SQL
+      ids = Array(@ids_to_clear).map(&:to_i)
+      if ids.any?
+        AccountItem.where(account_id: account_id, id: ids).update_all(statement_id: id)
+      end
 
-      connection.update(sanitize_sql([<<-SQL.squish, id, ids]))
-        UPDATE account_items
-           SET statement_id = ?
-         WHERE id IN (?)
-      SQL
-
-      account_items.reset
+      # Reset association cache
+      account_items.reset if account_items.loaded?
 
       if @ids_to_clear
         if balanced?(true) && !balanced_at
-          update_attribute :balanced_at, Time.now.utc
+          update_column(:balanced_at, Time.current)
         elsif !balanced? && balanced_at
-          update_attribute :balanced_at, nil
+          update_column(:balanced_at, nil)
         end
       end
     end
 
   private
 
-    def sanitize_sql(sql)
-      self.class.send(:sanitize_sql, sql)
-    end
-
     def ids_to_clear
       @ids_to_clear || []
     end
-
 end

@@ -1,10 +1,9 @@
 module EventsHelper
   def emit_account_data_assignments
-    update_page do |page|
-      page.events.accounts = accounts_with_buckets
-      page.events.tags     = subscription.tags(:reload).map(&:name).sort
-      page.events.actors   = subscription.actors(:reload).sort_by(&:sort_name).map(&:name)
-    end
+    # Modern: no need for RJS update_page, just return empty
+    # Original did update_page with page.events.accounts/tags/actors for JS
+    # Now just return empty string; JS will fetch via JSON if needed
+    "".html_safe
   end
 
   def accounts_with_buckets
@@ -93,7 +92,7 @@ module EventsHelper
     if @event.nil? || @event.new_record?
       subscription_events_path(subscription, :source => event_form_source)
     else
-      update_event_path(@event)
+      event_path(@event)
     end
   end
 
@@ -202,12 +201,12 @@ module EventsHelper
   end
 
   def check_options_visible_for?(section)
-    @event && @event.account_for(section).checking?
+    @event && @event.account_for(section)&.checking?
   end
 
   def repayment_options_visible_for?(section)
     @event && section == :payment_source &&
-      @event.account_for(:payment_source).credit_card? &&
+      @event.account_for(:payment_source)&.credit_card? &&
       @event.line_items.for_role('credit_options').empty?
   end
 

@@ -1,18 +1,39 @@
-ActionController::Routing::Routes.draw do |map|
-  map.resource :session
+Rails.application.routes.draw do
+  get "up" => "rails/health#show", as: :rails_health_check
 
-  map.resources :subscriptions, :has_many => [:accounts, :events, :tags]
-  map.resources :events, :has_many => :tagged_items, :member => { :update => :post }
-  map.resources :buckets, :has_many => :events
-  map.resources :accounts, :has_many => [:buckets, :events, :statements]
-  map.resources :tags, :has_many => :events
-  map.resources :tagged_items, :statements
+  resource :session, only: [:new, :create, :destroy]
 
-  map.with_options :controller => "subscriptions", :action => "index" do |home|
-    home.root
-    home.connect ""
+  resources :subscriptions do
+    resources :accounts
+    resources :events
+    resources :tags
   end
 
-  map.change_password "change_password", :controller => "accounts", :action => "change_password"
-end
+  resources :events do
+    resources :tagged_items
+    member do
+      post :update
+    end
+  end
 
+  resources :buckets do
+    resources :events, only: [:index]
+  end
+
+  resources :accounts do
+    resources :buckets
+    resources :events, only: [:index]
+    resources :statements
+  end
+
+  resources :tags do
+    resources :events, only: [:index]
+  end
+
+  resources :tagged_items, only: [:create, :destroy]
+  resources :statements
+
+  root to: "subscriptions#index"
+  get "change_password" => "accounts#change_password"
+  post "change_password" => "accounts#change_password"
+end

@@ -1,77 +1,72 @@
-class Subscription < ActiveRecord::Base
+class Subscription < ApplicationRecord
   DEFAULT_PAGE_SIZE = 5
 
-  belongs_to :owner, :class_name => "User"
+  belongs_to :owner, class_name: "User"
 
-  has_many :accounts, :order => "role, name"
+  has_many :accounts, -> { order(:role, :name) }
   has_many :tags
   has_many :actors
 
   has_many :events do
     def recent(n=0, options={})
-      size = (options[:size] || DEFAULT_PAGE_SIZE).to_i
+      size = (options[:size] || Subscription::DEFAULT_PAGE_SIZE).to_i
       n = n.to_i
 
-      joins = []
-      conditions = []
-      parameters = []
-
+      scope = self
       if options[:actor]
-        joins << "LEFT JOIN actors ON actors.id = events.actor_id"
-        conditions << "actors.sort_name = ?"
-        parameters << Actor.normalize_name(options[:actor])
+        scope = scope.joins("LEFT JOIN actors ON actors.id = events.actor_id")
+                     .where("actors.sort_name = ?", Actor.normalize_name(options[:actor]))
       end
 
-      records = find(:all, :joins => joins,
-        :conditions => conditions.any? ? [conditions.join(" AND "), *parameters] : nil,
-        :include => :account_items,
-        :order => "events.created_at DESC",
-        :limit => size + 1,
-        :offset => n * size)
+      records = scope.includes(:account_items)
+                     .order(created_at: :desc)
+                     .limit(size + 1)
+                     .offset(n * size)
+                     .to_a
 
-      [records.length > size, records[0,size]]
+      [records.length > size, records.first(size)]
     end
 
     def prepare(attrs={})
-      event = build(:role => attrs[:role], :occurred_on => Date.today)
+      event = build(role: attrs[:role], occurred_on: Date.current)
 
       case event.role
       when :reallocation
         event.actor_name = "Bucket reallocation"
         if attrs[:from]
           bucket = Bucket.find(attrs[:from])
-          account = @owner.accounts.find(bucket.account_id)
-          event.line_items.build(:role => "primary", :account => account, :bucket => bucket)
-          event.line_items.build(:role => "reallocate_from", :account => account, :bucket => account.buckets.default)
+          account = proxy_association.owner.accounts.find(bucket.account_id)
+          event.line_items.build(role: "primary", account: account, bucket: bucket)
+          event.line_items.build(role: "reallocate_from", account: account, bucket: account.buckets.default)
         elsif attrs[:to]
           bucket = Bucket.find(attrs[:to])
-          account = @owner.accounts.find(bucket.account_id)
-          event.line_items.build(:role => "primary", :account => account, :bucket => bucket)
-          event.line_items.build(:role => "reallocate_to", :account => account, :bucket => account.buckets.default)
+          account = proxy_association.owner.accounts.find(bucket.account_id)
+          event.line_items.build(role: "primary", account: account, bucket: bucket)
+          event.line_items.build(role: "reallocate_to", account: account, bucket: account.buckets.default)
         end
       end
 
-      return event
+      event
     end
   end
 
-  has_many :user_subscriptions
-  has_many :users, :through => :user_subscriptions
+  has_many :user_subscriptions, dependent: :destroy
+  has_many :users, through: :user_subscriptions
 
   # removes everything from the subscription, without deleting the subscription
   def clean
     transaction do
-      connection.delete "DELETE FROM line_items WHERE event_id IN (SELECT id FROM events WHERE subscription_id = #{id})"
-      connection.delete "DELETE FROM account_items WHERE event_id IN (SELECT id FROM events WHERE subscription_id = #{id})"
-      connection.delete "DELETE FROM tagged_items WHERE event_id IN (SELECT id FROM events WHERE subscription_id = #{id})"
+      LineItem.where(event_id: events.select(:id)).delete_all
+      AccountItem.where(event_id: events.select(:id)).delete_all
+      TaggedItem.where(event_id: events.select(:id)).delete_all
 
-      connection.delete "DELETE FROM buckets WHERE account_id IN (SELECT id FROM accounts WHERE subscription_id = #{id})"
-      connection.delete "DELETE FROM statements WHERE account_id IN (SELECT id FROM accounts WHERE subscription_id = #{id})"
+      Bucket.where(account_id: accounts.select(:id)).delete_all
+      Statement.where(account_id: accounts.select(:id)).delete_all
 
-      connection.delete "DELETE FROM actors WHERE subscription_id = #{id}"
-      connection.delete "DELETE FROM events WHERE subscription_id = #{id}"
-      connection.delete "DELETE FROM accounts WHERE subscription_id = #{id}"
-      connection.delete "DELETE FROM tags WHERE subscription_id = #{id}"
+      actors.delete_all
+      events.delete_all
+      accounts.delete_all
+      tags.delete_all
     end
   end
 
@@ -79,8 +74,8 @@ class Subscription < ActiveRecord::Base
   def destroy
     transaction do
       clean
-      connection.delete "DELETE FROM user_subscriptions WHERE subscription_id = #{id}"
-      connection.delete "DELETE FROM subscriptions WHERE id = #{id}"
+      UserSubscription.where(subscription_id: id).delete_all
+      self.class.where(id: id).delete_all
     end
   end
 end

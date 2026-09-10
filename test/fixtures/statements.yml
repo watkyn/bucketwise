@@ -4,12 +4,12 @@
 
 john:
   account: john_checking
-  occurred_on: <%= 2.weeks.ago.to_date.to_s(:db) %>
+  occurred_on: <%= 2.weeks.ago.to_date.to_fs(:db) %>
   starting_balance: 0
   ending_balance: 99225
-  balanced_at: <%= 1.week.ago.to_s(:db) %>
-  created_at: <%= 1.week.ago.to_s(:db) %>
-  updated_at: <%= 1.week.ago.to_s(:db) %>
+  balanced_at: <%= 1.week.ago.to_fs(:db) %>
+  created_at: <%= 1.week.ago.to_fs(:db) %>
+  updated_at: <%= 1.week.ago.to_fs(:db) %>
 
 john_pending:
   account: john_checking
@@ -17,8 +17,8 @@ john_pending:
   starting_balance: 99225
   ending_balance: 125392
   balanced_at: ~
-  created_at: <%= Time.now.to_s(:db) %>
-  updated_at: <%= Time.now.to_s(:db) %>
+  created_at: <%= Time.now.to_fs(:db) %>
+  updated_at: <%= Time.now.to_fs(:db) %>
 
 # --------------------------------------------------------------
 # tim
@@ -26,9 +26,9 @@ john_pending:
 
 tim:
   account: tim_checking
-  occurred_on: <%= 1.week.ago.to_date.to_s(:db) %>
+  occurred_on: <%= 1.week.ago.to_date.to_fs(:db) %>
   starting_balance: 0
   ending_balance: 123456
   balanced_at: ~
-  created_at: <%= 1.week.ago.to_s(:db) %>
-  updated_at: <%= 1.week.ago.to_s(:db) %>
+  created_at: <%= 1.week.ago.to_fs(:db) %>
+  updated_at: <%= 1.week.ago.to_fs(:db) %>

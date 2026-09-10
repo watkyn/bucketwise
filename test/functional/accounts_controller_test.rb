@@ -53,7 +53,7 @@ class AccountsControllerTest < ActionController::TestCase
     assert_no_difference "Account.count" do
       post :create, :subscription_id => subscriptions(:john).id,
         :account => { :name => "Checking", :role => "checking" }
-      assert_response :success
+      assert_response :unprocessable_entity
       assert_template "accounts/new"
       assert assigns(:account) && !assigns(:account).valid?
     end

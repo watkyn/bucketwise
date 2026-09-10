@@ -6,63 +6,63 @@ john_checking_starting_balance:
   event: john_checking_starting_balance
   account: john_checking
   amount: 100000
-  occurred_on: <%= 60.days.ago.to_date.to_s(:db) %>
+  occurred_on: <%= 60.days.ago.to_date.to_fs(:db) %>
   statement: john
 
 john_lunch_mastercard:
   event: john_lunch
   account: john_mastercard
   amount: -775
-  occurred_on: <%= 59.days.ago.utc.to_s(:db) %>
+  occurred_on: <%= 59.days.ago.utc.to_fs(:db) %>
 
 john_lunch_checking:
   event: john_lunch
   account: john_checking
   amount: 0
-  occurred_on: <%= 59.days.ago.utc.to_s(:db) %>
+  occurred_on: <%= 59.days.ago.utc.to_fs(:db) %>
 
 john_bill_pay_checking:
   event: john_bill_pay
   account: john_checking
   amount: -775
-  occurred_on: <%= 58.days.ago.utc.to_s(:db) %>
+  occurred_on: <%= 58.days.ago.utc.to_fs(:db) %>
   statement: john
 
 john_bill_pay_mastercard:
   event: john_bill_pay
   account: john_mastercard
   amount: 775
-  occurred_on: <%= 58.days.ago.utc.to_s(:db) %>
+  occurred_on: <%= 58.days.ago.utc.to_fs(:db) %>
 
 john_reallocate_from_checking:
   event: john_reallocate_from
   account: john_checking
   amount: 0
-  occurred_on: <%= 57.days.ago.utc.to_s(:db) %>
+  occurred_on: <%= 57.days.ago.utc.to_fs(:db) %>
 
 john_reallocate_to_checking:
   event: john_reallocate_to
   account: john_checking
   amount: 0
-  occurred_on: <%= 56.days.ago.utc.to_s(:db) %>
+  occurred_on: <%= 56.days.ago.utc.to_fs(:db) %>
 
 john_lunch_again_mastercard:
   event: john_lunch_again
   account: john_mastercard
   amount: -1025
-  occurred_on: <%= 55.days.ago.utc.to_s(:db) %>
+  occurred_on: <%= 55.days.ago.utc.to_fs(:db) %>
 
 john_lunch_again_checking:
   event: john_lunch_again
   account: john_checking
   amount: 0
-  occurred_on: <%= 55.days.ago.utc.to_s(:db) %>
+  occurred_on: <%= 55.days.ago.utc.to_fs(:db) %>
 
 john_bare_mastercard:
   event: john_bare_mastercard
   account: john_mastercard
   amount: -1500
-  occurred_on: <%= 54.days.ago.utc.to_s(:db) %>
+  occurred_on: <%= 54.days.ago.utc.to_fs(:db) %>
 
 # --------------------------------------------------------------
 # tim
@@ -72,4 +72,4 @@ tim_checking_starting_balance:
   event: tim_checking_starting_balance
   account: tim_checking
   amount: 125000
-  occurred_on: <%= 59.days.ago.to_date.to_s(:db) %>
+  occurred_on: <%= 59.days.ago.to_date.to_fs(:db) %>

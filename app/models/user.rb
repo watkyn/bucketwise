@@ -1,41 +1,44 @@
-require 'digest/sha1'
-
-class User < ActiveRecord::Base
+class User < ApplicationRecord
   include OptionHandler
 
-  has_many :user_subscriptions
-  has_many :subscriptions, :through => :user_subscriptions
+  has_many :user_subscriptions, dependent: :destroy
+  has_many :subscriptions, through: :user_subscriptions
 
-  attr_accessible :name, :email, :user_name, :password
+  has_secure_password
 
-  attr_writer :password
+  validates :user_name, uniqueness: true, allow_nil: true
+  validates :user_name, presence: true
 
-  before_save :set_password_hash_and_salt
-
-  validates_uniqueness_of :user_name
-
+  # Keep legacy SHA1 method for migration if password_digest blank but password_hash present
   def self.password_hash_for(password, salt)
+    require 'digest/sha1'
     Digest::SHA1.hexdigest(salt + password)
   end
 
   def self.authenticate(user_name, password)
-    user = find_by_user_name(user_name) or return nil
-    hash = password_hash_for(password, user.salt)
-    hash == user.password_hash ? user : nil
+    user = find_by(user_name: user_name)
+    return nil unless user
+
+    # Prefer bcrypt
+    if user.password_digest.present?
+      user.authenticate(password) ? user : nil
+    elsif user.password_hash.present? && user.salt.present?
+      # Legacy SHA1 fallback
+      hash = password_hash_for(password, user.salt)
+      hash == user.password_hash ? user : nil
+    else
+      nil
+    end
   end
 
-  def to_xml(options={})
-    append_to_options(options, :except, [:password_hash, :salt])
+  # Override to hide password_digest
+  def as_json(options={})
+    options[:except] = Array(options[:except]) + [:password_digest, :password_hash, :salt]
     super(options)
   end
 
-  protected
-
-    def set_password_hash_and_salt
-      if @password
-        self.salt = Array.new(32) { 32 + rand(95) }.pack("C*")
-        self.password_hash = self.class.password_hash_for(@password, salt)
-        @password = nil
-      end
-    end
+  def to_xml(options={})
+    append_to_options(options, :except, [:password_digest, :password_hash, :salt])
+    super(options)
+  end
 end

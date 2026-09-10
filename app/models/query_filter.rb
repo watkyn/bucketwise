@@ -61,7 +61,7 @@ class QueryFilter
   end
 
   def to_s
-    description = "Filter"
+    description = +"Filter"
 
     if any?
       description << ": "

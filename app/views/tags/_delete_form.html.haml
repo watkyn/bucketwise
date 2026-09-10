@@ -1,4 +1,4 @@
-- form_tag(tag_path(tag_ref), :method => 'delete', :onsubmit => "return Tags.confirmDelete()") do
+= form_tag(tag_path(tag_ref), :method => :delete, :onsubmit => "return Tags.confirmDelete()") do
   - if possible_receiver_tags.any?
     %fieldset
       %legend Delete/Merge

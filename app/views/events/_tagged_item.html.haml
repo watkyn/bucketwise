@@ -2,6 +2,5 @@
 is tagged as
 = tag_entry_field "event[tags][name]", tagged_item_name_value(tagged_item), :size => 12, :class => "tag", :id => tagged_item ? dom_id(tagged_item, :tag_name) : "{ID}"
 - if tagged_item
-  :javascript
-    Events.autocompleteTagField('#{dom_id(tagged_item, :tag_name)}');
+  = javascript_tag "Events.autocompleteTagField('#{dom_id(tagged_item, :tag_name)}');"
 = link_to_function "[x]", "Events.removeTaggedItem(this.up('li'))"

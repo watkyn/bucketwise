@@ -3,9 +3,9 @@
 #templates{:style => "display: none"}
   - form_sections.each do |section|
     %div{:id => "template.#{section}"}
-      = render :partial => template_partial_for(section), :locals => { :section => section }
+      = render :partial => template_partial_for(section), :locals => { :section => section, :line_item => nil, :reallocation_item => nil, :tagged_item => nil }
 
-- form_for(:event, event_for_form, :url => event_form_action, :html => { :id => "event_form", :onsubmit => "Events.submit(this); return false" }) do |form|
+= form_for(:event, event_for_form, :url => event_form_action, :html => { :id => "event_form", :onsubmit => "Events.submit(this); return false" }) do |form|
   #success_notice.notice{:style => "display: none"}
     %p== Your transaction has been recorded. You may enter another one, |
          or #{link_to_function "close this form", "Events.cancel()"}. |
@@ -13,9 +13,7 @@
   - if event_wants_section?('general_information')
     = render :partial => "events/form_general", :locals => { :form => form }
   - else
-    :javascript
-      Events.defaultDate = #{@event.occurred_on.strftime("%Y-%m-%d").to_json};
-      Events.defaultActor = #{@event.actor_name.to_json};
+    = javascript_tag "Events.defaultDate = #{@event.occurred_on.strftime('%Y-%m-%d').to_json}; Events.defaultActor = #{@event.actor_name.to_json};"
 
   - form_sections.each do |section|
     = render_event_form_section(form, section) if event_wants_section?(section)

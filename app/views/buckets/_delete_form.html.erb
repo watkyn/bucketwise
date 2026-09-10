@@ -1,4 +1,4 @@
-<% form_tag(bucket_path(bucket), :method => 'delete', :onsubmit => "return Buckets.confirmDelete()") do %>
+<%= form_tag(bucket_path(bucket), :method => :delete, :onsubmit => "return Buckets.confirmDelete()") do %>
   <fieldset>
     <legend>Delete/Merge</legend>
     <p>
