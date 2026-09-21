@@ -14,16 +14,8 @@
   </template>
 </turbo-stream>
 
-<turbo-stream action="replace" target="new_event">
-  <template>
-    <div id="new_event" class="transaction form hidden" data-events-form-target="newEvent"></div>
-  </template>
-</turbo-stream>
-
-<turbo-stream action="append" target="new_event">
-  <template>
-    <div id="success_notice" class="notice">
-      <p>Your transaction has been recorded.</p>
-    </div>
-  </template>
-</turbo-stream>
+<%# NOTE: the event form lives inside #new_event and already contains a hidden
+  #success_notice. Do NOT replace #new_event here — that would destroy the form
+  and leave the notice inside a hidden container. The events-form Stimulus
+  controller resets the form and reveals the in-form notice client-side
+  after rendering these streams. %>

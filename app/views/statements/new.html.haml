@@ -1,4 +1,4 @@
-#data.content
+#data.content{"data-controller": "statement-reconcile"}
   %h2== Let's reconcile your #{h(account.name)} account
 
   .form
@@ -22,7 +22,7 @@
         %p
           %strong What
           is the ending balance?
-          = "$" + form.text_field(:ending_balance, size: 8, class: "number", value: format_cents(statement.ending_balance, unit: ""), "data-action": "input->statement-reconcile#updateEndingBalance")
+          = ("$" + form.text_field(:ending_balance, size: 8, class: "number", value: format_cents(statement.ending_balance, unit: ""), "data-action": "input->statement-reconcile#updateEndingBalance")).html_safe
 
       %p
         = form.submit "Go to step #2"

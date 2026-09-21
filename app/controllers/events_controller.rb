@@ -63,6 +63,9 @@ class EventsController < ApplicationController
     @event = error.record
     respond_to do |format|
       format.js { render status: :unprocessable_entity }
+      # Don't render the success turbo-stream template here: the client parses
+      # the JSON errors and alerts them (see events-form#submit).
+      format.turbo_stream { render json: @event.errors, status: :unprocessable_entity }
       format.json { render json: @event.errors, status: :unprocessable_entity }
       format.xml { render xml: @event.errors, status: :unprocessable_entity }
     end
@@ -79,6 +82,7 @@ class EventsController < ApplicationController
   rescue ActiveRecord::RecordInvalid => error
     respond_to do |format|
       format.js { render status: :unprocessable_entity }
+      format.turbo_stream { render json: event.errors, status: :unprocessable_entity }
       format.json { render json: event.errors, status: :unprocessable_entity }
       format.xml { render xml: event.errors, status: :unprocessable_entity }
     end
@@ -153,29 +157,18 @@ class EventsController < ApplicationController
   private
 
     def event_params
-      params.require(:event).permit(:occurred_on, :actor_name, :check_number, :memo, :role,
-        line_items: [:account_id, :bucket_id, :amount, :role],
-        tagged_items: [:tag_id, :amount])
+      line_item_keys = [:account_id, :bucket_id, :amount, :role]
+      tagged_item_keys = [:tag_id, :amount]
+      permitted = params.require(:event).permit(:occurred_on, :actor_name, :check_number, :memo, :role,
+        line_items: line_item_keys,
+        tagged_items: tagged_item_keys,
+        line_item: line_item_keys,
+        tagged_item: tagged_item_keys).to_h.with_indifferent_access
+      # Normalize legacy singular keys (old Rails 2 XML: line_item/tagged_item) to plural
+      permitted[:line_items] ||= permitted.delete(:line_item) if permitted[:line_item]
+      permitted[:tagged_items] ||= permitted.delete(:tagged_item) if permitted[:tagged_item]
+      permitted.slice(:occurred_on, :actor_name, :check_number, :memo, :role, :line_items, :tagged_items)
     rescue ActionController::ParameterMissing
-      # For API callers using raw hash (tests may send event as hash without wrapper)
-      # Permit differently: try to allow line_items as array of hashes
-      permitted = params.permit(:occurred_on, :actor_name, :check_number, :memo, :role, :subscription_id,
-        event: [:occurred_on, :actor_name, :check_number, :memo, :role, line_items: [:account_id, :bucket_id, :amount, :role], tagged_items: [:tag_id, :amount]])
-      if permitted[:event]
-        ev = permitted[:event]
-        # Handle line_items as array
-        if params[:event] && params[:event][:line_items]
-          ev[:line_items] = params[:event][:line_items].map { |li| li.permit(:account_id, :bucket_id, :amount, :role).to_h } rescue params[:event][:line_items]
-        end
-        if params[:event] && params[:event][:tagged_items]
-          ev[:tagged_items] = params[:event][:tagged_items].map { |ti| ti.permit(:tag_id, :amount).to_h } rescue params[:event][:tagged_items]
-        end
-        ev
-      else
-        # fallback to raw event hash
-        raw = params[:event] || params
-        raw.permit! if raw.respond_to?(:permit!)
-        raw.to_h
-      end
+      {}
     end
 end

@@ -1,4 +1,4 @@
-%p#tags_collapsed{class: event_has_tags? ? "hidden" : ""}
+%p#tags_collapsed{class: event_has_tags? ? "hidden" : "", data: {events_form_target: "tagsCollapsed"}}
   &rarr;
   = link_to "I'd like to add tags for this transaction...", "#", "data-action": "click->events-form#revealTags"
 
@@ -14,11 +14,11 @@
 
   #event_tags_list_select.autocomplete_select.hidden
 
-  %p#tag_items_collapsed{class: event_has_partial_tags? ? "hidden" : ""}
+  %p#tag_items_collapsed{class: event_has_partial_tags? ? "hidden" : "", data: {events_form_target: "tagItemsCollapsed"}}
     &rarr;
     = link_to "I'd like to add tags for parts of this transaction...", "#", "data-action": "click->events-form#revealPartialTags"
 
-  #tag_items{class: event_has_partial_tags? ? "" : "hidden"}
+  #tag_items{class: event_has_partial_tags? ? "" : "hidden", data: {events_form_target: "tagItems"}}
     %p Specify an amount for each tag. That amount will then be marked by that tag.
 
     %ol#tagged_items{data: {events_form_target: "taggedItems"}}

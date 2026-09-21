@@ -1,4 +1,4 @@
-%tr{id: dom_id(event), class: cycle('odd', 'even'), "data-event-row-target": "element", "data-event-id": event.id, "data-action": "mouseenter->event-row#showNubbin mouseleave->event-row#hideNubbin"}
+%tr{id: dom_id(event), class: cycle('odd', 'even'), "data-controller": "event-row", "data-event-id": event.id, "data-action": "mouseenter->event-row#showNubbin mouseleave->event-row#hideNubbin"}
 
   %td.date= event.occurred_on.strftime("%Y-%m-%d")
 

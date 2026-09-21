@@ -1,5 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
-import { Money } from "javascript/money"
+import { Money } from "money"
 
 export default class extends Controller {
   static targets = ["nubbin", "deleteForm", "data"]
@@ -78,8 +78,11 @@ export default class extends Controller {
 
   deleteBucket(event) {
     event.preventDefault()
-    this.dataTarget.classList.add("hidden")
-    this.deleteFormTarget.classList.remove("hidden")
+    // These targets live on the page-level controller scope (e.g. buckets/show
+    // wraps #delete_form and #data). Index rows reuse this controller for
+    // hover/rename only, so degrade gracefully if the scope has no targets.
+    if (this.hasDataTarget) this.dataTarget.classList.add("hidden")
+    if (this.hasDeleteFormTarget) this.deleteFormTarget.classList.remove("hidden")
   }
 
   confirmDelete(event) {
@@ -88,8 +91,9 @@ export default class extends Controller {
     }
   }
 
-  cancelDelete() {
-    this.deleteFormTarget.classList.add("hidden")
-    this.dataTarget.classList.remove("hidden")
+  cancelDelete(event) {
+    if (event) event.preventDefault()
+    if (this.hasDeleteFormTarget) this.deleteFormTarget.classList.add("hidden")
+    if (this.hasDataTarget) this.dataTarget.classList.remove("hidden")
   }
 }

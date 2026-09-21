@@ -1,5 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
-import { Money } from "javascript/money"
+import { Money } from "money"
 
 export default class extends Controller {
   static targets = ["balanced", "actions", "endingBalance"]

@@ -1,5 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
-import { Money } from "javascript/money"
+import { Money } from "money"
 
 export default class extends Controller {
   static targets = ["form", "blankslate", "data", "links", "nameField", "roleField", "limitDiv", "creditLimitField", "startingBalance"]
@@ -8,33 +8,43 @@ export default class extends Controller {
     this.origin = this.element.dataset.accountsFormOriginValue || null
   }
 
-  reveal() {
+  reveal(event) {
+    if (event) event.preventDefault()
     if (this.hasBlankslateTarget) {
       this.blankslateTarget.classList.add("hidden")
     } else if (this.hasDataTarget) {
       this.dataTarget.classList.add("hidden")
-      this.linksTarget.classList.add("hidden")
+      if (this.hasLinksTarget) this.linksTarget.classList.add("hidden")
     }
 
-    this.element.classList.remove("hidden")
+    const form = this.hasFormTarget ? this.formTarget : this.element
+    form.classList.remove("hidden")
     this.nameFieldTarget.focus()
   }
 
-  hide() {
+  hide(event) {
+    if (event) event.preventDefault()
     if (this.origin) {
       window.location = this.origin
       return
     }
 
     this.reset()
-    this.element.classList.add("hidden")
+    const form = this.hasFormTarget ? this.formTarget : this.element
+    form.classList.add("hidden")
 
     if (this.hasBlankslateTarget) {
       this.blankslateTarget.classList.remove("hidden")
     } else if (this.hasDataTarget) {
       this.dataTarget.classList.remove("hidden")
-      this.linksTarget.classList.remove("hidden")
+      if (this.hasLinksTarget) this.linksTarget.classList.remove("hidden")
     }
+  }
+
+  reset() {
+    const form = this.hasFormTarget ? this.formTarget : this.element
+    const inner = form.matches("form") ? form : form.querySelector("form")
+    if (inner) inner.reset()
   }
 
   validate(event) {

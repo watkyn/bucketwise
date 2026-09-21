@@ -55,7 +55,8 @@ export default class extends Controller {
     }
   }
 
-  cancelDelete() {
+  cancelDelete(event) {
+    if (event) event.preventDefault()
     this.deleteFormTarget.querySelector("form").reset()
     this.selectDelete()
     this.deleteFormTarget.classList.add("hidden")

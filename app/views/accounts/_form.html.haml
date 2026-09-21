@@ -1,4 +1,8 @@
-= form_for(:account, @account, url: subscription_accounts_path(subscription), html: { "data-action": "submit->accounts-form#validate", id: "new_account_form", "data-accounts-form-target": "form" }) do |form|
+-# NOTE: no data-accounts-form-target="form" on this inner form: the target lives
+-# on the #new_account wrapper (subscriptions/show). Two matching targets would
+-# make formTarget raise. The submit->validate action still reaches the
+-# page-level accounts-form controller via bubbling.
+= form_for(:account, @account, url: subscription_accounts_path(subscription), html: { "data-action": "submit->accounts-form#validate", id: "new_account_form" }) do |form|
   - if form.object && !form.object.errors.empty?
     %fieldset.errors
       %legend Errors

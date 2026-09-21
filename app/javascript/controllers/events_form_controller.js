@@ -1,5 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
-import { Money } from "javascript/money"
+import { Money } from "money"
 
 export default class extends Controller {
   static targets = [
@@ -29,41 +29,48 @@ export default class extends Controller {
     this.currentEvent = -1
   }
 
-  revealExpense() {
+  revealExpense(event) {
+    if (event) event.preventDefault()
     this.highlightLink("expense_link")
     this.revealBasicForm()
     this.showLabels("expense_label")
-    this.paymentSourceTarget.classList.remove("hidden")
+    if (this.hasPaymentSourceTarget) this.paymentSourceTarget.classList.remove("hidden")
   }
 
-  revealDeposit() {
+  revealDeposit(event) {
+    if (event) event.preventDefault()
     this.highlightLink("deposit_link")
     this.revealBasicForm()
     this.showLabels("deposit_label")
-    this.depositTarget.classList.remove("hidden")
+    if (this.hasDepositTarget) this.depositTarget.classList.remove("hidden")
   }
 
-  revealTransfer() {
+  revealTransfer(event) {
+    if (event) event.preventDefault()
     this.highlightLink("transfer_link")
     this.revealBasicForm()
     this.showLabels("transfer_label")
-    this.transferFromTarget.classList.remove("hidden")
-    this.transferToTarget.classList.remove("hidden")
+    if (this.hasTransferFromTarget) this.transferFromTarget.classList.remove("hidden")
+    if (this.hasTransferToTarget) this.transferToTarget.classList.remove("hidden")
   }
 
   revealBasicForm() {
-    this.newEventTarget.classList.remove("hidden")
-    this.successNoticeTarget.classList.add("hidden")
+    if (this.hasNewEventTarget) this.newEventTarget.classList.remove("hidden")
+    if (this.hasSuccessNoticeTarget) this.successNoticeTarget.classList.add("hidden")
     this.hideAllLabels()
-    this.generalInfoTarget.classList.remove("hidden")
+    if (this.hasGeneralInfoTarget) this.generalInfoTarget.classList.remove("hidden")
     this.hideAllSections()
   }
 
   hideAllSections() {
     const sections = [
-      this.paymentSourceTarget, this.creditOptionsTarget,
-      this.depositTarget, this.transferFromTarget, this.transferToTarget,
-      this.reallocateFromTarget, this.reallocateToTarget
+      this.hasPaymentSourceTarget && this.paymentSourceTarget,
+      this.hasCreditOptionsTarget && this.creditOptionsTarget,
+      this.hasDepositTarget && this.depositTarget,
+      this.hasTransferFromTarget && this.transferFromTarget,
+      this.hasTransferToTarget && this.transferToTarget,
+      this.hasReallocateFromTarget && this.reallocateFromTarget,
+      this.hasReallocateToTarget && this.reallocateToTarget
     ]
     sections.forEach(s => { if (s) s.classList.add("hidden") })
   }
@@ -88,42 +95,49 @@ export default class extends Controller {
     }
   }
 
-  cancel() {
+  cancel(event) {
+    if (event) event.preventDefault()
     if (this.returnToValue) {
       window.location.href = this.returnToValue
     } else {
       this.highlightLink("")
       this.reset()
-      this.newEventTarget.classList.add("hidden")
+      if (this.hasNewEventTarget) this.newEventTarget.classList.add("hidden")
     }
   }
 
   reset() {
-    this.formTarget.reset()
+    if (this.hasFormTarget) this.formTarget.reset()
     this.hideAllSections()
-    this.memoTarget.classList.add("hidden")
-    this.memoLinkTarget.classList.remove("hidden")
-    this.tagItemsTarget.classList.add("hidden")
-    this.tagItemsCollapsedTarget.classList.remove("hidden")
-    this.taggedItemsTarget.innerHTML = ""
-    this.tagsTarget.classList.add("hidden")
-    this.tagsCollapsedTarget.classList.remove("hidden")
-    this.recallEventTarget.classList.add("hidden")
+    if (this.hasMemoTarget) this.memoTarget.classList.add("hidden")
+    if (this.hasMemoLinkTarget) this.memoLinkTarget.classList.remove("hidden")
+    if (this.hasTagItemsTarget) this.tagItemsTarget.classList.add("hidden")
+    if (this.hasTagItemsCollapsedTarget) this.tagItemsCollapsedTarget.classList.remove("hidden")
+    if (this.hasTaggedItemsTarget) this.taggedItemsTarget.innerHTML = ""
+    if (this.hasTagsTarget) this.tagsTarget.classList.add("hidden")
+    if (this.hasTagsCollapsedTarget) this.tagsCollapsedTarget.classList.remove("hidden")
+    if (this.hasRecallEventTarget) this.recallEventTarget.classList.add("hidden")
   }
 
-  revealMemo() {
+  revealMemo(event) {
+    if (event) event.preventDefault()
+    if (!this.hasMemoTarget || !this.hasMemoLinkTarget) return
     this.memoLinkTarget.classList.add("hidden")
     this.memoTarget.classList.remove("hidden")
     this.memoTarget.querySelector("textarea").focus()
   }
 
-  revealTags() {
+  revealTags(event) {
+    if (event) event.preventDefault()
+    if (!this.hasTagsTarget || !this.hasTagsCollapsedTarget) return
     this.tagsCollapsedTarget.classList.add("hidden")
     this.tagsTarget.classList.remove("hidden")
     this.tagsTarget.querySelector("input").focus()
   }
 
-  revealPartialTags() {
+  revealPartialTags(event) {
+    if (event) event.preventDefault()
+    if (!this.hasTagItemsTarget || !this.hasTagItemsCollapsedTarget) return
     this.addTaggedItem()
     this.addTaggedItem()
     this.tagItemsCollapsedTarget.classList.add("hidden")
@@ -198,6 +212,7 @@ export default class extends Controller {
   }
 
   showRepaymentOptions(event) {
+    if (event) event.preventDefault()
     const section = event.currentTarget.dataset.section
     const repaymentOptions = document.getElementById(`${section}.repayment_options`)
     const creditOptions = document.getElementById("credit_options")
@@ -355,6 +370,7 @@ export default class extends Controller {
   }
 
   checkActorName() {
+    if (!this.hasRecallEventTarget) return
     if (this.actorNameTarget.value.trim()) {
       this.recallEventTarget.classList.remove("hidden")
     } else {
@@ -406,10 +422,10 @@ export default class extends Controller {
     const memoField = document.getElementById("event_memo")
     if (memoField) {
       memoField.value = event.memo || ""
-      if (memoField.value) this.revealMemo()
+      if (memoField.value && this.hasMemoTarget) this.revealMemo()
     }
 
-    this.recallEventTarget.classList.remove("hidden")
+    if (this.hasRecallEventTarget) this.recallEventTarget.classList.remove("hidden")
 
     switch (event.role) {
       case "expense":
@@ -500,6 +516,7 @@ export default class extends Controller {
 
   submit(event) {
     event.preventDefault()
+    if (!this.hasFormTarget) return
 
     try {
       const data = this.serialize()
@@ -508,18 +525,30 @@ export default class extends Controller {
       fetch(action, {
         method: "POST",
         headers: {
-          "Content-Type": "application/xml",
+          "Content-Type": "application/json",
           "X-CSRF-Token": document.querySelector("meta[name='csrf-token']")?.content,
           "Accept": "text/vnd.turbo-stream.html"
         },
-        body: this.buildXMLString(data)
-      }).then(response => {
+        body: JSON.stringify(data)
+      }).then(async response => {
+        // Update actions (turbo_stream redirect) land here after fetch follows
+        // the redirect: navigate instead of misinterpreting HTML as a stream.
+        if (response.redirected) {
+          window.location.href = response.url
+          return null
+        }
         if (response.ok) {
           return response.text()
         }
-        throw new Error("Request failed")
+        throw new Error(await this.errorMessage(response))
       }).then(html => {
+        if (html === null) return
         Turbo.renderStreamMessage(html)
+        // The create stream only refreshes the lists; the form stays in the
+        // DOM. Clear it for the next entry and reveal the in-form notice.
+        this.reset()
+        if (this.hasNewEventTarget) this.newEventTarget.classList.remove("hidden")
+        if (this.hasSuccessNoticeTarget) this.successNoticeTarget.classList.remove("hidden")
       }).catch(err => {
         alert(err.message || "An error occurred")
       })
@@ -528,13 +557,27 @@ export default class extends Controller {
     }
   }
 
+  async errorMessage(response) {
+    try {
+      const errors = await response.clone().json()
+      if (errors && typeof errors === "object") {
+        const messages = Object.entries(errors)
+          .map(([field, msgs]) => `${field} ${Array.isArray(msgs) ? msgs.join(", ") : msgs}`)
+        if (messages.length > 0) return messages.join("\n")
+      }
+    } catch {
+      // Not JSON — fall through to the generic message.
+    }
+    return `Request failed (${response.status})`
+  }
+
   available(section) {
     const el = document.getElementById(section)
     return el && !el.classList.contains("hidden")
   }
 
   serialize() {
-    const data = { event: { line_item: [], tagged_item: [] } }
+    const data = { event: { line_items: [], tagged_items: [] } }
 
     if (this.available("general_information")) {
       this.serializeGeneralInformation(data)
@@ -629,7 +672,7 @@ export default class extends Controller {
   }
 
   addLineItemRecord(data, accountId, bucketId, amount, role) {
-    data.event.line_item.push({ account_id: accountId, bucket_id: bucketId, amount, role })
+    data.event.line_items.push({ account_id: accountId, bucket_id: bucketId, amount, role })
   }
 
   serializeTags(data) {
@@ -651,7 +694,7 @@ export default class extends Controller {
     tagList.split(",").forEach(name => {
       const trimmed = name.trim()
       if (trimmed) {
-        data.event.tagged_item.push({ amount: total, tag_id: "n:" + trimmed })
+        data.event.tagged_items.push({ amount: total, tag_id: "n:" + trimmed })
       }
     })
   }
@@ -664,7 +707,7 @@ export default class extends Controller {
       const name = row.querySelector("input.tag")?.value?.trim()
       if (name) {
         const amount = Money.parse(row.querySelector("input.number"))
-        data.event.tagged_item.push({ amount, tag_id: "n:" + name })
+        data.event.tagged_items.push({ amount, tag_id: "n:" + name })
       }
     })
   }
@@ -701,39 +744,6 @@ export default class extends Controller {
       current = current[parts[i]]
     }
     current[parts[parts.length - 1]] = value
-  }
-
-  buildXMLString(data) {
-    return this.buildXMLFor("event", data.event)
-  }
-
-  buildXMLFor(tag, value) {
-    if (Array.isArray(value)) {
-      let xml = `<${tag}s type="array">`
-      value.forEach(item => { xml += this.buildXMLFor(tag, item) })
-      xml += `</${tag}s>`
-      return xml
-    } else if (typeof value === "object" && value !== null) {
-      let xml = `<${tag}>`
-      for (const [key, val] of Object.entries(value)) {
-        const childTag = key.replace("_", "-")
-        xml += this.buildXMLFor(childTag, val)
-      }
-      xml += `</${tag}>`
-      return xml
-    } else {
-      const encoded = this.encodeXML(String(value))
-      return `<${tag}>${encoded}</${tag}>`
-    }
-  }
-
-  encodeXML(str) {
-    return str
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/'/g, "&apos;")
-      .replace(/"/g, "&quot;")
   }
 
   sectionWantsCheckOptions(section) {

@@ -43,4 +43,4 @@
     %span.transfer_label
       %strong How much
       was transferred?
-    = "$#{text_field_tag :amount, event_amount_value, size: 8, id: "expense_total", class: "number", "data-events-form-target": "expenseTotal", "data-action": "input->events-form#updateAmount"}"
+    = "$#{text_field_tag :amount, event_amount_value, size: 8, id: "expense_total", class: "number", "data-events-form-target": "expenseTotal", "data-action": "input->events-form#updateAmount"}".html_safe

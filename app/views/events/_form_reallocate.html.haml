@@ -1,4 +1,4 @@
-%fieldset{id: section, class: section_visible_for_event?(section) ? "" : "hidden"}
+%fieldset{id: section, class: section_visible_for_event?(section) ? "" : "hidden", "data-events-form-target": section.to_s.camelize(:lower)}
   %legend Reallocate funds
 
   %p.primary

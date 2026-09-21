@@ -28,7 +28,9 @@ class Subscription < ApplicationRecord
     end
 
     def prepare(attrs={})
-      event = build(role: attrs[:role], occurred_on: Date.current)
+      event = build(occurred_on: Date.current)
+      role = attrs[:role].presence || attrs["role"].presence
+      event.role = role if role
 
       case event.role
       when :reallocation

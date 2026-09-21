@@ -101,7 +101,7 @@ module EventsHelper
   def event_amount_value
     if @event
       if @event.role == :transfer
-        balance = @event.account_items.map { |a| a.amount.abs }.max
+        balance = @event.account_items.map { |a| a.amount.abs }.max || 0
       else
         balance = @event.balance.abs
       end

@@ -61,6 +61,34 @@ class EventsControllerTest < ActionController::TestCase
     assert_equal "Somebody", assigns(:event).actor_name
   end
 
+  test "create via turbo_stream should refresh lists without replacing the form" do
+    assert_difference "subscriptions(:john).events.count" do
+      post :create, :subscription_id => subscriptions(:john).id,
+        :event => simple_event(:john_checking, :john_checking_household),
+        :format => "turbo_stream"
+      assert_response :success
+    end
+
+    assert_template "events/create"
+    assert @response.body.include?('target="recent_entries"'), "expected recent_entries stream"
+    assert @response.body.include?('target="accounts_summary"'), "expected accounts_summary stream"
+    assert !@response.body.include?('target="new_event"'), "must not replace #new_event (the form lives there)"
+  end
+
+  test "create via turbo_stream with validation errors should return 422 JSON, not the success template" do
+    data = simple_event(:john_checking, :john_checking_dining)
+    data[:actor_name] = ""
+
+    assert_no_difference "Event.count" do
+      post :create, :subscription_id => subscriptions(:john).id, :event => data,
+        :format => "turbo_stream"
+      assert_response :unprocessable_entity
+    end
+
+    assert !@response.body.include?("recent_entries"), "error must not render success streams"
+    assert JSON.parse(@response.body).key?("actor_name")
+  end
+
   test "update via ajax should load subscription and event, update event and redirect back to caller" do
     event = events(:john_checking_starting_balance)
     xhr :post, :update, :id => event.id,

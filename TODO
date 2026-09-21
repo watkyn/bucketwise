@@ -1,34 +1,112 @@
---------------------------------------------------------------------------
-KNOWN ISSUES
---------------------------------------------------------------------------
+==========================================================================
+Rails 8 PARITY — remaining work
+==========================================================================
 
-* After adding an event with a new tag, the tag autocompletion won't pick up the new tag until the page is reloaded.
-* After adding an event with a new actor, the actor autocompletion won't pick up the new actor until the page is reloaded.
-* Merging one bucket into another can result in events having two line-items referencing the same bucket.
+Branch: upgrade-again
+Done (committed): Rails 2.3 → 8 port, Hotwire/Turbo/Tailwind UI, RJS → Turbo Streams, tests green (219).
+Done (uncommitted): importmap money pin fix, Stimulus data-controller wrappers, csrf_meta_tags,
+                    encoding/nil fixes, importmap integrity tests (now 223 runs green).
 
---------------------------------------------------------------------------
-FEATURES that would be nice to have someday (in no particular order)
---------------------------------------------------------------------------
+------------------------------------------------------------------------
+1. BLOCKING — front end must actually boot
+------------------------------------------------------------------------
 
-* spinner for ajax actions
-* user info page (for password change)
-* password reset from login page
-* signup process
-* exception notifier (?)
-* better /subscriptions index
-* better 404 and 500 error pages
-* searching
-* reporting
-* scheduled transactions (occur automatically at specified intervals)
-* print stylesheet
-* oauth authentication for API
-* filter event views to show only events with a non-zero balance for the account in question
-* filter event views to show only deposits, or only expenses
-* full-text searching on the memo field
-* show bucket and account balances next to names in drop-downs
-* make bucket reallocation work from bucket perma
-* support for multiple 'aside' buckets in a single account
-* graphical icons to replace the textual icons for various actions
-* add/edit transactions from the reconciliation view
-* statement API
-* show percentage of credit limit consumed, rather than simply using text color
+* [ ] "Create new" / expense / deposit / transfer links still do nothing in the
+      browser (href="#" navigation → GET same page). Server logs show the click
+      is NOT intercepted → Stimulus is not booting or an import/error kills it.
+      - Importmap + assets verified server-side (all pins 200); need browser-side proof.
+      - Add a system test (Capybara js: true) that clicks "expense" and asserts
+        #new_event becomes visible without a full page navigation.
+      - Check browser console for module load / CSP errors.
+
+* [ ] Event recall is broken: events#index format.js calls Events.doneLoadingRecalledEvents
+      but no Events global exists. Wire recall through Stimulus (recallEvent target)
+      or turbo_stream; then delete the dead format.js.
+
+* [ ] Dormant format.js blocks left from RJS era — delete once FE confirmed:
+      events (index/create/update/destroy/show), accounts (update), buckets (update),
+      tags (update), application_controller not_found format.js.
+
+------------------------------------------------------------------------
+2. VIEWS — drop HAML, go full Rails 8 ERB (43 haml → 0)
+------------------------------------------------------------------------
+
+* [ ] Convert all app/views/**/*.haml to idiomatic ERB.
+      Already ERB: turbo_stream templates, buckets/_delete_form, a few others (7 total).
+* [ ] Replace form_for / form_tag with form_with (9 call sites).
+* [ ] Remove Rails-2-era helpers still in views (visible? ternary traps, "$" + input
+      concatenation, .html_safe patches — rewrite with tag helpers / safe buffers).
+* [ ] Remove gems: haml, haml-rails; drop config/initializers/haml_fix.rb (154 lines).
+* [ ] Remove config/initializers/json_fix.rb if only needed for old XML serializers;
+      keep activemodel-serializers-xml only if JSON API still needs it.
+
+------------------------------------------------------------------------
+3. CONTROLLERS / HELPERS — idiomatic Rails 8
+------------------------------------------------------------------------
+
+* [ ] Review strong params + respond_to across all controllers; remove unused formats.
+* [ ] QueryFilter: BucketsController#index passes string-keyed params; QueryFilter
+      reads symbols — latent bug. Normalize keys or change QueryFilter.
+* [ ] Events#index has no HTML format (406) and find_container raises when no
+      container param — define intended HTML behavior or keep JSON-only explicitly.
+* [ ] Remove LegacyControllerTestHelpers shims once tests use modern style
+      (or keep only if still needed for fixture-era tests).
+* [ ] config/initializers/shims.rb (76 lines) — audit; delete anything unused.
+* [ ] Gut the XML REST API, replace with JSON API:
+      format.xml in 7 controllers (application, events, buckets, tags,
+      subscriptions, accounts, tagged_items), Model#to_xml overrides,
+      Hash.from_xml in functional tests (~89 refs total).
+      - Define JSON request/response shapes per resource (events incl.
+        line_items/tagged_items).
+      - Drop activemodel-serializers-xml + rexml gems, haml_fix.rb to_xml
+        patches, json_fix.rb quirks_mode shim once nothing parses/emits XML.
+      - Convert doc/API.rdoc-era XML functional tests to JSON
+        (assert on parsed JSON, status codes, Location headers).
+      - Browser already posts JSON (events-form Stimulus, 2026-09 fix);
+        keep turbo_stream for HTML, JSON for API — no XML in either path.
+
+------------------------------------------------------------------------
+4. PROJECT HYGIENE — look like a fresh rails new app
+------------------------------------------------------------------------
+
+* [ ] Delete Rails 2 leftovers: script/, Capfile, doc/API.rdoc, README.rdoc → README.md,
+      CHANGELOG.rdoc, TODO feature-backlog merge (see section 7), .gems, .env if unused.
+* [ ] pg2sqlite.py — commit, gitignore, or delete (decide).
+* [ ] Remove swap file: app/controllers/.subscriptions_controller.rb.swp
+* [ ] Push upgrade-again when green (3 commits local, not pushed).
+* [ ] Confirm .gitignore covers storage/, log/, tmp/, pg2sqlite if kept out.
+
+------------------------------------------------------------------------
+5. TESTS / VERIFICATION
+------------------------------------------------------------------------
+
+* [ ] Keep importmap integrity tests green (test/unit/importmap_test.rb).
+* [ ] Add system test: click expense/add-account → form reveals (proves Stimulus boot).
+* [ ] Expand /tmp/render_pages.rb (or promote to a real test): tags, statements,
+      buckets index, login, root redirect, accounts edit.
+* [ ] Visual parity pass vs buckets.homestorelane.com (green theme in place;
+      pixel pass open).
+* [ ] Seed demo data — dev subscription is blank-slate ("Welcome to BucketWise!").
+      Need accounts/buckets/events/tags to exercise UI (test login: test/password, sub 2).
+
+------------------------------------------------------------------------
+6. KNOWN PRODUCT BUGS (pre-existing, not Rails-8-specific)
+------------------------------------------------------------------------
+
+* [ ] New tag/actor autocomplete stale until page reload.
+* [ ] Merging buckets can leave events with two line-items on the same bucket.
+
+------------------------------------------------------------------------
+7. OLD TODO BACKLOG (from previous TODO file — features, not parity)
+------------------------------------------------------------------------
+
+Spinner for ajax; user info page; password reset; signup; exception notifier;
+better subscriptions index; 404/500 pages; searching; reporting; scheduled
+transactions; print stylesheet; oauth API; filter events by balance/type;
+memo full-text search; balances in dropdowns; bucket reallocation from perma;
+multiple aside buckets; graphical icons; edit txs from reconcile; statement API;
+credit-limit % instead of color only.
+
+==========================================================================
+Suggested order: 1 (boot) → 5 (prove it) → 2 (ERB) → 3 → 4 → push
+==========================================================================
