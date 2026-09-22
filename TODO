@@ -112,9 +112,9 @@ CONVERSION MAPPING (apply uniformly):
   Run `bin/rails routes` for exact path helpers; never guess them.
 
 TASKS (A–D are independent and safe to run in parallel — disjoint files):
-  * [ ] A — events:      test/functional/events_controller_test.rb
+  * [x] A — events:      test/functional/events_controller_test.rb
                          (390 LOC, 43 requests) -> test/controllers/
-  * [ ] B — accounts + buckets: 156 + 154 LOC   -> test/controllers/
+  * [x] B — accounts + buckets: 156 + 154 LOC   -> test/controllers/
   * [ ] C — tags + statements + subscriptions + tagged_items + sessions
                          172 + 102 + 79 + 68 + 41 LOC -> test/controllers/
   * [ ] D — coverage gaps (no SimpleCov, no new gems — user's call):

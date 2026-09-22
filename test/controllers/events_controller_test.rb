@@ -136,7 +136,7 @@ class EventsControllerTest < ActionDispatch::IntegrationTest
     end
 
     refute_includes @response.body, "recent_entries", "error must not render success streams"
-    assert @response.parsed_body.key?("actor_name")
+    assert JSON.parse(@response.body).key?("actor_name")
   end
 
   test "update via turbo_stream should load subscription and event, update event and redirect back to caller" do
