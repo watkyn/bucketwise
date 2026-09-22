@@ -100,6 +100,16 @@ class AccountsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "Hi!", account.reload.name
   end
 
+  test "change_password should update the signed-in user's password" do
+    user = users(:john)
+
+    post change_password_path, params: { new_password: "newtesting" }
+
+    assert_redirected_to root_path
+    assert_equal user, User.authenticate(user.user_name, "newtesting")
+    assert_nil User.authenticate(user.user_name, "testing")
+  end
+
   # == API tests ========================================================================
 
   test "index via API should return account list" do

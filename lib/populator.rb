@@ -19,7 +19,7 @@ class Populator
   end
 
   def post(occurred_on, actor_name, default_amount=nil)
-    returning Post.new(occurred_on, actor_name, default_amount) do |post|
+    Post.new(occurred_on, actor_name, default_amount).tap do |post|
       @posts << post
     end
   end
@@ -27,10 +27,10 @@ class Populator
   def commit!
     Account.transaction do
       @accounts.each do |account|
-        subscription.accounts.create!(account, :author => subscription.users.rand)
+        subscription.accounts.create!(account.merge(author: subscription.users.to_a.sample))
       end
 
-      acct_cache = Hash.new { |h,k| h[k] = subscription.accounts.find_by_name(k) or raise IndexError, "key not found: #{k}" }
+      acct_cache = Hash.new { |h,k| h[k] = subscription.accounts.find_by(name: k) or raise IndexError, "key not found: #{k}" }
 
       @posts.each do |post|
         post.line_items.each do |item|
@@ -52,7 +52,7 @@ class Populator
           :check_number => post.check_number, :memo => post.memo,
           :line_items => post.line_items, :tagged_items => post.tagged_items }
 
-        subscription.events.create!(event_data, :user => subscription.users.rand)
+        subscription.events.create!(event_data.merge(user: subscription.users.to_a.sample))
       end
     end
   end
@@ -164,4 +164,3 @@ class Populator
       end
   end
 end
-

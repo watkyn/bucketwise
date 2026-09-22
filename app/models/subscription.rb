@@ -65,10 +65,10 @@ class Subscription < ApplicationRecord
       Bucket.where(account_id: accounts.select(:id)).delete_all
       Statement.where(account_id: accounts.select(:id)).delete_all
 
-      actors.delete_all
-      events.delete_all
-      accounts.delete_all
-      tags.delete_all
+      Event.where(subscription_id: id).delete_all
+      Actor.where(subscription_id: id).delete_all
+      Account.where(subscription_id: id).delete_all
+      Tag.where(subscription_id: id).delete_all
     end
   end
 

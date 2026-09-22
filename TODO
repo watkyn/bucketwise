@@ -115,9 +115,9 @@ TASKS (A–D are independent and safe to run in parallel — disjoint files):
   * [x] A — events:      test/functional/events_controller_test.rb
                          (390 LOC, 43 requests) -> test/controllers/
   * [x] B — accounts + buckets: 156 + 154 LOC   -> test/controllers/
-  * [ ] C — tags + statements + subscriptions + tagged_items + sessions
+  * [x] C — tags + statements + subscriptions + tagged_items + sessions
                          172 + 102 + 79 + 68 + 41 LOC -> test/controllers/
-  * [ ] D — coverage gaps (no SimpleCov, no new gems — user's call):
+  * [x] D — coverage gaps (no SimpleCov, no new gems — user's call):
         - app/helpers/* = 458 LOC with ZERO tests; events_helper.rb alone
           is 353 LOC (event-form section JSON, dropdown/role rendering).
         - models with no test file: actor, subscription, user_subscription.
