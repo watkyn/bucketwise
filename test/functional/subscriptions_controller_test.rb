@@ -41,6 +41,20 @@ class SubscriptionsControllerTest < ActionController::TestCase
     assert_equal subscriptions(:john), assigns(:subscription)
   end
 
+  test "show should render account links in recent entries as real links, not escaped HTML" do
+    get :show, :id => subscriptions(:john).id
+    assert_response :success
+
+    assert_select "#recent_entries .account_links a[href=?]", account_path(accounts(:john_checking)) do |links|
+      assert_equal "Checking", links.first.text
+    end
+    assert_select "#recent_entries .account_links a[href=?]", account_path(accounts(:john_mastercard)) do |links|
+      assert_equal "Mastercard", links.first.text
+    end
+    assert !@response.body.include?("&lt;a href="),
+      "expected real <a> elements in recent entries, found escaped HTML instead"
+  end
+
   # == API tests ========================================================================
 
   test "index via API should return list of all subscriptions available to user" do

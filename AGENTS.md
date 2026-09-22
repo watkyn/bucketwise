@@ -16,7 +16,10 @@ Two external references govern work in this repo:
 2. **`master` branch — the behavioral reference ("what it used to do").**
    `master` is frozen at `a12e77c` and preserves the original Rails 2.3 application. It is read-only
    history: never commit to it, never merge it forward mechanically. When unsure how BucketWise is
-   *supposed* to behave (accounting rules, event validation, balances, edge cases), check the old code:
+   *supposed* to behave (accounting rules, event validation, balances, edge cases), check the old code.
+   A read-only worktree of `master` is always available at `../bucketwise-master` (sibling of this
+   repo, deliberately outside the working tree so searches here never hit it) — browse/read/grep the
+   old code there with normal file tools. It is reference only: never edit or commit in it. For one-offs:
    ```sh
    git show master:app/models/event.rb        # any path on the frozen branch
    git log master --oneline                   # original history
@@ -89,7 +92,9 @@ Utilities: `bin/rails data:subscription:dump ID=<id>` / `data:subscription:load 
 - Layout: `test/unit`, `test/functional` (controller tests), `test/integration`, `test/system`.
 - Functional tests still use `LegacyControllerTestHelpers` (Rails 2-era positional/xhr style) — kept
   intentionally; don't mass-rewrite them for style, but new tests may use modern Rails style.
-- Green baseline: `bin/rails test` (239 runs) and `bin/rails test:system` (1 run) must stay green.
+- Green baseline: `bin/rails test` (242 runs) and `bin/rails test:system` (1 run) must stay green.
+- Bug-fix discipline: every bug fix starts with a failing test that proves the bug. Write the test,
+  watch it fail, then fix, then watch it pass. Never ship a bug fix without its regression test.
 
 ## Stack
 
@@ -101,6 +106,6 @@ Tailwind CSS · propshaft · Puma. No HAML, no XML API, no RJS (removed during t
 - Prefer idiomatic Rails 8 (`form_with`, ERB, `respond_to` only where actually branching).
 - Match Fizzy's style (see `fizzy/STYLE.md`) for new code: expanded conditionals over clever guard
   clauses, class methods → public → private ordering, find similar existing code before inventing.
-- When porting or questioning legacy behavior, read `master:` first, then keep/adjust the Rails 8
-  tests accordingly.
+- When porting or questioning legacy behavior, read the old code first (`../bucketwise-master` or
+  `git show master:...`), then keep/adjust the Rails 8 tests accordingly.
 - Current parity status and open gaps live in `TODO` — update it as work lands.

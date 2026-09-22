@@ -5,6 +5,10 @@
 <turbo-stream action="remove" target="<%= zoomed %>">
 </turbo-stream>
 
+<%# Port of legacy destroy.js.rjs: refresh whichever summary the row was
+  deleted from, based on the `from` location sent by event-row#delete. %>
+<% from = params[:from].to_s.delete('"') %>
+<% if from.include?("subscriptions") || from.include?("events") || from.blank? %>
 <turbo-stream action="replace" target="accounts_summary">
   <template>
     <table id="accounts_summary">
@@ -12,3 +16,32 @@
     </table>
   </template>
 </turbo-stream>
+<% end %>
+<% if (m = from.match(%r{accounts/(\d+)})) %>
+  <% account = subscription.accounts.find_by(id: m[1]) %>
+  <% if account %>
+<turbo-stream action="replace" target="balance">
+  <template>
+    <%= balance_cell(account.reload, classes: %w(total balance), tag: "span", id: "balance") %>
+  </template>
+</turbo-stream>
+  <% end %>
+<% elsif (m = from.match(%r{buckets/(\d+)})) %>
+  <% bucket = Bucket.find_by(id: m[1]) %>
+  <% if bucket && subscription.accounts.exists?(bucket.account_id) %>
+<turbo-stream action="replace" target="balance">
+  <template>
+    <%= balance_cell(bucket.reload, classes: %w(total balance), tag: "span", id: "balance") %>
+  </template>
+</turbo-stream>
+  <% end %>
+<% elsif (m = from.match(%r{tags/(\d+)})) %>
+  <% tag = subscription.tags.find_by(id: m[1]) %>
+  <% if tag %>
+<turbo-stream action="replace" target="balance">
+  <template>
+    <%= balance_cell(tag.reload, classes: %w(total balance), tag: "span", id: "balance") %>
+  </template>
+</turbo-stream>
+  <% end %>
+<% end %>

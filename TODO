@@ -9,7 +9,7 @@ Done (this pass): FE boot proven (system test + integration wiring tests),
                   XML API gutted → JSON API (gems dropped), QueryFilter fix,
                   bare /events no longer 500s, demo seed, route smoke test,
                   hygiene (README.md, .gitignore), shims slimmed, haml_fix deleted.
-Tests: bin/rails test = 239 runs green; bin/rails test:system = 1 run green.
+Tests: bin/rails test = 242 runs green; bin/rails test:system = 1 run green.
 
 ------------------------------------------------------------------------
 1. BLOCKING — front end must actually boot                         [DONE]

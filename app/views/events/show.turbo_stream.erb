@@ -1,10 +1,5 @@
-<turbo-stream action="replace" target="<%= dom_id(event, :zoomed) %>">
+<turbo-stream action="after" target="<%= dom_id(event) %>">
   <template>
     <%= render partial: "events/expand", locals: { event: event }, formats: [:html] %>
   </template>
 </turbo-stream>
-
-<script>
-  document.getElementById("<%= dom_id(event) %>").classList.remove("zooming");
-  document.getElementById("<%= dom_id(event) %>").classList.add("zoomed");
-</script>

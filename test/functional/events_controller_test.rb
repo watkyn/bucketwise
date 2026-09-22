@@ -41,6 +41,34 @@ class EventsControllerTest < ActionController::TestCase
     assert_equal events(:john_lunch), assigns(:event)
   end
 
+  test "show via ajax should render tag links as real links, not escaped HTML" do
+    xhr :get, :show, :id => events(:john_lunch).id
+    assert_response :success
+
+    assert_includes @response.body,
+      %(<a href="#{tag_path(tags(:john_lunch))}">lunch</a>),
+      "expected a real tag link in the expanded event"
+    assert_includes @response.body,
+      %(<a href="#{tag_path(tags(:john_tip))}">tip</a>),
+      "expected a real tag link in the expanded event"
+    assert !@response.body.include?("&lt;a href="),
+      "expected real <a> elements in the expanded event, found escaped HTML instead"
+  end
+
+  test "show via turbo_stream should insert expanded row after event row" do
+    event = events(:john_lunch)
+    get :show, :id => event.id, :format => "turbo_stream"
+    assert_response :success
+
+    assert_includes @response.body,
+      %(<turbo-stream action="after" target="event_#{event.id}">),
+      "expected expand stream to insert after the event row (replace on zoomed_event_* targets a row that does not exist yet, so the info button does nothing)"
+    assert_includes @response.body, %(id="zoomed_event_#{event.id}"),
+      "expected expanded detail row in the stream"
+    assert !@response.body.include?("<script>"),
+      "Turbo strips <script> tags, so class toggling must live in event-row#expand, not inline JS"
+  end
+
   test "edit should load subscription and event and render page" do
     get :edit, :id => events(:john_lunch).id
     assert_response :success
@@ -111,6 +139,52 @@ class EventsControllerTest < ActionController::TestCase
     assert_equal subscriptions(:john), assigns(:subscription)
     assert_equal events(:john_lunch), assigns(:event)
     assert !Event.exists?(events(:john_lunch).id)
+  end
+
+  test "destroy from subscription page should remove row and refresh accounts summary" do
+    event = events(:john_lunch)
+    xhr :delete, :destroy, :id => event.id, :from => "subscriptions"
+    assert_response :success
+    assert !Event.exists?(event.id)
+
+    assert_includes @response.body, %(<turbo-stream action="remove" target="event_#{event.id}">)
+    assert_includes @response.body, %(<turbo-stream action="replace" target="accounts_summary">)
+  end
+
+  test "destroy from account page should remove row and refresh balance" do
+    event = events(:john_lunch)
+    account = accounts(:john_checking)
+    xhr :delete, :destroy, :id => event.id, :from => "accounts/#{account.id}"
+    assert_response :success
+    assert !Event.exists?(event.id)
+
+    assert_includes @response.body, %(<turbo-stream action="remove" target="event_#{event.id}">)
+    assert_includes @response.body, %(<turbo-stream action="replace" target="balance">),
+      "expected a balance refresh when deleting from an account page"
+  end
+
+  test "destroy from bucket page should remove row and refresh balance" do
+    event = events(:john_lunch)
+    bucket = buckets(:john_checking_dining)
+    xhr :delete, :destroy, :id => event.id, :from => "buckets/#{bucket.id}"
+    assert_response :success
+    assert !Event.exists?(event.id)
+
+    assert_includes @response.body, %(<turbo-stream action="remove" target="event_#{event.id}">)
+    assert_includes @response.body, %(<turbo-stream action="replace" target="balance">),
+      "expected a balance refresh when deleting from a bucket page"
+  end
+
+  test "destroy from tag page should remove row and refresh balance" do
+    event = events(:john_lunch)
+    tag = tags(:john_lunch)
+    xhr :delete, :destroy, :id => event.id, :from => "tags/#{tag.id}"
+    assert_response :success
+    assert !Event.exists?(event.id)
+
+    assert_includes @response.body, %(<turbo-stream action="remove" target="event_#{event.id}">)
+    assert_includes @response.body, %(<turbo-stream action="replace" target="balance">),
+      "expected a balance refresh when deleting from a tag page"
   end
 
   test "new should 404 when user without permission requests page" do

@@ -33,7 +33,7 @@ module EventsHelper
       link_to(h(item.account.name), item.account)
     end
 
-    links.join(", ")
+    safe_join(links, ", ")
   end
 
   def form_sections
@@ -321,7 +321,7 @@ module EventsHelper
   end
 
   def tag_links_for(event)
-    event.tags.sort_by(&:name).map { |tag| link_to(h(tag.name), tag_path(tag)) }.join(", ")
+    safe_join(event.tags.sort_by(&:name).map { |tag| link_to(h(tag.name), tag_path(tag)) }, ", ")
   end
 
   def tag_entry_field(name, value, options={})

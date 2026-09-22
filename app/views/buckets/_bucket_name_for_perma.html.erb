@@ -3,5 +3,5 @@
   |
   <%= link_to "Delete/Merge", "#", "data-action": "click->bucket-row#deleteBucket" %>
 </span>
-<%= "#{link_to h(bucket.account.name), bucket.account}:" %>
+<%= link_to(h(bucket.account.name), bucket.account) %>:
 <%= bucket.name %>

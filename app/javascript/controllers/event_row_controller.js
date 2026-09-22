@@ -55,6 +55,12 @@ export default class extends Controller {
         "Accept": "text/vnd.turbo-stream.html"
       },
       body: params.toString()
+    }).then(async response => {
+      const html = await response.text()
+      if (!response.ok) throw new Error(html || `Delete failed (${response.status})`)
+      if (html) Turbo.renderStreamMessage(html)
+    }).catch(err => {
+      alert(err.message || "An error occurred")
     })
   }
 
@@ -70,6 +76,18 @@ export default class extends Controller {
     const url = event.currentTarget.dataset.url
     fetch(url, {
       headers: { "Accept": "text/vnd.turbo-stream.html" }
+    }).then(async response => {
+      const html = await response.text()
+      if (!response.ok) throw new Error(`Request failed (${response.status})`)
+      if (html) Turbo.renderStreamMessage(html)
+      const row = document.getElementById(`event_${id}`)
+      if (row) {
+        row.classList.remove("zooming")
+        row.classList.add("zoomed")
+      }
+    }).catch(() => {
+      const row = document.getElementById(`event_${id}`)
+      if (row) row.classList.remove("zooming")
     })
   }
 

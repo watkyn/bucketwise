@@ -40,6 +40,17 @@ class BucketsControllerTest < ActionController::TestCase
     assert_equal buckets(:john_checking_dining), assigns(:bucket)
   end
 
+  test "show should render the account name as a real link, not escaped HTML" do
+    get :show, :id => buckets(:john_checking_dining).id
+    assert_response :success
+
+    assert_select "h2 a[href=?]", account_path(accounts(:john_checking)) do |links|
+      assert_equal "Checking", links.first.text
+    end
+    assert !@response.body.include?("&lt;a href="),
+      "expected a real <a> element for the account name, found escaped HTML instead"
+  end
+
   test "update should 404 when user without permissions requests page" do
     xhr :put, :update, :id => buckets(:tim_checking_general).id, :bucket => { :name => "Hi!" }
     assert_response :missing
