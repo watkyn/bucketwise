@@ -66,7 +66,86 @@ Tests: bin/rails test = 242 runs green; bin/rails test:system = 1 run green.
 * [ ] New tag/actor autocomplete stale until page reload.
 * [ ] Merging buckets can leave events with two line-items on the same bucket.
 
-==========================================================================
+==------------------------------------------------------------------------
+6. TEST SUITE MODERNIZATION — Fizzy-style integration tests     [IN PROGRESS]
+------------------------------------------------------------------------
+Goal: convert all 8 test/functional/* files (137 tests, 1162 LOC) from
+ActionController::TestCase + Rails-2 positional/xhr style into
+ActionDispatch::IntegrationTest hitting real routes, then delete both legacy
+shims and the rails-controller-testing gem, and close the coverage gaps.
+`test/functional/` goes away; converted files live in `test/controllers/`.
+
+Baseline (2026-09-22, must stay green): bin/rails test = 247 runs,
+748 assertions, ~7.5s; bin/rails test:system = 1 run.
+
+ENVIRONMENT (all verified, required to run anything):
+  * Ruby must be put on PATH explicitly, otherwise Homebrew Ruby 4.0.7 is
+    picked up and Bundler raises Bundler::GemNotFound:
+      export PATH="/Users/ike/.local/share/mise/installs/ruby/3.4.8/bin:$PATH"
+  * Parallel work isolates the SQLite test DB per agent via:
+      TEST_ENV_NUMBER=<name> bin/rails db:test:prepare
+      TEST_ENV_NUMBER=<name> PARALLEL_WORKERS=1 bin/rails test <files>
+    -> uses storage/test<name>.sqlite3. Without this, concurrent runs
+       clobber storage/test.sqlite3.
+  * Behavioral reference is `git show master:<path>` — the
+    ../bucketwise-master worktree named in AGENTS.md does NOT exist here.
+  * Style reference is /Users/ike/dev/fizzy (AGENTS.md's
+    ~/dev/opensource/fizzy path is stale).
+  * `bin/rails test` DOES discover test/controllers/ (verified).
+
+DONE SO FAR:
+  * [x] SessionHelpers in test/test_helper.rb — sign_in(:john) does a real
+        POST /session, sign_out, and basic_auth_headers(:john, password:).
+        Verified green with a throwaway 5-test probe (since removed).
+
+CONVERSION MAPPING (apply uniformly):
+  get :show, :id => x             -> get event_path(x)
+  post :create, :subscription_id… -> post path, params: { ... }
+  xhr :put, :update, …            -> put path, params: { ... }, as: :turbo_stream
+  :format => "json"               -> format: :json (or ".json" path suffix)
+  assert_response :missing        -> assert_response :not_found
+  assert_template "accounts/show" -> assert_select / body match on real HTML
+  assigns(:subscription)          -> assert observable effect (DB / rendered HTML)
+  login! :john, login_default_user-> sign_in :john
+  api_login! :john, "testing"     -> headers: basic_auth_headers(:john)
+  session[:user_id] assertions    -> assert the redirect, then follow_redirect!
+  Run `bin/rails routes` for exact path helpers; never guess them.
+
+TASKS (A–D are independent and safe to run in parallel — disjoint files):
+  * [ ] A — events:      test/functional/events_controller_test.rb
+                         (390 LOC, 43 requests) -> test/controllers/
+  * [ ] B — accounts + buckets: 156 + 154 LOC   -> test/controllers/
+  * [ ] C — tags + statements + subscriptions + tagged_items + sessions
+                         172 + 102 + 79 + 68 + 41 LOC -> test/controllers/
+  * [ ] D — coverage gaps (no SimpleCov, no new gems — user's call):
+        - app/helpers/* = 458 LOC with ZERO tests; events_helper.rb alone
+          is 353 LOC (event-form section JSON, dropdown/role rendering).
+        - models with no test file: actor, subscription, user_subscription.
+        - lib/populator.rb and app/concerns/{pageable,option_handler,
+          categorized_items} have no direct tests.
+        - accounts#change_password: only GET is smoke-tested; the POST
+          branch (password change) is untested.
+        - pagination (?page=) on accounts#show / buckets#show / tags#show
+          is untested.
+  * [ ] E — AFTER A–D: delete LegacyControllerTestHelpers +
+        LegacyAssertResponse, drop test/functional/ entirely, remove
+        "rails-controller-testing" from the Gemfile, then prove green with
+        a full `bin/rails test` + `bin/rails test:system`.
+  * [ ] F — refresh stale AGENTS.md facts: 242 -> current run count,
+        fizzy path, and the nonexistent ../bucketwise-master worktree.
+
+KNOWN HAZARDS (do not paper over these):
+  * sessions#destroy: the old test called `get :destroy`, but routes only
+    expose DELETE /session — the controller test bypassed routing entirely.
+    Use delete session_path and check the layout's logout link to confirm
+    what the app really does.
+  * Every old test passes WITHOUT routing. A converted test may fail for a
+    real reason. Treat that as a finding: consult `git show master:...` for
+    intended behavior, and never weaken an assertion just to get green.
+  * `assigns(...)` has no integration equivalent — assert what a user can
+    actually observe (HTML, redirects, database state).
+
+========================================================================
 Known route gaps (documented by smoke/probe, not fixed — missing views/actions):
   406 HTML: subscriptions/:id/{accounts,events,tags} index, tags#new,
             accounts/:id/events, events/:id show (turbo_stream only)
