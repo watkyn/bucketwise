@@ -403,40 +403,151 @@ td.zoom tr.even td {
   padding: 0.3em 1em;
 }
 
-.form input {
-  font-size: 1em;
+/* ------------------------------------------------------------------ *
+ * FORM CONTROLS — sharp minimal
+ * ------------------------------------------------------------------ */
+
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="date"],
+input[type="datetime-local"],
+input[type="number"],
+input[type="search"],
+input[type="tel"],
+input[type="time"],
+input[type="url"],
+textarea,
+select {
+  font-family: inherit;
+  font-size: 0.9rem;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: #fff;
+  color: #111;
+  outline: none;
+  transition: border-color 0.12s ease, box-shadow 0.12s ease;
 }
 
-.form textarea {
-  font-size: 1em;
+input[type="text"]:hover,
+input[type="password"]:hover,
+input[type="email"]:hover,
+input[type="date"]:hover,
+input[type="datetime-local"]:hover,
+input[type="number"]:hover,
+input[type="search"]:hover,
+input[type="tel"]:hover,
+input[type="time"]:hover,
+input[type="url"]:hover,
+textarea:hover,
+select:hover {
+  border-color: #d1d5db;
 }
 
-.form select {
-  font-size: 1em;
+input[type="text"]:focus,
+input[type="password"]:focus,
+input[type="email"]:focus,
+input[type="date"]:focus,
+input[type="datetime-local"]:focus,
+input[type="number"]:focus,
+input[type="search"]:focus,
+input[type="tel"]:focus,
+input[type="time"]:focus,
+input[type="url"]:focus,
+textarea:focus,
+select:focus {
+  border-color: #111;
+  box-shadow: 0 0 0 1px #111;
+}
+
+input[type="submit"],
+input[type="button"],
+button,
+.button {
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.2;
+  padding: 0.55rem 1.1rem;
+  border: 1px solid #111;
+  border-radius: 6px;
+  background: #111;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+}
+
+input[type="submit"]:hover,
+input[type="button"]:hover,
+button:hover,
+.button:hover {
+  background: #333;
+  border-color: #333;
+}
+
+input[type="submit"]:active,
+input[type="button"]:active,
+button:active,
+.button:active {
+  background: #000;
+  border-color: #000;
+}
+
+input[type="submit"]:disabled,
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+input.secondary,
+button.secondary,
+a.button.secondary {
+  background: #fff;
+  color: #111;
+  border-color: #e5e7eb;
+}
+
+input.secondary:hover,
+button.secondary:hover,
+a.button.secondary:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+  accent-color: #111;
+  width: 1rem;
+  height: 1rem;
+  cursor: pointer;
 }
 
 .form fieldset {
-  border: 2px solid #ccc;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
   margin-top: 0.5em;
   background: white;
 }
 
 .form fieldset legend {
-  color: #777;
-  font-size: 0.9em;
-  font-weight: bold;
+  color: #6b7280;
+  font-size: 0.8em;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
   background: white;
   padding: 0 0.4em;
 }
 
 .form fieldset.errors {
-  border: 2px solid #f77;
-  background: #fcc;
+  border-color: #fca5a5;
+  background: #fef2f2;
 }
 
 .form fieldset.errors legend {
-  color: red;
-  background: #fcc;
+  color: #b91c1c;
+  background: #fef2f2;
 }
 
 .form fieldset.errors li {
@@ -495,12 +606,11 @@ div#new_account {
 
 div#new_account input.text {
   display: block;
-  font-size: 1.2em;
-  font-weight: bold;
-  color: #007;
-  padding: 0.1em;
-  margin: 0.25em;
-  width: 95%;
+  font-size: 1rem;
+  font-weight: 400;
+  color: #111;
+  margin: 0.25em 0;
+  width: 100%;
 }
 
 div#new_account div.role {
@@ -518,15 +628,21 @@ input.number {
 }
 
 .nubbin a.button {
-  padding: 0.1em 0;
+  padding: 0.15em 0;
   width: 1.5em;
   text-align: center;
   display: inline-block;
-  border: 1px solid #eee;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: #fff;
+  color: #374151;
+  font-size: 0.85em;
+  transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
 }
 
 .nubbin a.button:hover {
-  background: #009;
+  background: #111;
+  border-color: #111;
   color: white;
 }
 
@@ -542,8 +658,10 @@ div.transaction.transfer span.transfer_label { display: inline; }
 
 div.autocomplete_select {
   background: white;
-  border: 1px solid #ccc;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
   padding: 0.5em;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 div.autocomplete_select ul {
@@ -558,7 +676,7 @@ div.autocomplete_select li {
 }
 
 div.autocomplete_select li.selected {
-  background: #ffd;
+  background: #f3f4f6;
 }
 
 div.autocomplete_select strong {
@@ -584,13 +702,20 @@ div#cloud a:hover {
 label.option {
   display: block;
   padding: 1em;
-  border: 1px solid #eee;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
   margin: 0.25em;
+  cursor: pointer;
+  transition: border-color 0.12s ease, background 0.12s ease;
+}
+
+label.option:hover {
+  border-color: #d1d5db;
 }
 
 label.selected {
-  background: #ff7;
-  border: 1px solid #ccc;
+  background: #f9fafb;
+  border-color: #111;
 }
 
 /* ------------------------------------------------------------------ *
@@ -834,6 +959,5 @@ body.login .notice {
 
 #filter_form input {
   margin: 0;
-  padding: 0;
   font-size: 1em;
 }
