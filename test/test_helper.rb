@@ -80,6 +80,7 @@ class ActionController::TestCase
 end
 
 class ActiveSupport::TestCase
+  parallelize(workers: :number_of_processors, threshold: 10)
   fixtures :all
 
   protected
