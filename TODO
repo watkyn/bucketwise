@@ -60,34 +60,11 @@ Tests: bin/rails test = 242 runs green; bin/rails test:system = 1 run green.
 * [x] Push upgrade-again when green.
 
 ------------------------------------------------------------------------
-5. TESTS / VERIFICATION                                           [DONE]
-------------------------------------------------------------------------
-
-* [x] importmap integrity tests green (test/unit/importmap_test.rb).
-* [x] System test: click expense → form reveals (test/system/events_form_test.rb).
-* [x] Route probe promoted: test/integration/page_smoke_test.rb (HTML + JSON
-      core paths, login, bare /events redirect).
-* [ ] Visual parity pass vs buckets.homestorelane.com (pixel pass open).
-* [x] Seed demo data: dev login test/password, 2 accounts, 7 buckets,
-      8 events, 2 tags (user id=1, subscription id=1).
-
-------------------------------------------------------------------------
-6. KNOWN PRODUCT BUGS (pre-existing, not Rails-8-specific)
+5. KNOWN PRODUCT BUGS (pre-existing, not Rails-8-specific)
 ------------------------------------------------------------------------
 
 * [ ] New tag/actor autocomplete stale until page reload.
 * [ ] Merging buckets can leave events with two line-items on the same bucket.
-
-------------------------------------------------------------------------
-7. OLD TODO BACKLOG (features, not parity)
-------------------------------------------------------------------------
-
-Spinner for ajax; user info page; password reset; signup; exception notifier;
-better subscriptions index; 404/500 pages; searching; reporting; scheduled
-transactions; print stylesheet; oauth API; filter events by balance/type;
-memo full-text search; balances in dropdowns; bucket reallocation from perma;
-multiple aside buckets; graphical icons; edit txs from reconcile; statement API;
-credit-limit % instead of color only.
 
 ==========================================================================
 Known route gaps (documented by smoke/probe, not fixed — missing views/actions):
