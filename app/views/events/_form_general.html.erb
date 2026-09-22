@@ -59,4 +59,18 @@
     </span>
     <%= safe_join(["$", text_field_tag(:amount, event_amount_value, size: 8, id: "expense_total", class: "number", "data-events-form-target": "expenseTotal", "data-action": "input->events-form#updateAmount")]) %>
   </p>
+
+  <p id="memo_link" class="<%= event_wants_memo? ? "hidden" : "" %>" data-events-form-target="memoLink">
+    <strong>Got more to say?</strong>
+    <%= link_to "Add a more verbose description...", "#", "data-action": "click->events-form#revealMemo" %>
+  </p>
+
+  <fieldset id="memo" class="<%= event_wants_memo? ? "" : "hidden" %>" data-events-form-target="memo">
+    <legend>Description</legend>
+    <p>
+      Describe this transaction:
+      <br />
+      <%= form.text_area :memo, rows: 2, cols: 70 %>
+    </p>
+  </fieldset>
 </fieldset>
