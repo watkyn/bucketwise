@@ -91,35 +91,35 @@ class AccountsControllerTest < ActionController::TestCase
   # == API tests ========================================================================
 
   test "index via API should return account list" do
-    get :index, :subscription_id => subscriptions(:john).id, :format => "xml"
+    get :index, :subscription_id => subscriptions(:john).id, :format => "json"
     assert_response :success
-    xml = Hash.from_xml(@response.body)
-    assert_equal subscriptions(:john).accounts.length, xml["accounts"].length
+    json = JSON.parse(@response.body)
+    assert_equal subscriptions(:john).accounts.length, json.length
   end
 
   test "show via API should return account record" do
-    get :show, :id => accounts(:john_checking).id, :format => "xml"
+    get :show, :id => accounts(:john_checking).id, :format => "json"
     assert_response :success
-    xml = Hash.from_xml(@response.body)
-    assert_equal accounts(:john_checking).id, xml["account"]["id"]
+    json = JSON.parse(@response.body)
+    assert_equal accounts(:john_checking).id, json["id"]
   end
 
-  test "new via API should return a template XML response" do
-    get :new, :subscription_id => subscriptions(:john).id, :format => "xml"
+  test "new via API should return a template JSON response" do
+    get :new, :subscription_id => subscriptions(:john).id, :format => "json"
     assert_response :success
-    xml = Hash.from_xml(@response.body)
-    assert xml["account"]
-    assert !xml["account"]["id"]
+    json = JSON.parse(@response.body)
+    assert json
+    assert !json["id"]
   end
 
   test "create via API should return 422 with error messages when validations fail" do
     post :create,
       :subscription_id => subscriptions(:john).id,
       :account => { :name => "Checking", :role => "" },
-      :format => "xml"
+      :format => "json"
     assert_response :unprocessable_entity
-    xml = Hash.from_xml(@response.body)
-    assert xml["errors"].any?
+    json = JSON.parse(@response.body)
+    assert json.any?
   end
 
   test "create via API should create record and respond with 201" do
@@ -127,29 +127,29 @@ class AccountsControllerTest < ActionController::TestCase
       post :create,
         :subscription_id => subscriptions(:john).id,
         :account => { :name => "Mortgage", :role => "" },
-        :format => "xml"
+        :format => "json"
       assert_response :created
       assert @response.headers["Location"]
     end
   end
 
   test "update via API with validation errors should respond with 422" do
-    put :update, :id => accounts(:john_checking).id, :account => { :name => "Mastercard" }, :format => "xml"
+    put :update, :id => accounts(:john_checking).id, :account => { :name => "Mastercard" }, :format => "json"
     assert_response :unprocessable_entity
-    xml = Hash.from_xml(@response.body)
-    assert xml["errors"].any?
+    json = JSON.parse(@response.body)
+    assert json.any?
   end
 
   test "update via API should update record and respond with 200" do
-    put :update, :id => accounts(:john_checking).id, :account => { :name => "Hi!" }, :format => "xml"
+    put :update, :id => accounts(:john_checking).id, :account => { :name => "Hi!" }, :format => "json"
     assert_response :success
-    xml = Hash.from_xml(@response.body)
-    assert_equal "Hi!", xml["account"]["name"]
+    json = JSON.parse(@response.body)
+    assert_equal "Hi!", json["name"]
   end
 
   test "destroy via API should remove record and respond with 200" do
     assert_difference "Account.count", -1 do
-      delete :destroy, :id => accounts(:john_mastercard).id, :format => "xml"
+      delete :destroy, :id => accounts(:john_mastercard).id, :format => "json"
       assert_response :success
     end
   end

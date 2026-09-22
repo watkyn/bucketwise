@@ -3,10 +3,7 @@ class TagsController < ApplicationController
   before_action :find_tag, except: %w[index new create]
 
   def index
-    respond_to do |format|
-      format.json { render json: subscription.tags }
-      format.xml { render xml: subscription.tags.to_xml(root: "tags") }
-    end
+    render json: subscription.tags
   end
 
   def show
@@ -16,52 +13,31 @@ class TagsController < ApplicationController
         @more_pages, @items = tag_ref.tagged_items.page(@page)
       end
       format.json { render json: tag_ref }
-      format.xml { render xml: tag_ref }
     end
   end
 
   def new
     @tag = Tag.template
-    respond_to do |format|
-      format.json { render json: @tag }
-      format.xml { render xml: @tag.to_xml }
-    end
+    render json: @tag
   end
 
   def create
-    respond_to do |format|
-      format.json do
-        @tag_ref = subscription.tags.build(tag_params)
-        @tag_ref.save!
-        render json: @tag_ref, status: :created, location: tag_url(@tag_ref)
-      end
-      format.xml do
-        @tag_ref = subscription.tags.create!(tag_params)
-        render xml: @tag_ref, status: :created, location: tag_url(@tag_ref)
-      end
-    end
+    @tag_ref = subscription.tags.build(tag_params)
+    @tag_ref.save!
+    render json: @tag_ref, status: :created, location: tag_url(@tag_ref)
   rescue ActiveRecord::RecordInvalid => error
     @tag_ref = error.record
-    respond_to do |format|
-      format.json { render json: @tag_ref.errors, status: :unprocessable_entity }
-      format.xml { render xml: error.record.errors, status: :unprocessable_entity }
-    end
+    render json: @tag_ref.errors, status: :unprocessable_entity
   end
 
   def update
     tag_ref.update!(tag_params)
     respond_to do |format|
-      format.js
       format.turbo_stream
       format.json { render json: tag_ref }
-      format.xml { render xml: tag_ref }
     end
   rescue ActiveRecord::RecordInvalid
-    respond_to do |format|
-      format.js { render status: :unprocessable_entity }
-      format.json { render json: tag_ref.errors, status: :unprocessable_entity }
-      format.xml { render xml: tag_ref.errors, status: :unprocessable_entity }
-    end
+    render json: tag_ref.errors, status: :unprocessable_entity
   end
 
   def destroy
@@ -75,7 +51,6 @@ class TagsController < ApplicationController
     respond_to do |format|
       format.html { redirect_to(receiver || subscription_path(subscription)) }
       format.json { head :ok }
-      format.xml { head :ok }
     end
   rescue ActiveRecord::RecordNotSaved
     head :unprocessable_entity

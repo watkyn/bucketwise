@@ -1,0 +1,18 @@
+<div data-controller="tags">
+  <div id="delete_form" class="form hidden" data-tags-target="deleteForm">
+    <%= render partial: "tags/delete_form" %>
+  </div>
+
+  <div id="data" class="content" data-tags-target="data">
+    <div class="navigation">
+      <%= link_to "Dashboard", subscription_path(subscription) %>
+    </div>
+
+    <h2 id="name"><%= render partial: "tags/name" %></h2>
+
+    <table class="entries">
+      <%= render partial: "events/balance", locals: { container: tag_ref } %>
+      <%= render @items %>
+    </table>
+  </div>
+</div>

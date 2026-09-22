@@ -76,35 +76,35 @@ class BucketsControllerTest < ActionController::TestCase
   # == API tests ========================================================================
 
   test "index via API should return bucket list for account" do
-    get :index, :account_id => accounts(:john_checking).id, :format => "xml"
+    get :index, :account_id => accounts(:john_checking).id, :format => "json"
     assert_response :success
-    xml = Hash.from_xml(@response.body)
-    assert_equal accounts(:john_checking).buckets.length, xml["buckets"].length
+    json = JSON.parse(@response.body)
+    assert_equal accounts(:john_checking).buckets.length, json.length
   end
 
   test "show via API should return bucket record" do
-    get :show, :id => buckets(:john_checking_dining).id, :format => "xml"
+    get :show, :id => buckets(:john_checking_dining).id, :format => "json"
     assert_response :success
-    xml = Hash.from_xml(@response.body)
-    assert_equal buckets(:john_checking_dining).id, xml["bucket"]["id"]
+    json = JSON.parse(@response.body)
+    assert_equal buckets(:john_checking_dining).id, json["id"]
   end
 
-  test "new via API should return a template XML response" do
-    get :new, :account_id => accounts(:john_checking).id, :format => "xml"
+  test "new via API should return a template JSON response" do
+    get :new, :account_id => accounts(:john_checking).id, :format => "json"
     assert_response :success
-    xml = Hash.from_xml(@response.body)
-    assert xml["bucket"]
-    assert !xml["bucket"]["id"]
+    json = JSON.parse(@response.body)
+    assert json
+    assert !json["id"]
   end
 
   test "create via API should return 422 with error messages when validations fail" do
     post :create,
       :account_id => accounts(:john_checking).id,
       :bucket => { :name => "Dining", :role => "" },
-      :format => "xml"
+      :format => "json"
     assert_response :unprocessable_entity
-    xml = Hash.from_xml(@response.body)
-    assert xml["errors"].any?
+    json = JSON.parse(@response.body)
+    assert json.any?
   end
 
   test "create via API should create record and respond with 201" do
@@ -112,31 +112,31 @@ class BucketsControllerTest < ActionController::TestCase
       post :create,
         :account_id => accounts(:john_checking).id,
         :bucket => { :name => "Utilities", :role => "" },
-        :format => "xml"
+        :format => "json"
       assert_response :created
       assert @response.headers["Location"]
     end
   end
 
   test "update via API should update record and respond with 200" do
-    put :update, :id => buckets(:john_checking_dining).id, :bucket => { :name => "Hi!" }, :format => "xml"
+    put :update, :id => buckets(:john_checking_dining).id, :bucket => { :name => "Hi!" }, :format => "json"
     assert_response :success
-    xml = Hash.from_xml(@response.body)
-    assert_equal "Hi!", xml["bucket"]["name"]
+    json = JSON.parse(@response.body)
+    assert_equal "Hi!", json["name"]
   end
 
   test "update via API with validation errors should respond with 422" do
-    put :update, :id => buckets(:john_checking_dining).id, :bucket => { :name => "Groceries" }, :format => "xml"
+    put :update, :id => buckets(:john_checking_dining).id, :bucket => { :name => "Groceries" }, :format => "json"
     assert_response :unprocessable_entity
-    xml = Hash.from_xml(@response.body)
-    assert xml["errors"].any?
+    json = JSON.parse(@response.body)
+    assert json.any?
   end
 
   test "destroy via API should remove record and respond with 200" do
     assert_difference "Bucket.count", -1 do
       delete :destroy, :id => buckets(:john_checking_dining).id,
         :receiver_id => buckets(:john_checking_groceries).id,
-        :format => "xml"
+        :format => "json"
       assert_response :success
     end
   end

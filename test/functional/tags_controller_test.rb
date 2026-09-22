@@ -85,34 +85,36 @@ class TagsControllerTest < ActionController::TestCase
   # == API tests ========================================================================
 
   test "index via API for inaccessible subscription should 404" do
-    get :index, :subscription_id => subscriptions(:tim).id, :format => "xml"
+    get :index, :subscription_id => subscriptions(:tim).id, :format => "json"
     assert_response :missing
   end
 
   test "index via API should return list of all tags for given subscription" do
-    get :index, :subscription_id => subscriptions(:john).id, :format => "xml"
+    get :index, :subscription_id => subscriptions(:john).id, :format => "json"
     assert_response :success
-    xml = Hash.from_xml(@response.body)
-    assert xml.key?("tags")
+    json = JSON.parse(@response.body)
+    assert json.is_a?(Array)
+    assert json.any?
   end
 
   test "show via API should return record for the given tag" do
-    get :show, :id => tags(:john_tip).id, :format => "xml"
+    get :show, :id => tags(:john_tip).id, :format => "json"
     assert_response :success
-    xml = Hash.from_xml(@response.body)
-    assert_equal tags(:john_tip).id, xml["tag"]["id"]
+    json = JSON.parse(@response.body)
+    assert_equal tags(:john_tip).id, json["id"]
   end
 
   test "new via API should return template record" do
-    get :new, :subscription_id => subscriptions(:john).id, :format => "xml"
+    get :new, :subscription_id => subscriptions(:john).id, :format => "json"
     assert_response :success
-    xml = Hash.from_xml(@response.body)
-    assert xml.key?("tag")
+    json = JSON.parse(@response.body)
+    assert json.key?("name")
+    assert !json["id"]
   end
 
   test "create via API for inaccessible subscription should 404" do
     assert_no_difference "Tag.count" do
-      post :create, :subscription_id => subscriptions(:tim).id, :format => "xml",
+      post :create, :subscription_id => subscriptions(:tim).id, :format => "json",
         :tag => { :name => "testing" }
       assert_response :missing
     end
@@ -120,50 +122,50 @@ class TagsControllerTest < ActionController::TestCase
 
   test "create via API should return 201 and set location header" do
     assert_difference "Tag.count" do
-      post :create, :subscription_id => subscriptions(:john).id, :format => "xml",
+      post :create, :subscription_id => subscriptions(:john).id, :format => "json",
         :tag => { :name => "testing" }
       assert_response :success
       assert @response.headers['Location']
-      xml = Hash.from_xml(@response.body)
-      assert xml.key?("tag")
+      json = JSON.parse(@response.body)
+      assert json.key?("id")
     end
   end
 
   test "create via API should return 422 with errors if validations fail" do
     assert_no_difference "Tag.count" do
-      post :create, :subscription_id => subscriptions(:john).id, :format => "xml",
+      post :create, :subscription_id => subscriptions(:john).id, :format => "json",
         :tag => { :name => "tip" }
       assert_response :unprocessable_entity
-      xml = Hash.from_xml(@response.body)
-      assert xml.key?("errors")
+      json = JSON.parse(@response.body)
+      assert json.key?("name")
     end
   end
 
   test "update via API for inaccessible tag should 404" do
-    put :update, :id => tags(:tim_milk).id, :tag => { :name => "milkshake" }, :format => "xml"
+    put :update, :id => tags(:tim_milk).id, :tag => { :name => "milkshake" }, :format => "json"
     assert_response :missing
     assert_equal "milk", tags(:tim_milk, :reload).name
   end
 
   test "update via API should change tag name and return 200" do
-    put :update, :id => tags(:john_tip).id, :tag => { :name => "gratuity" }, :format => "xml"
+    put :update, :id => tags(:john_tip).id, :tag => { :name => "gratuity" }, :format => "json"
     assert_response :success
-    xml = Hash.from_xml(@response.body)
-    assert xml.key?("tag")
+    json = JSON.parse(@response.body)
+    assert json.key?("id")
     assert_equal "gratuity", tags(:john_tip, :reload).name
   end
 
   test "update via API should return 422 with errors if validations fail" do
-    put :update, :id => tags(:john_tip).id, :tag => { :name => "lunch" }, :format => "xml"
+    put :update, :id => tags(:john_tip).id, :tag => { :name => "lunch" }, :format => "json"
     assert_response :unprocessable_entity
-    xml = Hash.from_xml(@response.body)
-    assert xml.key?("errors")
+    json = JSON.parse(@response.body)
+    assert json.key?("name")
     assert_equal "tip", tags(:john_tip, :reload).name
   end
 
   test "destroy via API should remove tag and return 200" do
     assert_difference "Tag.count", -1 do
-      delete :destroy, :id => tags(:john_tip).id, :format => "xml"
+      delete :destroy, :id => tags(:john_tip).id, :format => "json"
       assert_response :success
     end
   end

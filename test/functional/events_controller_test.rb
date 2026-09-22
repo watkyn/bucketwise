@@ -146,95 +146,108 @@ class EventsControllerTest < ActionController::TestCase
 
   # == API tests ========================================================================
 
+  test "index HTML without a container should redirect to the user's root subscription" do
+    login! :tim
+    get :index
+    assert_redirected_to subscription_url(subscriptions(:tim))
+  end
+
+  test "index JSON without a container should return an explicit 400" do
+    get :index, :format => "json"
+    assert_response :bad_request
+    assert JSON.parse(@response.body)["error"]
+  end
+
   test "index via API should authenticate correctly via HTTP basic authentication" do
     logout!
     api_login! :john, "testing"
-    get :index, :subscription_id => subscriptions(:john).id, :format => "xml"
+    get :index, :subscription_id => subscriptions(:john).id, :format => "json"
     assert_response :success
   end
 
   test "index via API should return first page of recent events for subscription" do
-    get :index, :subscription_id => subscriptions(:john).id, :format => "xml"
+    get :index, :subscription_id => subscriptions(:john).id, :format => "json"
     assert_response :success
-    xml = Hash.from_xml(@response.body)
-    assert xml["events"].any?
+    json = JSON.parse(@response.body)
+    assert json.any?
   end
 
   test "index via API should return first page of events for specified account" do
-    get :index, :account_id => accounts(:john_checking).id, :format => "xml"
+    get :index, :account_id => accounts(:john_checking).id, :format => "json"
     assert_response :success
-    xml = Hash.from_xml(@response.body)
-    assert xml["events"].any?
+    json = JSON.parse(@response.body)
+    assert json.any?
   end
 
   test "index via API should return first page of events for specified bucket" do
-    get :index, :bucket_id => buckets(:john_checking_dining).id, :format => "xml"
+    get :index, :bucket_id => buckets(:john_checking_dining).id, :format => "json"
     assert_response :success
-    xml = Hash.from_xml(@response.body)
-    assert xml["events"].any?
+    json = JSON.parse(@response.body)
+    assert json.any?
   end
 
   test "index via API should return first page of events for specified tag" do
-    get :index, :tag_id => tags(:john_lunch).id, :format => "xml"
+    get :index, :tag_id => tags(:john_lunch).id, :format => "json"
     assert_response :success
-    xml = Hash.from_xml(@response.body)
-    assert xml["events"].any?
+    json = JSON.parse(@response.body)
+    assert json.any?
   end
 
   test "index via API with page and limit should return given page of events" do
-    get :index, :bucket_id => buckets(:john_checking_dining).id, :format => "xml", :page => 1, :size => 2
+    get :index, :bucket_id => buckets(:john_checking_dining).id, :format => "json", :page => 1, :size => 2
     assert_response :success
-    xml = Hash.from_xml(@response.body)
+    json = JSON.parse(@response.body)
     assert_equal [events(:john_lunch_again).id, events(:john_lunch).id],
-      xml["events"].map { |event| event["id"] }
+      json.map { |event| event["id"] }
   end
 
   test "index via API with include should return events with line items" do
-    get :index, :bucket_id => buckets(:john_checking_dining).id, :format => "xml", :include => "line_items"
+    get :index, :bucket_id => buckets(:john_checking_dining).id, :format => "json", :include => "line_items"
     assert_response :success
-    xml = Hash.from_xml(@response.body)
-    assert xml["events"].all? { |event| event["line_items"] }
+    json = JSON.parse(@response.body)
+    assert json.all? { |event| event["line_items"] }
   end
 
   test "index via API with include should return events with tagged items" do
-    get :index, :bucket_id => buckets(:john_checking_dining).id, :format => "xml", :include => "tagged_items"
+    get :index, :bucket_id => buckets(:john_checking_dining).id, :format => "json", :include => "tagged_items"
     assert_response :success
-    xml = Hash.from_xml(@response.body)
-    assert xml["events"].all? { |event| event["tagged_items"] }
+    json = JSON.parse(@response.body)
+    assert json.all? { |event| event["tagged_items"] }
   end
 
   test "show via API should return requested event record" do
-    get :show, :id => events(:john_lunch).id, :format => "xml"
+    get :show, :id => events(:john_lunch).id, :format => "json"
     assert_response :success
-    assert Hash.from_xml(@response.body)["event"]
+    json = JSON.parse(@response.body)
+    assert_equal events(:john_lunch).id, json["id"]
   end
 
   test "new via API for reallocation should return template for reallocation" do
-    get :new, :subscription_id => subscriptions(:john).id, :role => "reallocation", :format => "xml"
+    get :new, :subscription_id => subscriptions(:john).id, :role => "reallocation", :format => "json"
     assert_response :success
-    event = Hash.from_xml(@response.body)["event"]
-    assert_equal ['primary', 'reallocate_from | reallocate_to'], event["line_items"].map { |i| i["role"] }.sort
+    json = JSON.parse(@response.body)
+    assert_equal ['primary', 'reallocate_from | reallocate_to'], json["line_items"].map { |i| i["role"] }.sort
   end
 
   test "new via API for expense should return template for expense" do
-    get :new, :subscription_id => subscriptions(:john).id, :role => "expense", :format => "xml"
+    get :new, :subscription_id => subscriptions(:john).id, :role => "expense", :format => "json"
     assert_response :success
-    event = Hash.from_xml(@response.body)["event"]
-    assert_equal ['aside', 'credit_options', 'payment_source'], event["line_items"].map { |i| i["role"] }.sort
+    json = JSON.parse(@response.body)
+    assert_equal ['aside', 'credit_options', 'payment_source'], json["line_items"].map { |i| i["role"] }.sort
   end
 
   test "new via API for deposit should return template for deposit" do
-    get :new, :subscription_id => subscriptions(:john).id, :role => "deposit", :format => "xml"
+    get :new, :subscription_id => subscriptions(:john).id, :role => "deposit", :format => "json"
     assert_response :success
-    event = Hash.from_xml(@response.body)["event"]
-    assert_equal ['deposit'], event["line_items"].map { |i| i["role"] }.sort
+    json = JSON.parse(@response.body)
+    assert_equal ['deposit'], json["line_items"].map { |i| i["role"] }.sort
   end
 
   test "new via API for transfer should return template for transfer" do
-    get :new, :subscription_id => subscriptions(:john).id, :role => "transfer", :format => "xml"
+    get :new, :subscription_id => subscriptions(:john).id, :role => "transfer", :format => "json"
     assert_response :success
-    event = Hash.from_xml(@response.body)["event"]
-    assert_equal ['transfer_from', 'transfer_to'], event["line_items"].map { |i| i["role"] }.sort
+    json = JSON.parse(@response.body)
+    assert_equal ['transfer_from', 'transfer_to'], json["line_items"].map { |i| i["role"] }.sort
   end
 
   test "create via API with validation errors should return 422 with errors" do
@@ -242,21 +255,22 @@ class EventsControllerTest < ActionController::TestCase
     data[:actor_name] = ""
 
     assert_no_difference "Event.count" do
-      post :create, :subscription_id => subscriptions(:john).id, :event => data, :format => "xml"
+      post :create, :subscription_id => subscriptions(:john).id, :event => data, :format => "json"
       assert_response :unprocessable_entity
     end
 
-    assert Hash.from_xml(@response.body).key?("errors")
+    assert JSON.parse(@response.body).key?("actor_name")
   end
 
   test "create via API should return 201 and new event record" do
     assert_difference "Event.count" do
       post :create, :subscription_id => subscriptions(:john).id,
-        :event => simple_event(:john_checking, :john_checking_dining), :format => "xml"
+        :event => simple_event(:john_checking, :john_checking_dining), :format => "json"
       assert_response :created
     end
 
-    assert Hash.from_xml(@response.body).key?("event")
+    json = JSON.parse(@response.body)
+    assert json.key?("id")
     assert @response.headers['Location']
   end
 
@@ -264,24 +278,25 @@ class EventsControllerTest < ActionController::TestCase
     event = events(:john_checking_starting_balance)
     put :update, :id => event.id,
       :event => { :occurred_on => event.occurred_on.to_s, :actor_name => "" },
-      :format => "xml"
+      :format => "json"
     assert_response :unprocessable_entity
-    assert Hash.from_xml(@response.body).key?("errors")
+    assert JSON.parse(@response.body).key?("actor_name")
   end
 
   test "update via API should return 200 and updated event record" do
     event = events(:john_checking_starting_balance)
     put :update, :id => event.id,
       :event => { :occurred_on => event.occurred_on.to_s, :actor_name => "Updated!" },
-      :format => "xml"
+      :format => "json"
     assert_response :success
-    assert Hash.from_xml(@response.body).key?("event")
+    json = JSON.parse(@response.body)
+    assert json.key?("id")
     assert_equal "Updated!", event.reload.actor_name
   end
 
   test "destroy via API should destroy record and return 200" do
     assert_difference "Event.count", -1 do
-      delete :destroy, :id => events(:john_lunch).id, :format => "xml"
+      delete :destroy, :id => events(:john_lunch).id, :format => "json"
       assert_response :success
     end
   end

@@ -1,0 +1,62 @@
+<fieldset id="general_information" data-events-form-target="generalInfo">
+  <legend>General Information</legend>
+
+  <p>
+    <span class="expense_label">
+      <strong>When</strong>
+      did this expense occur?
+    </span>
+    <span class="deposit_label">
+      <strong>When</strong>
+      did this deposit occur?
+    </span>
+    <span class="transfer_label">
+      <strong>When</strong>
+      did this transfer occur?
+    </span>
+    <%= form.date_field :occurred_on %>
+  </p>
+
+  <p>
+    <span class="expense_label">
+      <strong>Who</strong>
+      received the payment?
+    </span>
+    <span class="deposit_label">
+      <strong>Where</strong>
+      did this deposit come from?
+    </span>
+    <span class="transfer_label">
+      <strong>What</strong>
+      was this transfer for?
+    </span>
+    <%= form.text_field :actor_name, size: 30, "data-events-form-target": "actorName", "data-action": "input->events-form#checkActorName" %>
+    <% if form.object.new_record? %>
+      <span id="recall_event" class="hidden" data-events-form-target="recallEvent">
+        <%= link_to "(recall)", "#", "data-action": "click->events-form#recall", data: { url: subscription_events_path(subscription) } %>
+      </span>
+    <% end %>
+  </p>
+
+  <div id="event_actor_name_select" class="autocomplete_select hidden"></div>
+  <div data-controller="autocomplete" data-autocomplete-items-value="<%= subscription.actors.sort_by(&:sort_name).map(&:name).to_json %>">
+    <input class="hidden" type="text" data-autocomplete-target="input" data-action="input->autocomplete#search keydown->autocomplete#navigate" />
+    <ul class="hidden absolute z-50 bg-white border border-gray-300 rounded shadow-lg max-h-40 overflow-auto w-full" data-autocomplete-target="list"></ul>
+  </div>
+
+  <p>
+    <span class="expense_label">
+      <strong>How much</strong>
+      was paid?
+    </span>
+    <span class="deposit_label">
+      <strong>How much</strong>
+      was deposited?
+    </span>
+    <span class="transfer_label">
+      <strong>How much</strong>
+      was transferred?
+    </span>
+    <%= safe_join(["$", text_field_tag(:amount, event_amount_value, size: 8, id: "expense_total", class: "number", "data-events-form-target": "expenseTotal", "data-action": "input->events-form#updateAmount")]) %>
+  </p>
+</fieldset>

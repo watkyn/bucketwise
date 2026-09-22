@@ -1,6 +1,0 @@
-%span.actions
-  = link_to "Rename", "#", "data-action": "click->bucket-row#rename", "data-url": bucket_path(bucket), "data-name": bucket.name, "data-token": form_authenticity_token
-  |
-  = link_to "Delete/Merge", "#", "data-action": "click->bucket-row#deleteBucket"
-== #{link_to h(bucket.account.name), bucket.account}:
-&= bucket.name

@@ -10,27 +10,17 @@ class EventsController < ApplicationController
       format.json do
         render json: events.as_json(eager_options(include: { tagged_items: { only: [:amount, :id], methods: :name }, line_items: { only: [:account_id, :bucket_id, :amount, :role] } }))
       end
-      format.js do
-        # Legacy RJS support: return JSON for doneLoadingRecalledEvents
-        json = events.to_json(eager_options(include: { tagged_items: { only: [:amount, :id], methods: :name }, line_items: { only: [:account_id, :bucket_id, :amount, :role] } }))
-        render js: "Events.doneLoadingRecalledEvents(#{json})"
-      end
       format.turbo_stream do
         json = events.as_json(eager_options(include: { tagged_items: { only: [:amount, :id], methods: :name }, line_items: { only: [:account_id, :bucket_id, :amount, :role] } }))
         render json: json
-      end
-      format.xml do
-        render xml: events.to_xml(eager_options(root: "events"))
       end
     end
   end
 
   def show
     respond_to do |format|
-      format.js
       format.turbo_stream
       format.json { render json: event.as_json(eager_options) }
-      format.xml { render xml: event.to_xml(eager_options) }
     end
   end
 
@@ -42,8 +32,10 @@ class EventsController < ApplicationController
 
     respond_to do |format|
       format.html
-      format.json { render json: @event.as_json(include: [:line_items, :tagged_items]) }
-      format.xml { render xml: @event.to_xml(include: [:line_items, :tagged_items]) }
+      format.json do
+        @event.build_template_line_items
+        render json: @event.as_json(include: [:line_items, :tagged_items])
+      end
     end
   end
 
@@ -52,49 +44,37 @@ class EventsController < ApplicationController
     @event.user = user
     @event.save!
     respond_to do |format|
-      format.js
       format.turbo_stream
       format.json { render json: @event.as_json(include: [:line_items, :tagged_items]), status: :created, location: event_url(@event) }
-      format.xml do
-        render xml: @event.to_xml(include: [:line_items, :tagged_items]), status: :created, location: event_url(@event)
-      end
     end
   rescue ActiveRecord::RecordInvalid => error
     @event = error.record
     respond_to do |format|
-      format.js { render status: :unprocessable_entity }
       # Don't render the success turbo-stream template here: the client parses
       # the JSON errors and alerts them (see events-form#submit).
       format.turbo_stream { render json: @event.errors, status: :unprocessable_entity }
       format.json { render json: @event.errors, status: :unprocessable_entity }
-      format.xml { render xml: @event.errors, status: :unprocessable_entity }
     end
   end
 
   def update
     event.update!(event_params)
     respond_to do |format|
-      format.js
       format.turbo_stream { redirect_to(params[:return_to] || subscription_path(subscription)) }
       format.json { render json: event.as_json(include: [:line_items, :tagged_items]) }
-      format.xml { render xml: event.to_xml(include: [:line_items, :tagged_items]) }
     end
   rescue ActiveRecord::RecordInvalid => error
     respond_to do |format|
-      format.js { render status: :unprocessable_entity }
       format.turbo_stream { render json: event.errors, status: :unprocessable_entity }
       format.json { render json: event.errors, status: :unprocessable_entity }
-      format.xml { render xml: event.errors, status: :unprocessable_entity }
     end
   end
 
   def destroy
     event.destroy
     respond_to do |format|
-      format.js
       format.turbo_stream
       format.json { head :ok }
-      format.xml { head :ok }
     end
   end
 
@@ -120,8 +100,15 @@ class EventsController < ApplicationController
       elsif params[:tag_id]
         @container = @tag = Tag.find(params[:tag_id])
         @subscription = user.subscriptions.find(@tag.subscription_id)
+      elsif request.format.html?
+        # Bare GET /events (no container). Intended behavior: HTML requests
+        # from a logged-in user redirect to their root subscription dashboard
+        # (nicer than a 404/500 for this entry point); API requests get an
+        # explicit 400 since a container is required to list events.
+        root = user.subscriptions.first
+        redirect_to root ? subscription_path(root) : subscriptions_path
       else
-        raise ArgumentError, "no container specified for event listing"
+        render json: { error: "no container specified for event listing" }, status: :bad_request
       end
     end
 

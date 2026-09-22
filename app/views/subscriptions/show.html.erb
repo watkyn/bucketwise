@@ -1,0 +1,52 @@
+<%# Wrap all page content so events-form and accounts-form controllers
+  # are ancestors of every data-action on the page. %>
+<div id="subscription"
+     data-controller="events-form accounts-form"
+     data-events-form-accounts-value="<%= accounts_with_buckets.to_json %>"
+     data-events-form-tags-value="<%= subscription.tags.map(&:name).sort.to_json %>"
+     data-events-form-actors-value="<%= subscription.events.distinct.pluck(:actor_name).compact.to_json %>"
+     data-events-form-return-to-value="<%= subscription_path(subscription) %>"
+     data-events-form-default-actor-value="Bucket reallocation"
+     data-events-form-default-date-value="<%= Date.today.to_json %>">
+  <div id="links" class="header<%= " hidden" if blank_slate? %>" data-events-form-target="links" data-accounts-form-target="links">
+    <h2>
+      Record a new
+      <%= link_to "expense", "#", id: "expense_link", "data-action": "click->events-form#revealExpense" %>,
+      <%= link_to "deposit", "#", id: "deposit_link", "data-action": "click->events-form#revealDeposit" %>, or
+      <%= link_to "transfer", "#", id: "transfer_link", "data-action": "click->events-form#revealTransfer" %>
+    </h2>
+  </div>
+
+  <div id="new_event" class="transaction form hidden" data-events-form-target="newEvent">
+    <%= render partial: "events/form" %>
+  </div>
+
+  <% if blank_slate? %>
+    <div id="blankslate" data-accounts-form-target="blankslate">
+      <%= render partial: "blank_slate" %>
+    </div>
+  <% end %>
+
+  <div id="new_account" class="form hidden" data-accounts-form-target="form">
+    <%= render partial: "accounts/form" %>
+  </div>
+
+  <div id="data" class="content<%= " hidden" if blank_slate? %>" data-accounts-form-target="data">
+    <h2 id="accounts_summary_header">
+      <span class="actions">
+        <%= link_to "Add an account", "#", "data-action": "click->accounts-form#reveal" %>
+      </span>
+      Accounts summary
+    </h2>
+
+    <table id="accounts_summary"><%= render(subscription.accounts) %></table>
+
+    <% if subscription.tags.any? %>
+      <h2>Tags</h2>
+      <%= render partial: "tags/cloud" %>
+    <% end %>
+
+    <h2>Recent transactions</h2>
+    <table id="recent_entries" class="entries"><%= render(subscription.events.recent.last) %></table>
+  </div>
+</div>

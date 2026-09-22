@@ -36,9 +36,4 @@ class User < ApplicationRecord
     options[:except] = Array(options[:except]) + [:password_digest, :password_hash, :salt]
     super(options)
   end
-
-  def to_xml(options={})
-    append_to_options(options, :except, [:password_digest, :password_hash, :salt])
-    super(options)
-  end
 end

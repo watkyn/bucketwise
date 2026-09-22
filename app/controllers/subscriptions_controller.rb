@@ -10,7 +10,6 @@ class SubscriptionsController < ApplicationController
         end
       end
       format.json { render json: user.subscriptions }
-      format.xml { render xml: user.subscriptions.to_xml(root: "subscriptions") }
     end
   end
 
@@ -18,7 +17,6 @@ class SubscriptionsController < ApplicationController
     respond_to do |format|
       format.html
       format.json { render json: subscription }
-      format.xml { render xml: subscription }
     end
   end
 end

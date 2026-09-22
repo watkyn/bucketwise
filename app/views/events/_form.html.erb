@@ -1,0 +1,35 @@
+<div id="templates" class="hidden">
+  <% form_sections.each do |section| %>
+    <div id="template.<%= section %>">
+      <%= render partial: template_partial_for(section), locals: { section: section, line_item: nil, reallocation_item: nil, tagged_item: nil } %>
+    </div>
+  <% end %>
+</div>
+
+<%= form_with model: event_for_form, url: event_form_action, id: "event_form", data: { action: "submit->events-form#submit", events_form_target: "form" } do |form| %>
+  <div id="success_notice" class="notice hidden" data-events-form-target="successNotice">
+    <p>
+      Your transaction has been recorded. You may enter another one,
+      or
+      <%= link_to "close this form", "#", "data-action": "click->events-form#cancel" %>
+    </p>
+  </div>
+
+  <% if event_wants_section?('general_information') %>
+    <%= render partial: "events/form_general", locals: { form: form } %>
+  <% end %>
+
+  <% form_sections.each do |section| %>
+    <%= render_event_form_section(form, section) if event_wants_section?(section) %>
+  <% end %>
+
+  <p>
+    <% if !event_for_form.new_record? %>
+      <input type="submit" value="Edit this transaction" />
+    <% else %>
+      <input type="submit" value="Record this transaction" />
+    <% end %>
+    or
+    <%= link_to "cancel", "#", "data-action": "click->events-form#cancel" %>
+  </p>
+<% end %>

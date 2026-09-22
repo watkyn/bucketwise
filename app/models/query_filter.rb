@@ -3,6 +3,9 @@ class QueryFilter
   attr_reader :to
 
   def initialize(options={})
+    # Callers may pass string-keyed params hashes; normalize so symbol
+    # lookups below work regardless of key type.
+    options = options.with_indifferent_access
     @has_from = @has_to = false
 
     begin

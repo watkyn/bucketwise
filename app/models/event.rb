@@ -103,37 +103,35 @@ class Event < ApplicationRecord
 
   def as_json(options={})
     methods = Array(options[:methods]).dup
-    methods |= [:balance, :value, :role]
+    # Computed methods assume persisted account_items/line_items; unsaved
+    # template events (GET events#new) serialize plain attributes instead.
+    methods |= [:balance, :value, :role] if persisted?
     methods << :amount if amount
     super(options.merge(methods: methods))
   end
 
-  # Keep to_xml for backwards compat if needed, delegates to as_json style
-  def to_xml(options={})
-    methods = Array(options[:methods])
-    methods << :amount if amount
-    except = Array(options[:except])
-    if new_record?
-      except += [:created_at, :subscription_id, :updated_at, :user_id]
-      if line_items.empty?
-        case role
-        when :deposit
-          line_items.build(role: "deposit", amount: 1000)
-        when :expense
-          line_items.build(role: "payment_source", amount: -1000)
-          line_items.build(role: "credit_options", amount: -1000)
-          line_items.build(role: "aside", amount: 1000)
-        when :reallocation
-          line_items.build(role: 'primary')
-          line_items.build(role: 'reallocate_from | reallocate_to')
-        when :transfer
-          line_items.build(role: 'transfer_from', amount: -1000)
-          line_items.build(role: 'transfer_to', amount: 1000)
-        end
-      end
-      tagged_items.build if tagged_items.empty?
+  # Build placeholder line_items/tagged_items for unsaved events so the JSON
+  # "new" template response matches the shape the old XML API returned.
+  def build_template_line_items
+    return self unless new_record?
+    return self if line_items.any?
+
+    case role
+    when :deposit
+      line_items.build(role: "deposit", amount: 1000)
+    when :expense
+      line_items.build(role: "payment_source", amount: -1000)
+      line_items.build(role: "credit_options", amount: -1000)
+      line_items.build(role: "aside", amount: 1000)
+    when :reallocation
+      line_items.build(role: "primary")
+      line_items.build(role: "reallocate_from | reallocate_to")
+    when :transfer
+      line_items.build(role: "transfer_from", amount: -1000)
+      line_items.build(role: "transfer_to", amount: 1000)
     end
-    super(options.merge(methods: methods, except: except))
+    tagged_items.build if tagged_items.empty?
+    self
   end
 
   protected

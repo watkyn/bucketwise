@@ -1,0 +1,35 @@
+<p id="tags_collapsed" class="<%= event_has_tags? ? "hidden" : "" %>" data-events-form-target="tagsCollapsed">
+  &rarr;
+  <%= link_to "I'd like to add tags for this transaction...", "#", "data-action": "click->events-form#revealTags" %>
+</p>
+
+<fieldset id="tags" class="<%= event_has_tags? ? "" : "hidden" %>" data-events-form-target="tags">
+  <legend>Tags</legend>
+
+  <p>
+    Tags for this transaction:
+    <br />
+    <%= text_field_tag "event[tags][list]", tag_list_for_event, style: "width: 95%", id: "event_tags_list" %>
+    <br />
+    <small>Enter tag names, separated by commas, that will apply to this entire transaction.</small>
+  </p>
+
+  <div id="event_tags_list_select" class="autocomplete_select hidden"></div>
+
+  <p id="tag_items_collapsed" class="<%= event_has_partial_tags? ? "hidden" : "" %>" data-events-form-target="tagItemsCollapsed">
+    &rarr;
+    <%= link_to "I'd like to add tags for parts of this transaction...", "#", "data-action": "click->events-form#revealPartialTags" %>
+  </p>
+
+  <div id="tag_items" class="<%= event_has_partial_tags? ? "" : "hidden" %>" data-events-form-target="tagItems">
+    <p>Specify an amount for each tag. That amount will then be marked by that tag.</p>
+
+    <ol id="tagged_items" data-events-form-target="taggedItems">
+      <% for_each_partial_tagged_item do |item| %>
+        <li><%= render partial: "events/tagged_item", locals: { tagged_item: item } %></li>
+      <% end %>
+    </ol>
+
+    <p><%= link_to "More tags, please!", "#", "data-action": "click->events-form#addTaggedItem" %></p>
+  </div>
+</fieldset>

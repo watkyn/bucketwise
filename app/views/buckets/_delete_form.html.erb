@@ -1,13 +1,19 @@
-= form_tag(bucket_path(bucket), method: :delete, "data-action": "submit->bucket-row#confirmDelete") do
-  %fieldset
-    %legend Delete/Merge
-    %p
-      = "To delete this bucket, you will need to move the transactions from #{h(bucket.name)} into another bucket."
-  %p Please select that other bucket:
-  %select#receiver_id{name: "receiver_id"}
-    - account.buckets.each do |b|
-      %option{value: b.id}= b.name
-  %p
-    = submit_tag "Merge and delete this bucket"
+<%= form_with url: bucket_path(bucket), method: :delete, data: { action: "submit->bucket-row#confirmDelete" } do %>
+  <fieldset>
+    <legend>Delete/Merge</legend>
+    <p>
+      <%= "To delete this bucket, you will need to move the transactions from #{h(bucket.name)} into another bucket." %>
+    </p>
+  </fieldset>
+  <p>Please select that other bucket:</p>
+  <select id="receiver_id" name="receiver_id">
+    <% account.buckets.each do |b| %>
+      <option value="<%= b.id %>"><%= b.name %></option>
+    <% end %>
+  </select>
+  <p>
+    <%= submit_tag "Merge and delete this bucket" %>
     or
-    = link_to "Cancel", "#", "data-action": "click->bucket-row#cancelDelete"
+    <%= link_to "Cancel", "#", "data-action": "click->bucket-row#cancelDelete" %>
+  </p>
+<% end %>

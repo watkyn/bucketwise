@@ -1,0 +1,12 @@
+<tr id="<%= dom_id(uncleared) %>" class="<%= uncleared_row_class(uncleared) %>">
+  <td class="checkbox"><%= check_box_tag "statement[cleared][]", uncleared.id, uncleared.statement_id, id: dom_id(uncleared, :check), "data-action": "click->statement-reconcile#toggleCleared", "data-item-id": uncleared.id %></td>
+  <td class="date" data-action="click->statement-reconcile#clickItem" data-item-id="<%= uncleared.id %>"><%= uncleared.occurred_on.strftime("%Y-%m-%d") %></td>
+  <% if uncleared.event.check_number %>
+    <td class="check" data-action="click->statement-reconcile#clickItem" data-item-id="<%= uncleared.id %>"><%= "#" + uncleared.event.check_number.to_s %></td>
+  <% end %>
+  <td class="actor" data-action="click->statement-reconcile#clickItem" data-item-id="<%= uncleared.id %>"><%= uncleared.event.actor_name %></td>
+  <td class="number" data-action="click->statement-reconcile#clickItem" data-item-id="<%= uncleared.id %>">
+    <span class="hidden" id="<%= dom_id(uncleared, :amount) %>"><%= uncleared.amount %></span>
+    <%= format_cents(uncleared.amount.abs) %>
+  </td>
+</tr>

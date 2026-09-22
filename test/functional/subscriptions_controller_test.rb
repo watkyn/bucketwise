@@ -44,21 +44,22 @@ class SubscriptionsControllerTest < ActionController::TestCase
   # == API tests ========================================================================
 
   test "index via API should return list of all subscriptions available to user" do
-    get :index, :format => "xml"
+    get :index, :format => "json"
     assert_response :success
-    xml = Hash.from_xml(@response.body)
-    assert xml.key?("subscriptions")
+    json = JSON.parse(@response.body)
+    assert json.is_a?(Array)
+    assert json.any?
   end
 
   test "show via API should return 404 for inaccessible subscription" do
-    get :show, :id => subscriptions(:tim).id, :format => "xml"
+    get :show, :id => subscriptions(:tim).id, :format => "json"
     assert_response :missing
   end
 
   test "show should return requested subscription record" do
-    get :show, :id => subscriptions(:john).id, :format => "xml"
+    get :show, :id => subscriptions(:john).id, :format => "json"
     assert_response :success
-    xml = Hash.from_xml(@response.body)
-    assert xml.key?("subscription")
+    json = JSON.parse(@response.body)
+    assert_equal subscriptions(:john).id, json["id"]
   end
 end

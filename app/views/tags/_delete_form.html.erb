@@ -1,0 +1,24 @@
+<%= form_with url: tag_path(tag_ref), method: :delete, data: { action: "submit->tags#confirmDelete" } do %>
+  <% if possible_receiver_tags.any? %>
+    <fieldset>
+      <legend>Delete/Merge</legend>
+
+      <label id="deleteTagOption" class="option selected" data-tags-target="deleteOption">
+        <%= radio_button_tag(:merge, 'no', true, "data-action": "click->tags#selectDelete") %>
+        <%= "Delete the \"#{h tag_ref.name}\" tag" %>
+      </label>
+
+      <label id="mergeTagOption" class="option" data-tags-target="mergeOption">
+        <%= radio_button_tag(:merge, 'yes', false, "data-action": "click->tags#selectMerge") %>
+        <%= "Merge the \"#{h tag_ref.name}\" tag into" %>
+        <%= select_tag(:receiver_id, safe_join(["<option></option>".html_safe, options_from_collection_for_select(possible_receiver_tags, :id, :name)]), data: { tags_target: "receiverSelect" }) %>
+      </label>
+    </fieldset>
+
+    <p>
+      <%= submit_tag "Delete this tag" %>
+      or
+      <%= link_to "Cancel", "#", "data-action": "click->tags#cancelDelete" %>
+    </p>
+  <% end %>
+<% end %>

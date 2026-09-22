@@ -1,0 +1,22 @@
+<div data-controller="bucket-row">
+  <div id="delete_form" class="form hidden" data-bucket-row-target="deleteForm">
+    <%= render partial: "buckets/delete_form" %>
+  </div>
+
+  <div id="data" class="content" data-bucket-row-target="data">
+    <div class="navigation">
+      <%= link_to "Dashboard", subscription_path(subscription) %>
+      <%= link_to "Transactions in #{h(account.name)}", account_path(account) %>
+      <%= link_to "Buckets in #{h(account.name)}", account_buckets_path(account) %>
+    </div>
+
+    <h2 id="<%= dom_id(bucket, :name) %>">
+      <%= render partial: "buckets/bucket_name_for_perma", locals: { bucket: bucket } %>
+    </h2>
+
+    <table class="entries">
+      <%= render partial: "events/balance", locals: { container: bucket } %>
+      <%= render @items %>
+    </table>
+  </div>
+</div>

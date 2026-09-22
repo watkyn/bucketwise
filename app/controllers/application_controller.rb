@@ -37,14 +37,12 @@ class ApplicationController < ActionController::Base
       respond_to do |format|
         format.html { render file: Rails.root.join("public/404.html"), status: :not_found, layout: false }
         format.json { head :not_found }
-        format.xml  { head :not_found }
-        format.js   { head :not_found }
         format.any  { head :not_found }
       end
     end
 
     def via_api?
-      request.format.json? || request.format.xml?
+      request.format.json?
     end
     helper_method :via_api?
 

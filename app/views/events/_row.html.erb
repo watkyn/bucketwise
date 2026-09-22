@@ -1,0 +1,28 @@
+<tr id="<%= dom_id(event) %>" class="<%= cycle('odd', 'even') %>" data-controller="event-row" data-event-id="<%= event.id %>" data-action="mouseenter->event-row#showNubbin mouseleave->event-row#hideNubbin">
+
+  <td class="date"><%= event.occurred_on.strftime("%Y-%m-%d") %></td>
+
+  <td>
+    <div class="nubbin hidden absolute" id="<%= dom_id(event, :nubbin) %>">
+      <%= link_to "&#x270e;".html_safe, "#", "data-action": "click->event-row#edit", "data-url": edit_event_path(event) %>
+      <%= link_to "&#x2716;".html_safe, "#", "data-action": "click->event-row#delete", "data-url": event_path(event), "data-token": form_authenticity_token %>
+      <%= link_to "&#x24d8;".html_safe, event_path(event), class: "zoom", "data-action": "click->event-row#expand", "data-url": event_path(event), "data-event-id": event.id %>
+      <span class="zooming">&#x231b;</span>
+      <%= link_to "&#x2713;".html_safe, "#", class: "zoomed hidden", "data-action": "click->event-row#collapse", "data-event-id": event.id %>
+    </div>
+    <%= event.actor_name %>
+    <% if event.check_number.present? %>
+      <span class="check">
+        <%= "##{event.check_number}" %>
+      </span>
+    <% end %>
+    <% if account_links %>
+      <br />
+      <span class="account_links"><%= links_to_accounts_for_event(event) %></span>
+    <% end %>
+  </td>
+
+  <td class="number"><%= amount > 0 ? format_amount(amount) : "" %></td>
+
+  <td class="negative number"><%= amount < 0 ? format_amount(amount) : "" %></td>
+</tr>

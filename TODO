@@ -1,93 +1,75 @@
-==========================================================================
+ ==========================================================================
 Rails 8 PARITY — remaining work
 ==========================================================================
 
 Branch: upgrade-again
-Done (committed): Rails 2.3 → 8 port, Hotwire/Turbo/Tailwind UI, RJS → Turbo Streams, tests green (219).
-Done (uncommitted): importmap money pin fix, Stimulus data-controller wrappers, csrf_meta_tags,
-                    encoding/nil fixes, importmap integrity tests (now 223 runs green).
+Done (committed): Rails 2.3 → 8 port, Hotwire/Turbo/Tailwind UI, RJS → Turbo Streams.
+Done (this pass): FE boot proven (system test + integration wiring tests),
+                  dead format.js removed, HAML → ERB (43 files, gems dropped),
+                  XML API gutted → JSON API (gems dropped), QueryFilter fix,
+                  bare /events no longer 500s, demo seed, route smoke test,
+                  hygiene (README.md, .gitignore), shims slimmed, haml_fix deleted.
+Tests: bin/rails test = 239 runs green; bin/rails test:system = 1 run green.
 
 ------------------------------------------------------------------------
-1. BLOCKING — front end must actually boot
+1. BLOCKING — front end must actually boot                         [DONE]
 ------------------------------------------------------------------------
 
-* [ ] "Create new" / expense / deposit / transfer links still do nothing in the
-      browser (href="#" navigation → GET same page). Server logs show the click
-      is NOT intercepted → Stimulus is not booting or an import/error kills it.
-      - Importmap + assets verified server-side (all pins 200); need browser-side proof.
-      - Add a system test (Capybara js: true) that clicks "expense" and asserts
-        #new_event becomes visible without a full page navigation.
-      - Check browser console for module load / CSP errors.
-
-* [ ] Event recall is broken: events#index format.js calls Events.doneLoadingRecalledEvents
-      but no Events global exists. Wire recall through Stimulus (recallEvent target)
-      or turbo_stream; then delete the dead format.js.
-
-* [ ] Dormant format.js blocks left from RJS era — delete once FE confirmed:
-      events (index/create/update/destroy/show), accounts (update), buckets (update),
-      tags (update), application_controller not_found format.js.
+* [x] Stimulus boot proven: test/system/events_form_test.rb clicks "expense",
+      #new_event reveals without navigation (headless Chrome). Plus
+      test/unit/fe_boot_test.rb server-side wiring/importmap assertions.
+* [x] Event recall: already Stimulus fetch-JSON; dead format.js
+      (Events.doneLoadingRecalledEvents) deleted from events#index.
+* [x] Dormant format.js blocks deleted (events/accounts/buckets/tags/render_404).
 
 ------------------------------------------------------------------------
-2. VIEWS — drop HAML, go full Rails 8 ERB (43 haml → 0)
+2. VIEWS — drop HAML, go full Rails 8 ERB (43 haml → 0)            [DONE]
 ------------------------------------------------------------------------
 
-* [ ] Convert all app/views/**/*.haml to idiomatic ERB.
-      Already ERB: turbo_stream templates, buckets/_delete_form, a few others (7 total).
-* [ ] Replace form_for / form_tag with form_with (9 call sites).
-* [ ] Remove Rails-2-era helpers still in views (visible? ternary traps, "$" + input
-      concatenation, .html_safe patches — rewrite with tag helpers / safe buffers).
-* [ ] Remove gems: haml, haml-rails; drop config/initializers/haml_fix.rb (154 lines).
-* [ ] Remove config/initializers/json_fix.rb if only needed for old XML serializers;
-      keep activemodel-serializers-xml only if JSON API still needs it.
+* [x] Convert all app/views/**/*.haml to idiomatic ERB. (43 converted, 0 left)
+* [x] Replace form_for / form_tag with form_with (9 call sites).
+* [x] Remove Rails-2-era helpers ($" + input, .html_safe traps).
+* [x] Remove gems: haml, haml-rails; drop config/initializers/haml_fix.rb.
+* [x] json_fix.rb KEPT — still required for json 3.x quirks_mode /
+      ActiveSupport::JSON.decode of encrypted session cookies (not XML-related).
 
 ------------------------------------------------------------------------
-3. CONTROLLERS / HELPERS — idiomatic Rails 8
+3. CONTROLLERS / HELPERS — idiomatic Rails 8                       [DONE]
 ------------------------------------------------------------------------
 
-* [ ] Review strong params + respond_to across all controllers; remove unused formats.
-* [ ] QueryFilter: BucketsController#index passes string-keyed params; QueryFilter
-      reads symbols — latent bug. Normalize keys or change QueryFilter.
-* [ ] Events#index has no HTML format (406) and find_container raises when no
-      container param — define intended HTML behavior or keep JSON-only explicitly.
-* [ ] Remove LegacyControllerTestHelpers shims once tests use modern style
-      (or keep only if still needed for fixture-era tests).
-* [ ] config/initializers/shims.rb (76 lines) — audit; delete anything unused.
-* [ ] Gut the XML REST API, replace with JSON API:
-      format.xml in 7 controllers (application, events, buckets, tags,
-      subscriptions, accounts, tagged_items), Model#to_xml overrides,
-      Hash.from_xml in functional tests (~89 refs total).
-      - Define JSON request/response shapes per resource (events incl.
-        line_items/tagged_items).
-      - Drop activemodel-serializers-xml + rexml gems, haml_fix.rb to_xml
-        patches, json_fix.rb quirks_mode shim once nothing parses/emits XML.
-      - Convert doc/API.rdoc-era XML functional tests to JSON
-        (assert on parsed JSON, status codes, Location headers).
-      - Browser already posts JSON (events-form Stimulus, 2026-09 fix);
-        keep turbo_stream for HTML, JSON for API — no XML in either path.
+* [x] respond_to audit; unused single-format blocks flattened; format.xml removed.
+* [x] QueryFilter string/symbol key bug fixed (+ tests).
+* [x] Events#index bare /events: HTML → redirect to root subscription;
+      API → 400 JSON (+ tests).
+* [ ] LegacyControllerTestHelpers shims: KEPT — 200+ functional tests still
+      depend on Rails 2-era positional-args/xhr style. Convert incrementally later.
+* [x] shims.rb slimmed: dropped form_for + Haml patches; kept version loader +
+      Errors#each_full (used by accounts/_form). h() shim dropped (Rails has it).
+* [x] XML REST API gutted: format.xml removed from 7 controllers, Model#to_xml
+      removed, 54 test requests + 39 Hash.from_xml converted to JSON,
+      activemodel-serializers-xml + rexml gems dropped.
 
 ------------------------------------------------------------------------
-4. PROJECT HYGIENE — look like a fresh rails new app
+4. PROJECT HYGIENE — look like a fresh rails new app               [DONE]
 ------------------------------------------------------------------------
 
-* [ ] Delete Rails 2 leftovers: script/, Capfile, doc/API.rdoc, README.rdoc → README.md,
-      CHANGELOG.rdoc, TODO feature-backlog merge (see section 7), .gems, .env if unused.
-* [ ] pg2sqlite.py — commit, gitignore, or delete (decide).
-* [ ] Remove swap file: app/controllers/.subscriptions_controller.rb.swp
-* [ ] Push upgrade-again when green (3 commits local, not pushed).
-* [ ] Confirm .gitignore covers storage/, log/, tmp/, pg2sqlite if kept out.
+* [x] Rails 2 leftovers already gone (prior commit); README.md recreated.
+* [x] pg2sqlite.py — never existed on disk/history; nothing to do.
+* [x] Swap file already absent.
+* [x] .gitignore: added .DS_Store, *.swp (storage/log/tmp/builds already covered).
+* [x] Push upgrade-again when green.
 
 ------------------------------------------------------------------------
-5. TESTS / VERIFICATION
+5. TESTS / VERIFICATION                                           [DONE]
 ------------------------------------------------------------------------
 
-* [ ] Keep importmap integrity tests green (test/unit/importmap_test.rb).
-* [ ] Add system test: click expense/add-account → form reveals (proves Stimulus boot).
-* [ ] Expand /tmp/render_pages.rb (or promote to a real test): tags, statements,
-      buckets index, login, root redirect, accounts edit.
-* [ ] Visual parity pass vs buckets.homestorelane.com (green theme in place;
-      pixel pass open).
-* [ ] Seed demo data — dev subscription is blank-slate ("Welcome to BucketWise!").
-      Need accounts/buckets/events/tags to exercise UI (test login: test/password, sub 2).
+* [x] importmap integrity tests green (test/unit/importmap_test.rb).
+* [x] System test: click expense → form reveals (test/system/events_form_test.rb).
+* [x] Route probe promoted: test/integration/page_smoke_test.rb (HTML + JSON
+      core paths, login, bare /events redirect).
+* [ ] Visual parity pass vs buckets.homestorelane.com (pixel pass open).
+* [x] Seed demo data: dev login test/password, 2 accounts, 7 buckets,
+      8 events, 2 tags (user id=1, subscription id=1).
 
 ------------------------------------------------------------------------
 6. KNOWN PRODUCT BUGS (pre-existing, not Rails-8-specific)
@@ -97,7 +79,7 @@ Done (uncommitted): importmap money pin fix, Stimulus data-controller wrappers, 
 * [ ] Merging buckets can leave events with two line-items on the same bucket.
 
 ------------------------------------------------------------------------
-7. OLD TODO BACKLOG (from previous TODO file — features, not parity)
+7. OLD TODO BACKLOG (features, not parity)
 ------------------------------------------------------------------------
 
 Spinner for ajax; user info page; password reset; signup; exception notifier;
@@ -108,5 +90,10 @@ multiple aside buckets; graphical icons; edit txs from reconcile; statement API;
 credit-limit % instead of color only.
 
 ==========================================================================
-Suggested order: 1 (boot) → 5 (prove it) → 2 (ERB) → 3 → 4 → push
+Known route gaps (documented by smoke/probe, not fixed — missing views/actions):
+  406 HTML: subscriptions/:id/{accounts,events,tags} index, tags#new,
+            accounts/:id/events, events/:id show (turbo_stream only)
+  404: accounts#edit, buckets#edit, tags#edit, subscriptions#new/#edit
+       (no actions/views — UI does not link them)
+  404 nil-container: top-level /accounts /buckets /tags /statements /events/new
 ==========================================================================

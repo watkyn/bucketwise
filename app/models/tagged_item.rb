@@ -21,6 +21,9 @@ class TaggedItem < ApplicationRecord
   end
 
   def as_json(options={})
+    # render json: ..., location: ... passes a frozen options hash through
+    # to_json → as_json, so work on a copy.
+    options = options.dup
     options[:except] = Array(options[:except]) + [:event_id, :occurred_on]
     options[:except] << :tag_id if persisted?
     append_to_options(options, :include, tag: { except: :subscription_id })

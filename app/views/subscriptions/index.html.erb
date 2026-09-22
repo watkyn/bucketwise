@@ -1,0 +1,9 @@
+<div id="data" class="content">
+  <h2>Your Subscriptions</h2>
+
+  <ul>
+    <% user.subscriptions.each do |subscription| %>
+      <li id="<%= dom_id(subscription) %>"><%= link_to(subscription.id, subscription_path(subscription)) %></li>
+    <% end %>
+  </ul>
+</div>

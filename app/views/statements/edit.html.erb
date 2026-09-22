@@ -1,0 +1,73 @@
+<div id="data" class="content" data-controller="statement-reconcile">
+  <h2>Balance your statement</h2>
+
+  <div class="statement edit form">
+
+    <%= form_with model: statement do |form| %>
+
+      <table class="general">
+        <tr>
+          <th class="occurred_on">Statement date</th>
+          <th class="starting_balance">Starting balance</th>
+          <th class="ending_balance">Ending balance</th>
+        </tr>
+        <tr>
+          <td class="occurred_on"><%= form.date_field :occurred_on %></td>
+          <td id="starting_balance" class="starting_balance number"><%= format_cents(statement.starting_balance) %></td>
+          <td class="ending_balance"><%= safe_join(["$", form.text_field(:ending_balance, size: 8, class: "number", value: format_cents(statement.ending_balance, unit: ""), "data-action": "input->statement-reconcile#updateEndingBalance", "data-statement-reconcile-target": "endingBalance")]) %></td>
+        </tr>
+      </table>
+
+      <% if uncleared.deposits.any? %>
+        <fieldset id="deposits">
+          <legend>Deposits</legend>
+
+          <div class="uncleared deposits">
+            <table><%= render partial: "statements/uncleared", collection: uncleared.deposits %></table>
+          </div>
+
+          <%= render partial: "statements/subtotal", object: statement.account_items.deposits.sum(&:amount) %>
+        </fieldset>
+      <% end %>
+
+      <% if uncleared.checks.any? %>
+        <fieldset id="checks">
+          <legend>Checks</legend>
+
+          <div class="uncleared checks">
+            <table><%= render partial: "statements/uncleared", collection: uncleared.checks %></table>
+          </div>
+
+          <%= render partial: "statements/subtotal", object: statement.account_items.checks.sum(&:amount) %>
+        </fieldset>
+      <% end %>
+
+      <% if uncleared.expenses.any? %>
+        <fieldset id="expenses">
+          <legend>Other expenses</legend>
+
+          <div class="uncleared expenses">
+            <table><%= render partial: "statements/uncleared", collection: uncleared.expenses %></table>
+          </div>
+
+          <%= render partial: "statements/subtotal", object: statement.account_items.expenses.sum(&:amount) %>
+        </fieldset>
+      <% end %>
+
+      <div id="balanced" class="<%= statement.balanced? ? "hidden" : "" %>" data-statement-reconcile-target="balanced">
+        <h3>Congratulations!</h3>
+
+        <p>Your records exactly match your account statement, and everything balances.</p>
+
+        <p><%= form.submit "Close out this statement" %></p>
+      </div>
+
+      <p id="actions" class="<%= statement.balanced? ? "" : "hidden" %>" data-statement-reconcile-target="actions">
+        <%= form.submit "Save for later" %>
+        or
+        <%= link_to "abort this reconciliation", statement_path(statement), data: { turbo_method: :delete, turbo_confirm: "Are you sure you want to discard this reconciliation?" } %>
+      </p>
+    <% end %>
+
+  </div>
+</div>

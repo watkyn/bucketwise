@@ -5,24 +5,15 @@ class TaggedItemsController < ApplicationController
   def create
     @tagged_item = event.tagged_items.build(tagged_item_params)
     @tagged_item.save!
-    respond_to do |format|
-      format.json { render json: @tagged_item, status: :created, location: tagged_item_url(@tagged_item) }
-      format.xml { render xml: @tagged_item, status: :created, location: tagged_item_url(@tagged_item) }
-    end
+    render json: @tagged_item, status: :created, location: tagged_item_url(@tagged_item)
   rescue ActiveRecord::RecordInvalid => error
     @tagged_item = error.record
-    respond_to do |format|
-      format.json { render json: @tagged_item.errors, status: :unprocessable_entity }
-      format.xml { render xml: error.record.errors, status: :unprocessable_entity }
-    end
+    render json: @tagged_item.errors, status: :unprocessable_entity
   end
 
   def destroy
     tagged_item.destroy
-    respond_to do |format|
-      format.json { head :ok }
-      format.xml { head :ok }
-    end
+    head :ok
   end
 
   protected

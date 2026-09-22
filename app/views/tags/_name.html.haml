@@ -1,5 +1,0 @@
-%span.actions
-  = link_to "Rename", "#", "data-action": "click->tags#rename", "data-url": tag_path(tag_ref), "data-name": tag_ref.name, "data-token": form_authenticity_token
-  |
-  = link_to "Delete", "#", "data-action": "click->tags#deleteTag"
-== Transactions tagged "#{h(tag_ref.name)}"

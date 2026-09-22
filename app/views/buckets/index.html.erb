@@ -1,0 +1,59 @@
+<div id="data" class="content" data-controller="filter-form">
+  <div class="navigation">
+    <%= link_to "Dashboard", subscription_path(subscription) %>
+    <%= link_to h(account.name), account_path(account) %>
+  </div>
+
+  <h2>
+    <%= balance_cell(account, classes: %w(total balance), tag: "span") %>
+    <%= "Buckets in #{h(account.name)}" %>
+  </h2>
+
+  <%= link_to filter, "#", id: :filter_nubbin, "data-action": "click->filter-form#display" %>
+
+  <div id="filter_form" class="hidden" data-filter-form-target="form">
+    <%= form_with url: account_buckets_path(account), method: :get do %>
+      <p>
+        Include:
+        <label>
+          <%= check_box_tag(:expenses, "1", filter.expenses?) %>
+          Expenses
+        </label>
+        <%= "|" %>
+        <label>
+          <%= check_box_tag(:deposits, "1", filter.deposits?) %>
+          Deposits
+        </label>
+        <%= "|" %>
+        <label>
+          <%= check_box_tag(:reallocations, "1", filter.reallocations?) %>
+          Reallocations
+        </label>
+      </p>
+      <p>
+        <label>
+          From:
+          <%= date_field_tag :from, filter.from %>
+        </label>
+        <label>
+          To:
+          <%= date_field_tag :to, filter.to %>
+        </label>
+      </p>
+
+      <p class="actions">
+        <%= submit_tag "Apply these criteria", name: nil %>
+        or
+        <%= link_to "cancel", "#", "data-action": "click->filter-form#hide" %>
+        <% if filter.any? %>
+          or
+          <%= link_to "reset this filter", account_buckets_path(account) %>
+        <% end %>
+      </p>
+    <% end %>
+  </div>
+
+  <table id="accounts_summary">
+    <%= render(buckets.sort_by(&:name)) %>
+  </table>
+</div>

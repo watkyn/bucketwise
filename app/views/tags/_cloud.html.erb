@@ -1,0 +1,5 @@
+<div id="cloud">
+  <% subscription.tags.sort_by(&:name).each do |item| %>
+    <%= link_to(item.name, tag_path(item)) %>
+  <% end %>
+</div>

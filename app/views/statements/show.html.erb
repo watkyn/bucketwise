@@ -1,0 +1,20 @@
+<div id="data" class="content">
+  <div class="navigation">
+    <%= link_to "Dashboard", subscription_path(subscription) %>
+    <%= link_to h(account.name), account_path(account) %>
+    <%= link_to "Prior statements", account_statements_path(account) %>
+  </div>
+
+  <h2>
+    <span class="actions">
+      <%= link_to("Delete", statement_path(statement), data: { turbo_method: :delete, turbo_confirm: "Are you sure you want to delete this statement?" }) %>
+    </span>
+    Statement for period ending
+    <%= statement.occurred_on.strftime("%Y-%m-%d") %>
+  </h2>
+
+  <table class="entries">
+    <%= render partial: "events/balance", locals: { container: statement } %>
+    <%= render(statement.account_items) %>
+  </table>
+</div>

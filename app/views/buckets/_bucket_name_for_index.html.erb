@@ -1,0 +1,6 @@
+<div class="nubbin hidden absolute" id="<%= dom_id(bucket, :nubbin) %>">
+  <%= link_to "+", "#", class: "button", "data-action": "click->bucket-row#transferTo", "data-account-id": bucket.account_id, "data-bucket-id": bucket.id %>
+  <%= link_to "-", "#", class: "button", "data-action": "click->bucket-row#transferFrom", "data-account-id": bucket.account_id, "data-bucket-id": bucket.id %>
+  <%= link_to "&#x270e;".html_safe, "#", class: "button", "data-action": "click->bucket-row#rename", "data-url": bucket_path(bucket), "data-name": bucket.name, "data-token": form_authenticity_token %>
+</div>
+<%= link_to h(bucket.name), bucket, class: "bucket" %>

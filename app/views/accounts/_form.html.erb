@@ -1,0 +1,88 @@
+<%= form_with model: (@account || Account.new), url: subscription_accounts_path(subscription), id: "new_account_form", data: { action: "submit->accounts-form#validate" } do |form| %>
+  <% if form.object && !form.object.errors.empty? %>
+    <fieldset class="errors">
+      <legend>Errors</legend>
+
+      <p>The account could not be saved because of the following error(s):</p>
+      <ul>
+        <% form.object.errors.each_full do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </fieldset>
+  <% end %>
+
+  <fieldset>
+    <legend>Account info</legend>
+
+    <p>
+      <label for="account_name">
+        <strong>Choose a name</strong>
+        for this account:
+      </label>
+      <%= form.text_field :name, class: "text", "data-accounts-form-target": "nameField" %>
+    </p>
+
+    <p>
+      <label>
+        <strong>What kind</strong>
+        of account is this?
+        <%= form.select :role, [["Checking", "checking"], ["Credit card", "credit-card"], ["Other", "other"]], {}, "data-accounts-form-target": "roleField", "data-action": "change->accounts-form#toggleCreditLimit" %>
+      </label>
+    </p>
+
+    <p id="credit_limit_div" class="hidden" data-accounts-form-target="limitDiv">
+      <label>
+        What is the
+        <strong>credit limit</strong>
+        :
+        <%= safe_join(["$", form.text_field(:limit, class: "number", size: 8, "data-accounts-form-target": "creditLimitField")]) %>
+      </label>
+    </p>
+  </fieldset>
+
+  <% if form.object.nil? || form.object.new_record? %>
+    <fieldset>
+      <legend>Starting balance</legend>
+
+      <div class="instructions">
+        <p>
+          <b>Take a look at your latest statement for this account.</b>
+        </p>
+        <p>
+          Note the
+          <em>current balance</em>
+          from the statement, as
+          well as the
+          <em>date the statement was issued</em>
+          , and enter
+          them below.
+        </p>
+      </div>
+      <%= hidden_field_tag "account[starting_balance][amount]", "", "data-accounts-form-target": "startingBalance" %>
+
+      <p>
+        <label>
+          What is the
+          <strong>current balance</strong>
+          :
+          <%= safe_join(["$", text_field_tag(:current_balance, account_starting_balance_amount, class: "number", size: 8)]) %>
+        </label>
+      </p>
+
+      <p>
+        <label>
+          <strong>When</strong>
+          was the statement issued:
+          <%= date_field_tag "account[starting_balance][occurred_on]", account_starting_balance_occurred_on %>
+        </label>
+      </p>
+    </fieldset>
+  <% end %>
+
+  <p>
+    <%= submit_tag "Create this account" %>
+    or
+    <%= link_to "cancel", "#", "data-action": "click->accounts-form#hide" %>
+  </p>
+<% end %>

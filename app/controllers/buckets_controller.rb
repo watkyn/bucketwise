@@ -11,7 +11,6 @@ class BucketsController < ApplicationController
     respond_to do |format|
       format.html
       format.json { render json: @buckets.as_json(eager_options) }
-      format.xml { render xml: @buckets.to_xml(eager_options(root: "buckets")) }
     end
   end
 
@@ -22,55 +21,32 @@ class BucketsController < ApplicationController
         @more_pages, @items = bucket.line_items.page(@page)
       end
       format.json { render json: bucket.as_json(eager_options) }
-      format.xml { render xml: bucket.to_xml(eager_options) }
     end
   end
 
   def new
     @bucket = Bucket.template
-    respond_to do |format|
-      format.json { render json: @bucket }
-      format.xml { render xml: @bucket.to_xml }
-    end
+    render json: @bucket
   end
 
   def create
-    respond_to do |format|
-      format.json do
-        @bucket = account.buckets.build(bucket_params)
-        @bucket.author = user
-        @bucket.save!
-        render json: @bucket, status: :created, location: bucket_url(@bucket)
-      end
-      format.xml do
-        @bucket = account.buckets.build(bucket_params)
-        @bucket.author = user
-        @bucket.save!
-        render xml: @bucket.to_xml, status: :created, location: bucket_url(@bucket)
-      end
-    end
+    @bucket = account.buckets.build(bucket_params)
+    @bucket.author = user
+    @bucket.save!
+    render json: @bucket, status: :created, location: bucket_url(@bucket)
   rescue ActiveRecord::RecordInvalid => error
     @bucket = error.record
-    respond_to do |format|
-      format.json { render json: @bucket.errors, status: :unprocessable_entity }
-      format.xml { render xml: @bucket.errors.to_xml, status: :unprocessable_entity }
-    end
+    render json: @bucket.errors, status: :unprocessable_entity
   end
 
   def update
     bucket.update!(bucket_params)
     respond_to do |format|
-      format.js
       format.turbo_stream
       format.json { render json: bucket }
-      format.xml { render xml: bucket.to_xml }
     end
   rescue ActiveRecord::RecordInvalid
-    respond_to do |format|
-      format.js { render status: :unprocessable_entity }
-      format.json { render json: bucket.errors, status: :unprocessable_entity }
-      format.xml { render xml: bucket.errors.to_xml, status: :unprocessable_entity }
-    end
+    render json: bucket.errors, status: :unprocessable_entity
   end
 
   def destroy
@@ -79,7 +55,6 @@ class BucketsController < ApplicationController
     respond_to do |format|
       format.html { redirect_to receiver }
       format.json { head :ok }
-      format.xml  { head :ok }
     end
   end
 

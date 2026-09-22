@@ -1,0 +1,13 @@
+<tr class="current_balance">
+  <% if container.is_a?(Statement) %>
+    <th class="date"><%= statement.occurred_on.strftime("%Y-%m-%d") %></th>
+    <th>Ending balance</th>
+  <% else %>
+    <th class="date"><%= Date.today.strftime("%Y-%m-%d") %></th>
+    <th>Current balance</th>
+  <% end %>
+  <th class="number total balance" colspan="2"><%= balance_cell(container, tag: "span", id: "balance") %></th>
+</tr>
+<tr class="spacer">
+  <td colspan="4"></td>
+</tr>

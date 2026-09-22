@@ -1,0 +1,10 @@
+<div class="subtotal">
+  <div class="settled">
+    Subtotal:
+    <span class="subtotal_dollars"><%= format_cents(subtotal) %></span>
+  </div>
+  <div class="remaining">
+    Remaining:
+    <span class="remaining_dollars<%= " balanced" if statement.unsettled_balance.zero? %>"><%= format_cents(statement.unsettled_balance) %></span>
+  </div>
+</div>

@@ -9,7 +9,7 @@ class TaggedItemsControllerTest < ActionController::TestCase
     assert_no_difference "TaggedItem.count" do
       post :create, :event_id => events(:tim_checking_starting_balance).id,
         :tagged_item => { :amount => 100, :tag_id => tags(:john_tip).id },
-        :format => "xml"
+        :format => "json"
       assert_response :missing
     end
   end
@@ -18,7 +18,7 @@ class TaggedItemsControllerTest < ActionController::TestCase
     assert_no_difference "TaggedItem.count" do
       post :create, :event_id => events(:john_lunch).id,
         :tagged_item => { :amount => 100, :tag_id => tags(:tim_milk).id },
-        :format => "xml"
+        :format => "json"
       assert_response :missing
     end
   end
@@ -27,12 +27,12 @@ class TaggedItemsControllerTest < ActionController::TestCase
     assert_difference "TaggedItem.count" do
       post :create, :event_id => events(:john_lunch).id,
         :tagged_item => { :amount => 100, :tag_id => tags(:john_fuel).id },
-        :format => "xml"
+        :format => "json"
       assert_response :success
     end
 
-    xml = Hash.from_xml(@response.body)
-    assert xml.key?("tagged_item")
+    json = JSON.parse(@response.body)
+    assert json.key?("id")
     assert events(:john_lunch, :reload).tagged_items.any? { |i| i.tag == tags(:john_fuel) }
   end
 
@@ -41,27 +41,27 @@ class TaggedItemsControllerTest < ActionController::TestCase
       assert_difference "Tag.count" do
         post :create, :event_id => events(:john_lunch).id,
           :tagged_item => { :amount => 100, :tag_id => "n:misc" },
-          :format => "xml"
+          :format => "json"
         assert_response :success
       end
     end
 
-      xml = Hash.from_xml(@response.body)
-      assert xml.key?("tagged_item")
+      json = JSON.parse(@response.body)
+      assert json.key?("id")
       assert events(:john_lunch, :reload).tagged_items.any? { |i| i.tag.name == "misc" }
   end
 
   test "destroy via API for inaccessible tagged item should 404" do
     login! :tim
     assert_no_difference "TaggedItem.count" do
-      delete :destroy, :id => tagged_items(:john_lunch_tip).id, :format => "xml"
+      delete :destroy, :id => tagged_items(:john_lunch_tip).id, :format => "json"
       assert_response :missing
     end
   end
 
   test "destroy via API should remove tagged item from event and return 200" do
     assert_difference "TaggedItem.count", -1 do
-      delete :destroy, :id => tagged_items(:john_lunch_tip).id, :format => "xml"
+      delete :destroy, :id => tagged_items(:john_lunch_tip).id, :format => "json"
       assert_response :success
     end
   end

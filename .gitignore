@@ -32,11 +32,14 @@
 # Ignore master key for decrypting credentials and more.
 /config/master.key
 
+# OS / editor files.
+.DS_Store
+*.swp
+
 # Legacy (pre-port) ignores kept for safety.
 db/*.sqlite3
 db/*.sqlite3-*
 db/backup
-*.swp
 /app/assets/builds/*
 !/app/assets/builds/.keep
 
