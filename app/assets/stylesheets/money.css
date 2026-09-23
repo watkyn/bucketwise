@@ -30,30 +30,10 @@ div#header {
 }
 
 div#header h1 {
-  font-size: 2em;
   text-align: left;
-  width: 700px;
   color: #073;
-  margin: 0 auto;
-  padding: 0.5em 0 0 0;
-}
-
-div#header h1 span.actions {
-  font-size: 50%;
-  float: right;
-  line-height: 2.5em;
-}
-
-div#header h1 span.actions a {
-  color: #696;
-}
-
-div#header h1 span.title a {
-  color: #696;
-}
-
-div#header h1 span.actions a:hover {
-  color: #00f;
+  margin: 0;
+  padding: 0;
 }
 
 div#container {
