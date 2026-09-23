@@ -24,7 +24,7 @@
         <p>
           <strong>What</strong>
           is the ending balance?
-          <%= safe_join(["$", form.text_field(:ending_balance, size: 8, class: "number", value: format_cents(statement.ending_balance, unit: ""), "data-action": "input->statement-reconcile#updateEndingBalance")]) %>
+          <%= safe_join([content_tag(:span, "$", class: "mr-1"), form.text_field(:ending_balance, size: 8, class: "number", value: format_cents(statement.ending_balance, unit: ""), "data-action": "input->statement-reconcile#updateEndingBalance focusout->statement-reconcile#formatEndingBalance")]) %>
         </p>
 
       </fieldset>

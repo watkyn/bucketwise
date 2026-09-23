@@ -35,18 +35,19 @@ export default class extends Controller {
   }
 
   updateEndingBalance() {
-    if (this.hasEndingBalanceTarget) {
-      this.endingBalanceTarget.value = Money.format(this.endingBalanceTarget)
-    }
+    // Free-form entry: never rewrite what the user typed. Just recompute
+    // the remaining balance and success state from the raw text.
+    this.updateBalances()
+  }
+
+  // Tidy the field when focus leaves it; typing itself is never rewritten.
+  formatEndingBalance(event) {
+    const field = event.currentTarget
+    field.value = Money.format(field)
     this.updateBalances()
   }
 
   updateBalances() {
-    const endingEl = document.getElementById("statement_ending_balance")
-    if (endingEl) {
-      endingEl.value = Money.format(endingEl)
-    }
-
     const remaining = this.computeRemaining()
 
     for (const section of ["deposits", "checks", "expenses"]) {

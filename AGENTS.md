@@ -17,8 +17,8 @@ Two external references govern work in this repo:
    `master` is frozen at `a12e77c` and preserves the original Rails 2.3 application. It is read-only
    history: never commit to it, never merge it forward mechanically. When unsure how BucketWise is
    *supposed* to behave (accounting rules, event validation, balances, edge cases), check the old code.
-   There is no separate `../bucketwise-master` worktree in this checkout; use `git show master:<path>`
-   to read the legacy source. For one-offs:
+   A read-only worktree lives at `../bucketwise-master` (detached at `a12e77c`); read files there
+   directly, or use `git show master:<path>` from this checkout. For one-offs:
    ```sh
    git show master:app/models/event.rb        # any path on the frozen branch
    git log master --oneline                   # original history

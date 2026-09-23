@@ -36,7 +36,7 @@
         What is the
         <strong>credit limit</strong>
         :
-        <%= safe_join(["$", form.text_field(:limit, class: "number", size: 8, "data-accounts-form-target": "creditLimitField")]) %>
+        <%= safe_join([content_tag(:span, "$", class: "mr-1"), form.text_field(:limit, class: "number", size: 8, "data-accounts-form-target": "creditLimitField")]) %>
       </label>
     </p>
   </fieldset>
@@ -66,7 +66,7 @@
           What is the
           <strong>current balance</strong>
           :
-          <%= safe_join(["$", text_field_tag(:current_balance, account_starting_balance_amount, class: "number", size: 8)]) %>
+          <%= safe_join([content_tag(:span, "$", class: "mr-1"), text_field_tag(:current_balance, account_starting_balance_amount, class: "number", size: 8)]) %>
         </label>
       </p>
 

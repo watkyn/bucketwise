@@ -91,8 +91,8 @@ ENVIRONMENT (all verified, required to run anything):
       TEST_ENV_NUMBER=<name> PARALLEL_WORKERS=1 bin/rails test <files>
     -> uses storage/test<name>.sqlite3. Without this, concurrent runs
        clobber storage/test.sqlite3.
-  * Behavioral reference is `git show master:<path>`; no separate
-    ../bucketwise-master worktree exists in this checkout.
+  * Behavioral reference is the read-only `../bucketwise-master` worktree
+    (detached at `a12e77c`); `git show master:<path>` also works.
   * Style reference: ~/dev/fizzy.
   * `bin/rails test` DOES discover test/controllers/ (verified).
 
@@ -129,8 +129,7 @@ COMPLETED TASKS (A–D were independent and used disjoint files):
         Headless-Chrome system tests were later removed in favor of ad hoc
         browser testing.
   * [x] F — refreshed AGENTS.md test-layout facts, Fizzy path, and legacy
-        reference instructions (use `git show master:<path>`; no separate
-        `../bucketwise-master` worktree exists).
+        reference instructions (read-only `../bucketwise-master` worktree;
 
 ------------------------------------------------------------------------
 7. MIGRATIONS AND SERVER STARTUP                                      [DONE]

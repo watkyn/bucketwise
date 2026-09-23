@@ -83,6 +83,30 @@ class StatementsControllerTest < ActionDispatch::IntegrationTest
     assert_select "td#starting_balance", text: "$0.00"
   end
 
+  test "edit hides congratulations and offers save-for-later while unbalanced" do
+    assert_not statements(:john_pending).balanced?
+
+    get edit_statement_path(statements(:john_pending))
+
+    assert_response :ok
+    assert_select "#balanced.hidden", count: 1
+    assert_select "#actions", count: 1
+    assert_select "#actions.hidden", count: 0
+  end
+
+  test "edit shows congratulations and close-out once balanced" do
+    statement = accounts(:john_checking).statements.create!(
+      occurred_on: Date.today, ending_balance: statements(:john_pending).starting_balance)
+    assert statement.balanced?
+
+    get edit_statement_path(statement)
+
+    assert_response :ok
+    assert_select "#balanced", count: 1
+    assert_select "#balanced.hidden", count: 0
+    assert_select "#actions.hidden", count: 1
+  end
+
   test "update for inaccessible statement should 404" do
     put statement_path(statements(:tim)),
       params: { statement: { occurred_on: statements(:tim).occurred_on,
@@ -104,6 +128,14 @@ class StatementsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to account_path(statements(:john_pending).account)
     assert_equal [account_items(:john_lunch_again_checking)],
       statements(:john_pending).reload.account_items
+  end
+
+  test "update accepts a negative ending balance for overdrawn accounts" do
+    put statement_path(statements(:john_pending)),
+      params: { statement: { ending_balance: "-100.00" } }
+
+    assert_redirected_to account_path(statements(:john_pending).account)
+    assert_equal(-100_00, statements(:john_pending).reload.ending_balance)
   end
 
   test "destroy for inaccessible statement should 404" do

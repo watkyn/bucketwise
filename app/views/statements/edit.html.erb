@@ -14,7 +14,7 @@
         <tr>
           <td class="occurred_on"><%= form.date_field :occurred_on %></td>
           <td id="starting_balance" class="starting_balance number"><%= format_cents(statement.starting_balance) %></td>
-          <td class="ending_balance"><%= safe_join(["$", form.text_field(:ending_balance, size: 8, class: "number", value: format_cents(statement.ending_balance, unit: ""), "data-action": "input->statement-reconcile#updateEndingBalance", "data-statement-reconcile-target": "endingBalance")]) %></td>
+          <td class="ending_balance"><%= safe_join([content_tag(:span, "$", class: "mr-1"), form.text_field(:ending_balance, size: 8, class: "number", value: format_cents(statement.ending_balance, unit: ""), "data-action": "input->statement-reconcile#updateEndingBalance focusout->statement-reconcile#formatEndingBalance", "data-statement-reconcile-target": "endingBalance")]) %></td>
         </tr>
       </table>
 
@@ -54,7 +54,7 @@
         </fieldset>
       <% end %>
 
-      <div id="balanced" class="<%= statement.balanced? ? "hidden" : "" %>" data-statement-reconcile-target="balanced">
+      <div id="balanced" class="<%= statement.balanced? ? "" : "hidden" %>" data-statement-reconcile-target="balanced">
         <h3>Congratulations!</h3>
 
         <p>Your records exactly match your account statement, and everything balances.</p>
@@ -62,7 +62,7 @@
         <p><%= form.submit "Close out this statement" %></p>
       </div>
 
-      <p id="actions" class="<%= statement.balanced? ? "" : "hidden" %>" data-statement-reconcile-target="actions">
+      <p id="actions" class="<%= statement.balanced? ? "hidden" : "" %>" data-statement-reconcile-target="actions">
         <%= form.submit "Save for later" %>
         or
         <%= link_to "abort this reconciliation", statement_path(statement), data: { turbo_method: :delete, turbo_confirm: "Are you sure you want to discard this reconciliation?" } %>
