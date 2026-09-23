@@ -401,13 +401,21 @@ textarea,
 select {
   font-family: inherit;
   font-size: 0.9rem;
-  padding: 0.55rem 0.75rem;
+  padding: 0.4rem 0.6rem;
   border: 1px solid #e5e7eb;
   border-radius: 6px;
   background: #fff;
   color: #111;
   outline: none;
   transition: border-color 0.12s ease, box-shadow 0.12s ease;
+}
+
+/* Native selects render taller than text inputs with identical padding,
+ * so pin single-line controls to one explicit height. */
+input[type="text"],
+select {
+  box-sizing: border-box;
+  height: 2.25rem;
 }
 
 input[type="text"]:hover,

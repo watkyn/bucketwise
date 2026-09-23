@@ -1,7 +1,7 @@
-<fieldset id="<%= section %>" class="<%= section_visible_for_event?(section) ? "" : "hidden" %>" data-events-form-target="<%= section.to_s.camelize(:lower) %>">
+<fieldset id="<%= section %>" class="mb-4 <%= section_visible_for_event?(section) ? "" : "hidden" %>" data-events-form-target="<%= section.to_s.camelize(:lower) %>">
   <legend>Reallocate funds</legend>
 
-  <p class="primary">
+  <p class="primary my-3">
     <%= hidden_field_tag "account_for_#{section}", account_id_for_section(section) %>
 
     <strong>Which bucket</strong>
@@ -11,11 +11,11 @@
     <%= select_bucket(section, splittable: false, line_item: line_item_for_section('primary')) %>
   </p>
 
-  <ol id="<%= section %>.line_items">
+  <ol id="<%= section %>.line_items" class="my-2 space-y-2">
     <% for_each_line_item_in(section) do |item| %>
       <li><%= render partial: "events/reallocation_item", object: item, locals: { section: section } %></li>
     <% end %>
   </ol>
 
-  <p><%= link_to "More buckets, please!", "#", "data-action": "click->events-form#addLineItem", "data-section": section %></p>
+  <p class="my-3"><%= link_to "More buckets, please!", "#", "data-action": "click->events-form#addLineItem", "data-section": section %></p>
 </fieldset>

@@ -1,38 +1,38 @@
-<fieldset id="general_information" data-events-form-target="generalInfo">
+<fieldset id="general_information" class="mb-4" data-events-form-target="generalInfo">
   <legend>General Information</legend>
 
-  <p>
-    <span class="expense_label">
+  <p class="my-3">
+    <span class="expense_label mr-2">
       <strong>When</strong>
       did this expense occur?
     </span>
-    <span class="deposit_label">
+    <span class="deposit_label mr-2">
       <strong>When</strong>
       did this deposit occur?
     </span>
-    <span class="transfer_label">
+    <span class="transfer_label mr-2">
       <strong>When</strong>
       did this transfer occur?
     </span>
     <%= form.date_field :occurred_on %>
   </p>
 
-  <div>
-    <span class="expense_label">
+  <div class="my-3">
+    <span class="expense_label mr-2">
       <strong>Who</strong>
       received the payment?
     </span>
-    <span class="deposit_label">
+    <span class="deposit_label mr-2">
       <strong>Where</strong>
       did this deposit come from?
     </span>
-    <span class="transfer_label">
+    <span class="transfer_label mr-2">
       <strong>What</strong>
       was this transfer for?
     </span>
     <div class="relative inline-block" data-controller="autocomplete" data-autocomplete-items-value="<%= subscription.actors.sort_by(&:sort_name).map(&:name).to_json %>">
       <%= form.text_field :actor_name, size: 30, "data-events-form-target": "actorName", "data-autocomplete-target": "input", "data-action": "input->events-form#checkActorName input->autocomplete#search keydown->autocomplete#navigate" %>
-      <ul class="hidden absolute left-0 top-full z-50 bg-white border border-gray-300 rounded shadow-lg max-h-40 overflow-auto w-full" data-autocomplete-target="list"></ul>
+      <ul class="hidden absolute left-0 top-full z-50 bg-white border border-gray-300 rounded shadow-lg max-h-64 overflow-auto w-full" data-autocomplete-target="list"></ul>
     </div>
     <% if form.object.new_record? %>
       <span id="recall_event" class="hidden" data-events-form-target="recallEvent">
@@ -41,30 +41,30 @@
     <% end %>
   </div>
 
-  <p>
-    <span class="expense_label">
+  <p class="my-3">
+    <span class="expense_label mr-2">
       <strong>How much</strong>
       was paid?
     </span>
-    <span class="deposit_label">
+    <span class="deposit_label mr-2">
       <strong>How much</strong>
       was deposited?
     </span>
-    <span class="transfer_label">
+    <span class="transfer_label mr-2">
       <strong>How much</strong>
       was transferred?
     </span>
-    <%= safe_join(["$", text_field_tag(:amount, event_amount_value, size: 8, id: "expense_total", class: "number", "data-events-form-target": "expenseTotal", "data-action": "input->events-form#updateAmount")]) %>
+    <%= safe_join([content_tag(:span, "$", class: "mr-1"), text_field_tag(:amount, event_amount_value, size: 8, id: "expense_total", class: "number", "data-events-form-target": "expenseTotal", "data-action": "input->events-form#updateAmount")]) %>
   </p>
 
-  <p id="memo_link" class="<%= event_wants_memo? ? "hidden" : "" %>" data-events-form-target="memoLink">
+  <p id="memo_link" class="my-3 <%= event_wants_memo? ? "hidden" : "" %>" data-events-form-target="memoLink">
     <strong>Got more to say?</strong>
     <%= link_to "Add a more verbose description...", "#", "data-action": "click->events-form#revealMemo" %>
   </p>
 
-  <fieldset id="memo" class="<%= event_wants_memo? ? "" : "hidden" %>" data-events-form-target="memo">
+  <fieldset id="memo" class="mb-4 <%= event_wants_memo? ? "" : "hidden" %>" data-events-form-target="memo">
     <legend>Description</legend>
-    <p>
+    <p class="my-3">
       Describe this transaction:
       <br />
       <%= form.text_area :memo, rows: 2, cols: 70 %>

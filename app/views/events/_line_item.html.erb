@@ -1,4 +1,4 @@
-<%= safe_join(["$", text_field_tag("event[#{section}][amount]", line_item_amount_value(line_item), size: 8, class: "number", "data-action": "input->events-form#updateUnassigned")]) %>
+<%= safe_join([content_tag(:span, "$", class: "mr-1"), text_field_tag("event[#{section}][amount]", line_item_amount_value(line_item), size: 8, class: "number", "data-action": "input->events-form#updateUnassigned")]) %>
 <%= bucket_action_phrase_for(section) %>
 <%= select_bucket(section, splittable: false, line_item: line_item) %>
 <%= link_to "[x]", "#", "data-action": "click->events-form#removeLineItem" %>

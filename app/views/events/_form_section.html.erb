@@ -1,7 +1,7 @@
-<fieldset id="<%= section %>" class="<%= section_visible_for_event?(section) ? "" : "hidden" %>" data-events-form-target="<%= section.to_s.camelize(:lower) %>">
+<fieldset id="<%= section %>" class="mb-4 <%= section_visible_for_event?(section) ? "" : "hidden" %>" data-events-form-target="<%= section.to_s.camelize(:lower) %>">
   <legend><%= title %></legend>
 
-  <p>
+  <p class="my-3">
     <%= raw account_prompt %>
     <%= select_account(section, accounts, selected_account && selected_account.id) %>
     <% if section_wants_check_options?(section) %>
@@ -19,7 +19,7 @@
   </p>
 
   <% if section_has_single_bucket?(section) %>
-    <p id="<%= section %>.single_bucket">
+    <p id="<%= section %>.single_bucket" class="my-3">
       <%= raw single_bucket_prompt %>
       <%= select_bucket(section, line_item: line_item_for_section(section)) %>
       <% if section == :credit_options %>
@@ -30,15 +30,15 @@
   <% end %>
 
   <div id="<%= section %>.multiple_buckets" style="<%= multi_bucket_visibility_for(section) %>">
-    <p>
+    <p class="my-3">
       <%= raw multi_bucket_prompt %>
       <span id="<%= section %>.unassigned"></span>
     </p>
-    <ol id="<%= section %>.line_items">
+    <ol id="<%= section %>.line_items" class="my-2 space-y-2">
       <% for_each_line_item_in(section) do |item| %>
         <li><%= render partial: "events/line_item", object: item, locals: { section: section } %></li>
       <% end %>
     </ol>
-    <p><%= link_to "More buckets, please!", "#", "data-action": "click->events-form#addLineItem", "data-section": section %></p>
+    <p class="my-3"><%= link_to "More buckets, please!", "#", "data-action": "click->events-form#addLineItem", "data-section": section %></p>
   </div>
 </fieldset>

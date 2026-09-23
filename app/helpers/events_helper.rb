@@ -331,7 +331,7 @@ module EventsHelper
       action: "input->autocomplete#search keydown->autocomplete#navigate"
     )
 
-    dropdown = content_tag(:ul, "", class: "hidden absolute left-0 top-full z-50 bg-white border border-gray-300 rounded shadow-lg max-h-40 overflow-auto w-full",
+    dropdown = content_tag(:ul, "", class: "hidden absolute left-0 top-full z-50 bg-white border border-gray-300 rounded shadow-lg max-h-64 overflow-auto w-full",
       id: "#{options[:id]}_select", data: { autocomplete_target: "list" })
     field = safe_join([text_field_tag(name, value, options), dropdown])
     data = { controller: "autocomplete", autocomplete_items_value: @subscription&.tags&.map(&:name)&.sort || [] }

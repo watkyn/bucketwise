@@ -23,7 +23,7 @@
     <%= render_event_form_section(form, section) if event_wants_section?(section) %>
   <% end %>
 
-  <p>
+  <p class="mt-4">
     <% if !event_for_form.new_record? %>
       <input type="submit" value="Edit this transaction" />
     <% else %>
