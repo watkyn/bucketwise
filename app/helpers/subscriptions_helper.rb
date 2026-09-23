@@ -25,7 +25,10 @@ module SubscriptionsHelper
 
     content = format_amount(balance)
     if real_balance != balance
-      content = "<span class='real_balance'> ".dup << format_amount(real_balance) << " </span> #{content}"
+      content = safe_join([
+        content_tag(:span, format_amount(real_balance), class: "real_balance"),
+        " #{content}"
+      ])
     end
 
     content_tag(options.fetch(:tag, "td"), content, :class => classes.join(" "), :id => options[:id])
