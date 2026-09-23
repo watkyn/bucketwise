@@ -159,6 +159,29 @@ class BucketsControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "create via API with basic auth skips forgery protection" do
+    with_forgery_protection do
+      assert_difference -> { accounts(:john_checking).buckets.count } do
+        post account_buckets_path(accounts(:john_checking), format: :json),
+          params: { bucket: { name: "No-CSRF Bucket", role: "" } },
+          headers: basic_auth_headers(:john)
+
+        assert_response :created
+      end
+    end
+  end
+
+  test "cookie-session JSON writes without a CSRF token are still rejected" do
+    with_forgery_protection do
+      assert_no_difference -> { Bucket.count } do
+        post account_buckets_path(accounts(:john_checking), format: :json),
+          params: { bucket: { name: "Should Not Exist", role: "" } }
+
+        assert_response :unprocessable_entity
+      end
+    end
+  end
+
   test "update via API should update record and respond with 200" do
     put bucket_path(buckets(:john_checking_dining), format: :json),
       params: { bucket: { name: "Hi!" } }

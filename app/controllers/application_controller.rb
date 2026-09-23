@@ -1,7 +1,11 @@
 class ApplicationController < ActionController::Base
   include OptionHandler
 
-  protect_from_forgery with: :exception
+  # Basic-auth API clients cannot send a CSRF token, so cookie-oriented
+  # forgery protection would reject every API write outside the test suite
+  # (where protection is disabled). Cookie sessions — including the Stimulus
+  # fetch calls — stay protected.
+  protect_from_forgery with: :exception, unless: :basic_auth_api_request?
 
   before_action :authenticate
 
@@ -45,6 +49,10 @@ class ApplicationController < ActionController::Base
       request.format.json?
     end
     helper_method :via_api?
+
+    def basic_auth_api_request?
+      via_api? && request.authorization.present?
+    end
 
   private
 

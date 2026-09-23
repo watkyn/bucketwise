@@ -261,6 +261,23 @@ class EventsControllerTest < ActionDispatch::IntegrationTest
     assert_select "#reallocate_from", false
   end
 
+  test "new event templates render reallocation inputs as real elements, not escaped HTML" do
+    get new_subscription_event_path(subscriptions(:john))
+
+    assert_response :ok
+    doc = Nokogiri::HTML(@response.body)
+    %w[reallocate_from reallocate_to].each do |section|
+      template = doc.xpath("//div[@id='template.#{section}']").first
+      assert template, "expected a template.#{section} JS template"
+      assert template.at_css("input[type='text']"),
+        "expected a real amount input in the #{section} template"
+      assert template.at_css("select"),
+        "expected a real bucket select in the #{section} template"
+    end
+    refute_includes @response.body, "&lt;input",
+      "expected real <input> elements in the JS templates, found escaped HTML instead"
+  end
+
   # == API tests ========================================================================
 
   test "index HTML without a container should redirect to the user's root subscription" do

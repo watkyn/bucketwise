@@ -24,6 +24,16 @@ module SessionHelpers
     { "HTTP_AUTHORIZATION" => "Basic #{Base64.strict_encode64("#{user.user_name}:#{password}")}" }
   end
 
+  # Executes the block with forgery protection enabled (it is disabled by
+  # default in the test environment). Restores the default afterwards so
+  # CSRF behavior can be proven instead of assumed.
+  def with_forgery_protection
+    ActionController::Base.allow_forgery_protection = true
+    yield
+  ensure
+    ActionController::Base.allow_forgery_protection = false
+  end
+
   private
 
     def resolve_user(who)

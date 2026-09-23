@@ -18,8 +18,13 @@ class EventsHelperTest < ActionView::TestCase
 
     @line_item = line_items(:john_lunch_checking_dining)
     bucket_html = select_bucket(:credit_options, line_item: @line_item)
-    assert_includes bucket_html, "-- More than one --"
-    assert_includes bucket_html, "-- Add a new bucket --"
+    bucket_fragment = Nokogiri::HTML.fragment(bucket_html)
+    assert bucket_fragment.at_css("option[value='+']"),
+      "expected a real '-- More than one --' option, got: #{bucket_html}"
+    assert bucket_fragment.at_css("option[value='++']"),
+      "expected a real '-- Add a new bucket --' option, got: #{bucket_html}"
+    refute_includes bucket_html, "&lt;option",
+      "expected real <option> elements in the bucket selector, found escaped HTML instead"
 
     unspecific_bucket_html = select_bucket(:deposit)
     assert_includes unspecific_bucket_html, "-- Select an account --"

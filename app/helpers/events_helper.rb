@@ -65,8 +65,8 @@ module EventsHelper
       select_options = options_for_select(
         options[:line_item].account.buckets.sorted.map { |bucket| [bucket.name, bucket.id] },
         options[:line_item].bucket_id)
-      select_options += "<option value='+'>-- More than one --</option>" if splittable
-      select_options += "<option value='++'>-- Add a new bucket --</option>"
+      select_options += "<option value='+'>-- More than one --</option>".html_safe if splittable
+      select_options += "<option value='++'>-- Add a new bucket --</option>".html_safe
       disabled = false
     else
       select_options = "<option>-- Select an account --</option>"
