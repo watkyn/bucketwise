@@ -54,6 +54,27 @@ export default class extends Controller {
     if (this.hasTransferToTarget) this.transferToTarget.classList.remove("hidden")
   }
 
+  revealReallocation(direction, accountId, bucketId) {
+    this.revealBasicForm()
+    if (this.hasGeneralInfoTarget) this.generalInfoTarget.classList.add("hidden")
+
+    const section = `reallocate_${direction}`
+    const sectionEl = document.getElementById(section)
+    if (!sectionEl) return
+
+    const accountField = document.getElementById(`account_for_${section}`)
+    if (accountField) accountField.value = accountId
+
+    const lineItems = document.getElementById(`${section}.line_items`)
+    if (lineItems) lineItems.innerHTML = ""
+    sectionEl.classList.remove("hidden")
+
+    this.updateBucketsFor(section)
+    const primarySelect = sectionEl.querySelector("p.primary select")
+    if (primarySelect) this.selectBucket(primarySelect, bucketId)
+    this.addLineItemTo(section, true)
+  }
+
   revealBasicForm() {
     if (this.hasNewEventTarget) this.newEventTarget.classList.remove("hidden")
     if (this.hasSuccessNoticeTarget) this.successNoticeTarget.classList.add("hidden")

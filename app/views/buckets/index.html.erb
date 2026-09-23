@@ -54,6 +54,7 @@
   </div>
 
   <table id="accounts_summary">
-    <%= render(buckets.sort_by(&:name)) %>
+    <%= render partial: "buckets/bucket", collection: buckets.sort_by(&:name), as: :bucket,
+      locals: { new_event_url: new_subscription_event_path(subscription) } %>
   </table>
 </div>

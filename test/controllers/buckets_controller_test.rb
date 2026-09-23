@@ -28,6 +28,17 @@ class BucketsControllerTest < ActionDispatch::IntegrationTest
     assert_select "a", text: "reset this filter", count: 0
   end
 
+  test "index bucket rows point the plus-minus buttons at the reallocation page" do
+    account = accounts(:john_checking)
+
+    get account_buckets_path(account)
+
+    assert_response :ok
+    account.buckets.each do |bucket|
+      assert_select "tr#bucket_#{bucket.id}[data-buckets-new-event-url-value='#{new_subscription_event_path(subscriptions(:john))}']", 1
+    end
+  end
+
   test "index with filter options should set filter and return only matching buckets" do
     account = accounts(:john_checking)
 

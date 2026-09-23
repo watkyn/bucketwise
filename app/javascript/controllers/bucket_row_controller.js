@@ -37,6 +37,8 @@ export default class extends Controller {
 
     if (this.newEventUrl) {
       window.location = this.newEventUrl + "?role=reallocation&to=" + bucketId
+    } else {
+      this.revealReallocation("to", accountId, bucketId)
     }
   }
 
@@ -47,7 +49,17 @@ export default class extends Controller {
 
     if (this.newEventUrl) {
       window.location = this.newEventUrl + "?role=reallocation&from=" + bucketId
+    } else {
+      this.revealReallocation("from", accountId, bucketId)
     }
+  }
+
+  // Pages without a dedicated new-event page (e.g. the subscription
+  // dashboard) reveal the inline reallocation form instead of navigating.
+  revealReallocation(direction, accountId, bucketId) {
+    const form = document.querySelector('[data-controller~="events-form"]')
+    const controller = form && this.application.getControllerForElementAndIdentifier(form, "events-form")
+    if (controller) controller.revealReallocation(direction, accountId, bucketId)
   }
 
   rename(event) {

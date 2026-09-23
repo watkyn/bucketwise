@@ -1,4 +1,4 @@
-<tr id="<%= dom_id(bucket) %>" class="bucket <%= cycle('odd', 'even') %>" data-controller="bucket-row" data-bucket-id="<%= bucket.id %>" data-action="mouseenter->bucket-row#showNubbin mouseleave->bucket-row#hideNubbin">
+<tr id="<%= dom_id(bucket) %>" class="bucket <%= cycle('odd', 'even') %>" data-controller="bucket-row" data-bucket-id="<%= bucket.id %>" data-buckets-new-event-url-value="<%= local_assigns[:new_event_url] %>" data-action="mouseenter->bucket-row#showNubbin mouseleave->bucket-row#hideNubbin">
 
   <td id="<%= dom_id(bucket, :name) %>">
     <%= render partial: "buckets/bucket_name_for_index", locals: { bucket: bucket } %>

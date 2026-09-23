@@ -54,6 +54,14 @@ class SubscriptionsControllerTest < ActionDispatch::IntegrationTest
       text: "Checking"
   end
 
+  test "show leaves bucket-row plus-minus buttons without a navigate URL for the inline form" do
+    get subscription_path(subscriptions(:john))
+
+    assert_response :ok
+    bucket = buckets(:john_checking_dining)
+    assert_select "tr#bucket_#{bucket.id}[data-buckets-new-event-url-value='']", 1
+  end
+
   test "show should render account links in recent entries as real links, not escaped HTML" do
     get subscription_path(subscriptions(:john))
     assert_response :ok
