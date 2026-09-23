@@ -1,23 +1,24 @@
  ==========================================================================
-Rails 8 PARITY — remaining work
+ Rails 8 PARITY — completed
 ==========================================================================
 
 Branch: upgrade-again
 Done (committed): Rails 2.3 → 8 port, Hotwire/Turbo/Tailwind UI, RJS → Turbo Streams.
-Done (this pass): FE boot proven (system test + integration wiring tests),
-                  dead format.js removed, HAML → ERB (43 files, gems dropped),
-                  XML API gutted → JSON API (gems dropped), QueryFilter fix,
-                  bare /events no longer 500s, demo seed, route smoke test,
-                  hygiene (README.md, .gitignore), shims slimmed, haml_fix deleted.
-Tests: bin/rails test = 242 runs green; bin/rails test:system = 1 run green.
+Done (this pass): event autocomplete refresh, bucket-merge line-item
+                  consolidation, controller-test conversion and shim/gem
+                  removal, reference documentation refresh, Rails 8
+                  migration/server-start compatibility, and demo login repair.
+Tests: bin/rails test = 304 runs, 1176 assertions, green. System tests were
+       removed; browser behavior is verified by ad hoc manual testing.
 
 ------------------------------------------------------------------------
 1. BLOCKING — front end must actually boot                         [DONE]
 ------------------------------------------------------------------------
 
-* [x] Stimulus boot proven: test/system/events_form_test.rb clicks "expense",
-      #new_event reveals without navigation (headless Chrome). Plus
-      test/unit/fe_boot_test.rb server-side wiring/importmap assertions.
+* [x] Stimulus boot covered by test/unit/fe_boot_test.rb server-side
+      wiring/importmap assertions. The former headless-Chrome
+      test/system/events_form_test.rb was removed; browser behavior is
+      now verified by ad hoc manual testing.
 * [x] Event recall: already Stimulus fetch-JSON; dead format.js
       (Events.doneLoadingRecalledEvents) deleted from events#index.
 * [x] Dormant format.js blocks deleted (events/accounts/buckets/tags/render_404).
@@ -41,8 +42,8 @@ Tests: bin/rails test = 242 runs green; bin/rails test:system = 1 run green.
 * [x] QueryFilter string/symbol key bug fixed (+ tests).
 * [x] Events#index bare /events: HTML → redirect to root subscription;
       API → 400 JSON (+ tests).
-* [ ] LegacyControllerTestHelpers shims: KEPT — 200+ functional tests still
-      depend on Rails 2-era positional-args/xhr style. Convert incrementally later.
+* [x] LegacyControllerTestHelpers and LegacyAssertResponse removed after the
+      integration-test conversion; `rails-controller-testing` gem removed.
 * [x] shims.rb slimmed: dropped form_for + Haml patches; kept version loader +
       Errors#each_full (used by accounts/_form). h() shim dropped (Rails has it).
 * [x] XML REST API gutted: format.xml removed from 7 controllers, Model#to_xml
@@ -60,43 +61,45 @@ Tests: bin/rails test = 242 runs green; bin/rails test:system = 1 run green.
 * [x] Push upgrade-again when green.
 
 ------------------------------------------------------------------------
-5. KNOWN PRODUCT BUGS (pre-existing, not Rails-8-specific)
+5. KNOWN PRODUCT BUGS (pre-existing, not Rails-8-specific)               [DONE]
 ------------------------------------------------------------------------
 
-* [ ] New tag/actor autocomplete stale until page reload.
-* [ ] Merging buckets can leave events with two line-items on the same bucket.
+* [x] New tag/actor autocomplete refreshes after event creation without reload.
+* [x] Bucket merges net same-event line items that collapse onto one bucket
+      (any roles); pairs netting to zero are removed, and events left with
+      no legs (e.g. a reallocation onto its own bucket) are dropped.
 
-==------------------------------------------------------------------------
-6. TEST SUITE MODERNIZATION — Fizzy-style integration tests     [IN PROGRESS]
 ------------------------------------------------------------------------
-Goal: convert all 8 test/functional/* files (137 tests, 1162 LOC) from
+6. TEST SUITE MODERNIZATION — Fizzy-style integration tests          [DONE]
+------------------------------------------------------------------------
+Completed: converted all 8 former test/functional/* files (137 tests, 1162 LOC) from
 ActionController::TestCase + Rails-2 positional/xhr style into
-ActionDispatch::IntegrationTest hitting real routes, then delete both legacy
-shims and the rails-controller-testing gem, and close the coverage gaps.
-`test/functional/` goes away; converted files live in `test/controllers/`.
+ActionDispatch::IntegrationTest hitting real routes; deleted both legacy shims
+and the rails-controller-testing gem, and closed the coverage gaps.
+The former `test/functional/` files now live in `test/controllers/`.
 
-Baseline (2026-09-22, must stay green): bin/rails test = 247 runs,
-748 assertions, ~7.5s; bin/rails test:system = 1 run.
+Current check (2026-09-23): bin/rails test = 304 runs, 1176 assertions, green.
+System tests were removed in favor of ad hoc browser testing (no Chrome
+dependency).
 
 ENVIRONMENT (all verified, required to run anything):
   * Ruby must be put on PATH explicitly, otherwise Homebrew Ruby 4.0.7 is
     picked up and Bundler raises Bundler::GemNotFound:
-      export PATH="/Users/ike/.local/share/mise/installs/ruby/3.4.8/bin:$PATH"
+      export PATH=~/.local/share/mise/installs/ruby/3.4.8/bin:$PATH
   * Parallel work isolates the SQLite test DB per agent via:
       TEST_ENV_NUMBER=<name> bin/rails db:test:prepare
       TEST_ENV_NUMBER=<name> PARALLEL_WORKERS=1 bin/rails test <files>
     -> uses storage/test<name>.sqlite3. Without this, concurrent runs
        clobber storage/test.sqlite3.
-  * Behavioral reference is `git show master:<path>` — the
-    ../bucketwise-master worktree named in AGENTS.md does NOT exist here.
-  * Style reference is /Users/ike/dev/fizzy (AGENTS.md's
-    ~/dev/opensource/fizzy path is stale).
+  * Behavioral reference is `git show master:<path>`; no separate
+    ../bucketwise-master worktree exists in this checkout.
+  * Style reference: ~/dev/fizzy.
   * `bin/rails test` DOES discover test/controllers/ (verified).
 
 DONE SO FAR:
   * [x] SessionHelpers in test/test_helper.rb — sign_in(:john) does a real
         POST /session, sign_out, and basic_auth_headers(:john, password:).
-        Verified green with a throwaway 5-test probe (since removed).
+        Verified by test/integration/session_helpers_test.rb.
 
 CONVERSION MAPPING (apply uniformly):
   get :show, :id => x             -> get event_path(x)
@@ -111,28 +114,44 @@ CONVERSION MAPPING (apply uniformly):
   session[:user_id] assertions    -> assert the redirect, then follow_redirect!
   Run `bin/rails routes` for exact path helpers; never guess them.
 
-TASKS (A–D are independent and safe to run in parallel — disjoint files):
+COMPLETED TASKS (A–D were independent and used disjoint files):
   * [x] A — events:      test/functional/events_controller_test.rb
                          (390 LOC, 43 requests) -> test/controllers/
   * [x] B — accounts + buckets: 156 + 154 LOC   -> test/controllers/
   * [x] C — tags + statements + subscriptions + tagged_items + sessions
                          172 + 102 + 79 + 68 + 41 LOC -> test/controllers/
-  * [x] D — coverage gaps (no SimpleCov, no new gems — user's call):
-        - app/helpers/* = 458 LOC with ZERO tests; events_helper.rb alone
-          is 353 LOC (event-form section JSON, dropdown/role rendering).
-        - models with no test file: actor, subscription, user_subscription.
-        - lib/populator.rb and app/concerns/{pageable,option_handler,
-          categorized_items} have no direct tests.
-        - accounts#change_password: only GET is smoke-tested; the POST
-          branch (password change) is untested.
-        - pagination (?page=) on accounts#show / buckets#show / tags#show
-          is untested.
-  * [ ] E — AFTER A–D: delete LegacyControllerTestHelpers +
-        LegacyAssertResponse, drop test/functional/ entirely, remove
-        "rails-controller-testing" from the Gemfile, then prove green with
-        a full `bin/rails test` + `bin/rails test:system`.
-  * [ ] F — refresh stale AGENTS.md facts: 242 -> current run count,
-        fizzy path, and the nonexistent ../bucketwise-master worktree.
+  * [x] D — coverage gaps closed: helper tests, actor/subscription/user_subscription
+        tests, Populator and concern tests, POST password-change coverage, and
+        pagination coverage; no SimpleCov or new gems added.
+  * [x] E — AFTER A–D: deleted LegacyControllerTestHelpers +
+        LegacyAssertResponse, removed test/functional/ entirely, removed
+        "rails-controller-testing" from the Gemfile; `bin/rails test` is green.
+        Headless-Chrome system tests were later removed in favor of ad hoc
+        browser testing.
+  * [x] F — refreshed AGENTS.md test-layout facts, Fizzy path, and legacy
+        reference instructions (use `git show master:<path>`; no separate
+        `../bucketwise-master` worktree exists).
+
+------------------------------------------------------------------------
+7. MIGRATIONS AND SERVER STARTUP                                      [DONE]
+------------------------------------------------------------------------
+  * [x] Port all legacy migrations to versioned ActiveRecord::Migration[8.0]
+        classes and instance up/down methods.
+  * [x] Fix the initial migration rollback table name and make actor
+        normalization independent of current application model callbacks.
+  * [x] Preserve legacy nullable timestamps and refresh `db/schema.rb` to
+        reflect the indexes produced by a fresh migration.
+  * [x] Verify a fresh `db:migrate`, `db:rollback STEP=9`, and re-migration.
+  * [x] Verify Puma starts and responds on `/` and `/session/new` without a
+        pending-migrations error.
+
+------------------------------------------------------------------------
+8. DEMO LOGIN                                                           [DONE]
+------------------------------------------------------------------------
+  * [x] Document the actual `demo:build` task and `bw.demo` / `demo`
+        credentials.
+  * [x] Supply a required credit-card limit so demo building succeeds, with an
+        integration test exercising the build and real login endpoint.
 
 KNOWN HAZARDS (do not paper over these):
   * sessions#destroy: the old test called `get :destroy`, but routes only

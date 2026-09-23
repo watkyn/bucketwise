@@ -544,6 +544,7 @@ export default class extends Controller {
       }).then(html => {
         if (html === null) return
         Turbo.renderStreamMessage(html)
+        this.refreshAutocompleteItems(data.event)
         // The create stream only refreshes the lists; the form stays in the
         // DOM. Clear it for the next entry and reveal the in-form notice.
         this.reset()
@@ -555,6 +556,32 @@ export default class extends Controller {
     } catch (e) {
       alert(e.message || "An error occurred")
     }
+  }
+
+  refreshAutocompleteItems(event) {
+    const actorName = event.actor_name?.trim()
+    const tagNames = (event.tagged_items || []).map(item => String(item.tag_id).replace(/^n:/, ""))
+
+    this.actorsValue = this.withSuggestions(this.actorsValue, actorName ? [actorName] : [])
+    this.tagsValue = this.withSuggestions(this.tagsValue, tagNames)
+
+    this.element.querySelectorAll('[data-controller~="autocomplete"]').forEach(completer => {
+      const input = completer.querySelector('[data-autocomplete-target="input"]')
+      const items = input?.name === "event[actor_name]" ? this.actorsValue : this.tagsValue
+      completer.dataset.autocompleteItemsValue = JSON.stringify(items)
+    })
+  }
+
+  withSuggestions(items, newItems) {
+    const suggestions = [...items]
+
+    newItems.forEach(item => {
+      if (item && !suggestions.some(existing => existing.toLowerCase() === item.toLowerCase())) {
+        suggestions.push(item)
+      }
+    })
+
+    return suggestions.sort((left, right) => left.localeCompare(right))
   }
 
   async errorMessage(response) {

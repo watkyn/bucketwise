@@ -1,12 +1,12 @@
-class AddStatements < ActiveRecord::Migration
-  def self.up
+class AddStatements < ActiveRecord::Migration[8.0]
+  def up
     create_table :statements do |t|
       t.integer  :account_id, :null => false
       t.date     :occurred_on, :null => false
       t.integer  :starting_balance
       t.integer  :ending_balance
       t.datetime :balanced_at
-      t.timestamps
+      t.timestamps :null => true
     end
 
     add_index :statements, %w(account_id occurred_on)
@@ -15,7 +15,7 @@ class AddStatements < ActiveRecord::Migration
     add_index :account_items, %w(statement_id occurred_on)
   end
 
-  def self.down
+  def down
     drop_table :statements
 
     remove_index :account_items, %w(statement_id occurred_on)

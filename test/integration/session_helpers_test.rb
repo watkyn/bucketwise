@@ -1,6 +1,6 @@
 require "test_helper"
 
-class SessionHelpersProbeTest < ActionDispatch::IntegrationTest
+class SessionHelpersTest < ActionDispatch::IntegrationTest
   test "sign_in lands logged in" do
     sign_in :john
     follow_redirect!

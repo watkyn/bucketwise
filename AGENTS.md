@@ -8,18 +8,17 @@ Two external references govern work in this repo:
 
 1. **Fizzy — the reference implementation.**
    [basecamp/fizzy](https://github.com/basecamp/fizzy) (37signals' open-source Rails app), local clone at
-   `~/dev/opensource/fizzy`. For architecture decisions, project structure, coding style, and
+   `~/dev/fizzy`. For architecture decisions, project structure, coding style, and
    Rails-idiomatic patterns, look at how Fizzy does it first. Key files to consult:
-   - `fizzy/AGENTS.md` — architecture overview and conventions
-   - `fizzy/STYLE.md` — coding style guide (follow it unless BucketWise conventions conflict)
+   - `~/dev/fizzy/AGENTS.md` — architecture overview and conventions
+   - `~/dev/fizzy/STYLE.md` — coding style guide (follow it unless BucketWise conventions conflict)
 
 2. **`master` branch — the behavioral reference ("what it used to do").**
    `master` is frozen at `a12e77c` and preserves the original Rails 2.3 application. It is read-only
    history: never commit to it, never merge it forward mechanically. When unsure how BucketWise is
    *supposed* to behave (accounting rules, event validation, balances, edge cases), check the old code.
-   A read-only worktree of `master` is always available at `../bucketwise-master` (sibling of this
-   repo, deliberately outside the working tree so searches here never hit it) — browse/read/grep the
-   old code there with normal file tools. It is reference only: never edit or commit in it. For one-offs:
+   There is no separate `../bucketwise-master` worktree in this checkout; use `git show master:<path>`
+   to read the legacy source. For one-offs:
    ```sh
    git show master:app/models/event.rb        # any path on the frozen branch
    git log master --oneline                   # original history
@@ -72,7 +71,6 @@ bin/setup                       # install gems, prepare DB, start dev server
 bin/dev                         # Puma + Tailwind watcher → http://localhost:3000
 bin/rails test                  # full test suite (unit + functional + integration)
 bin/rails test test/unit/event_test.rb   # single file
-bin/rails test:system           # system tests (headless Chrome)
 bin/rails db:setup              # create DB + load schema
 ```
 
@@ -81,7 +79,7 @@ Seed/bootstrap on an empty DB:
 ```sh
 bin/rails user:create
 bin/rails subscription:create USER_ID=<id>
-bin/rails demo:seed             # demo data (dev login: test/password)
+bin/rails demo:build            # demo data (dev login: bw.demo/demo)
 ```
 
 Utilities: `bin/rails data:subscription:dump ID=<id>` / `data:subscription:load FILE=... CONFIRM=1`
@@ -89,10 +87,10 @@ Utilities: `bin/rails data:subscription:dump ID=<id>` / `data:subscription:load 
 
 ## Testing notes
 
-- Layout: `test/unit`, `test/functional` (controller tests), `test/integration`, `test/system`.
-- Functional tests still use `LegacyControllerTestHelpers` (Rails 2-era positional/xhr style) — kept
-  intentionally; don't mass-rewrite them for style, but new tests may use modern Rails style.
-- Green baseline: `bin/rails test` (242 runs) and `bin/rails test:system` (1 run) must stay green.
+- Layout: `test/unit`, `test/helpers`, `test/controllers`, `test/integration`.
+- Controller tests use `ActionDispatch::IntegrationTest` and real routes; there are no Rails 2-era
+  controller-test shims or `rails-controller-testing` dependency.
+- Green baseline: `bin/rails test` must stay green. Browser behavior is verified by ad hoc manual testing, not Chrome system tests.
 - Bug-fix discipline: every bug fix starts with a failing test that proves the bug. Write the test,
   watch it fail, then fix, then watch it pass. Never ship a bug fix without its regression test.
 
@@ -104,8 +102,8 @@ Tailwind CSS · propshaft · Puma. No HAML, no XML API, no RJS (removed during t
 ## Conventions
 
 - Prefer idiomatic Rails 8 (`form_with`, ERB, `respond_to` only where actually branching).
-- Match Fizzy's style (see `fizzy/STYLE.md`) for new code: expanded conditionals over clever guard
+- Match Fizzy's style (see `~/dev/fizzy/STYLE.md`) for new code: expanded conditionals over clever guard
   clauses, class methods → public → private ordering, find similar existing code before inventing.
-- When porting or questioning legacy behavior, read the old code first (`../bucketwise-master` or
-  `git show master:...`), then keep/adjust the Rails 8 tests accordingly.
+- When porting or questioning legacy behavior, read the old code first with `git show master:...`,
+  then keep/adjust the Rails 8 tests accordingly.
 - Current parity status and open gaps live in `TODO` — update it as work lands.

@@ -35,7 +35,7 @@ namespace :demo do
 
       Populator.for(subscription) do |make|
         make.account("Checking", 'checking', 1_400_00, 45.days.ago)
-        make.account("Mastercard", 'credit-card', -500_00, 45.days.ago)
+        make.account("Mastercard", 'credit-card', -500_00, 45.days.ago, limit: 1_000_00)
         make.account("Savings", 'other', 750_00, 45.days.ago)
 
         # ---------------------------------------------------
@@ -190,4 +190,3 @@ namespace :demo do
     end
   end
 end
-

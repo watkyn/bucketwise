@@ -112,7 +112,31 @@ class Bucket < ApplicationRecord
     old_id = bucket.id
 
     Bucket.transaction do
-      LineItem.where(bucket_id: old_id).update_all(bucket_id: id)
+      affected_event_ids = []
+
+      LineItem.where(bucket_id: old_id).each do |line_item|
+        affected_event_ids << line_item.event_id
+        existing_item = LineItem.find_by(
+          event_id: line_item.event_id,
+          account_id: line_item.account_id,
+          bucket_id: id
+        )
+
+        if existing_item
+          combined = existing_item.amount + line_item.amount
+          line_item.delete
+          if combined == 0
+            existing_item.delete
+          else
+            existing_item.update_column(:amount, combined)
+          end
+        else
+          line_item.update_column(:bucket_id, id)
+        end
+      end
+
+      drop_emptied_events(affected_event_ids.uniq)
+
       update_column(:balance, balance + bucket.balance)
       bucket.destroy
     end
@@ -124,4 +148,29 @@ class Bucket < ApplicationRecord
     end
     super(options)
   end
+
+  private
+
+    # Removes events left with no line items after a merge netted away
+    # their same-bucket legs (e.g. a reallocation onto its own bucket).
+    # Line items are already gone via delete (no balance callbacks), so
+    # only the account items (kept exact by hand) and tagged items
+    # (destroyed so tag balances adjust) remain to be cleaned up.
+    def drop_emptied_events(event_ids)
+      Event.where(id: event_ids).each do |event|
+        if LineItem.where(event_id: event.id).none?
+          event.tagged_items.each(&:destroy)
+          AccountItem.where(event_id: event.id).each do |account_item|
+            if account_item.account
+              account_item.account.update_columns(
+                balance: account_item.account.balance - account_item.amount,
+                updated_at: Time.current
+              )
+            end
+            account_item.delete
+          end
+          event.delete
+        end
+      end
+    end
 end

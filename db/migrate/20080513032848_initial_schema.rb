@@ -1,5 +1,5 @@
-class InitialSchema < ActiveRecord::Migration
-  def self.up
+class InitialSchema < ActiveRecord::Migration[8.0]
+  def up
     create_table :subscriptions do |t|
       t.integer :owner_id, :null => false
     end
@@ -12,7 +12,7 @@ class InitialSchema < ActiveRecord::Migration
       t.string  :user_name
       t.string  :password_hash
       t.string  :salt
-      t.timestamps
+      t.timestamps :null => true
     end
 
     add_index :users, :user_name, :unique => true
@@ -31,7 +31,7 @@ class InitialSchema < ActiveRecord::Migration
       t.integer :user_id, :null => false
       t.string  :name, :null => false
       t.string  :role
-      t.timestamps
+      t.timestamps :null => true
     end
 
     add_index :accounts, %w(subscription_id name), :unique => true
@@ -41,7 +41,7 @@ class InitialSchema < ActiveRecord::Migration
       t.integer :user_id, :null => false
       t.string  :name, :null => false
       t.string  :role
-      t.timestamps
+      t.timestamps :null => true
     end
 
     add_index :buckets, %w(account_id name), :unique => true
@@ -53,7 +53,7 @@ class InitialSchema < ActiveRecord::Migration
       t.date    :occurred_on, :null => false
       t.string  :actor, :null => false
       t.integer :check_number
-      t.timestamps
+      t.timestamps :null => true
     end
 
     add_index :events, %w(subscription_id occurred_on)
@@ -88,7 +88,7 @@ class InitialSchema < ActiveRecord::Migration
       t.integer :subscription_id, :null => false
       t.string  :name, :null => false
       t.integer :balance, :null => false, :default => 0
-      t.timestamps
+      t.timestamps :null => true
     end
 
     add_index :tags, %w(subscription_id name), :unique => true
@@ -105,10 +105,10 @@ class InitialSchema < ActiveRecord::Migration
     add_index :tagged_items, %w(tag_id occurred_on)
   end
 
-  def self.down
+  def down
     drop_table :subscriptions
     drop_table :users
-    drop_table :subscribed_users
+    drop_table :user_subscriptions
     drop_table :accounts
     drop_table :buckets
     drop_table :events

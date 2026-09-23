@@ -6,15 +6,13 @@
 <fieldset id="tags" class="<%= event_has_tags? ? "" : "hidden" %>" data-events-form-target="tags">
   <legend>Tags</legend>
 
-  <p>
+  <div>
     Tags for this transaction:
     <br />
-    <%= text_field_tag "event[tags][list]", tag_list_for_event, id: "event_tags_list" %>
+    <%= tag_entry_field "event[tags][list]", tag_list_for_event, id: "event_tags_list", multiple: true %>
     <br />
     <small>Enter tag names, separated by commas, that will apply to this entire transaction.</small>
-  </p>
-
-  <div id="event_tags_list_select" class="autocomplete_select hidden"></div>
+  </div>
 
   <p id="tag_items_collapsed" class="<%= event_has_partial_tags? ? "hidden" : "" %>" data-events-form-target="tagItemsCollapsed">
     &rarr;

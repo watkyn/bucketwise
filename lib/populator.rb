@@ -13,9 +13,9 @@ class Populator
     @posts = []
   end
 
-  def account(name, role, starting_balance, balance_date)
+  def account(name, role, starting_balance, balance_date, **attributes)
     @accounts << { :name => name, :role => role,
-        :starting_balance => { :amount => starting_balance, :occurred_on => balance_date }}
+        :starting_balance => { :amount => starting_balance, :occurred_on => balance_date }}.merge(attributes)
   end
 
   def post(occurred_on, actor_name, default_amount=nil)

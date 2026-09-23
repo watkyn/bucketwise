@@ -17,7 +17,7 @@
     <%= form.date_field :occurred_on %>
   </p>
 
-  <p>
+  <div>
     <span class="expense_label">
       <strong>Who</strong>
       received the payment?
@@ -30,18 +30,15 @@
       <strong>What</strong>
       was this transfer for?
     </span>
-    <%= form.text_field :actor_name, size: 30, "data-events-form-target": "actorName", "data-action": "input->events-form#checkActorName" %>
+    <div class="relative inline-block" data-controller="autocomplete" data-autocomplete-items-value="<%= subscription.actors.sort_by(&:sort_name).map(&:name).to_json %>">
+      <%= form.text_field :actor_name, size: 30, "data-events-form-target": "actorName", "data-autocomplete-target": "input", "data-action": "input->events-form#checkActorName input->autocomplete#search keydown->autocomplete#navigate" %>
+      <ul class="hidden absolute left-0 top-full z-50 bg-white border border-gray-300 rounded shadow-lg max-h-40 overflow-auto w-full" data-autocomplete-target="list"></ul>
+    </div>
     <% if form.object.new_record? %>
       <span id="recall_event" class="hidden" data-events-form-target="recallEvent">
         <%= link_to "(recall)", "#", "data-action": "click->events-form#recall", data: { url: subscription_events_path(subscription) } %>
       </span>
     <% end %>
-  </p>
-
-  <div id="event_actor_name_select" class="autocomplete_select hidden"></div>
-  <div data-controller="autocomplete" data-autocomplete-items-value="<%= subscription.actors.sort_by(&:sort_name).map(&:name).to_json %>">
-    <input class="hidden" type="text" data-autocomplete-target="input" data-action="input->autocomplete#search keydown->autocomplete#navigate" />
-    <ul class="hidden absolute z-50 bg-white border border-gray-300 rounded shadow-lg max-h-40 overflow-auto w-full" data-autocomplete-target="list"></ul>
   </div>
 
   <p>

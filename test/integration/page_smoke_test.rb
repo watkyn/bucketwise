@@ -56,6 +56,39 @@ class PageSmokeTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "event form connects actor and tag fields to autocomplete" do
+    post "/session", params: { user_name: @user.user_name, password: "testing" }
+    get "/subscriptions/#{@subscription.id}/events/new"
+
+    assert_response :success
+    assert_select "input#event_actor_name[data-autocomplete-target='input']"
+    assert_select "input#event_tags_list[data-autocomplete-target='input']"
+    assert_select "div[data-controller='autocomplete'][data-autocomplete-items-value]", minimum: 2
+  end
+
+  test "event form keeps autocomplete lists inside their controllers in the parsed DOM" do
+    post "/session", params: { user_name: @user.user_name, password: "testing" }
+    get "/subscriptions/#{@subscription.id}/events/new"
+
+    assert_response :success
+    doc = Nokogiri::HTML(@response.body)
+    lists = doc.css("ul[data-autocomplete-target='list']")
+    assert lists.any?, "expected autocomplete dropdowns in the event form"
+
+    lists.each do |list|
+      controller = list.ancestors("[data-controller~='autocomplete']").first
+      assert controller, "expected autocomplete list to stay inside its controller element"
+      assert controller.at_css("input[data-autocomplete-target='input']"),
+        "expected controller element to hold both the input and its list"
+      # Browsers eject a <ul> from inside a <p>, which would strand the list
+      # outside its controller: the controller must be a <div> outside any <p>.
+      assert_equal "div", controller.name,
+        "expected autocomplete controller to be a <div> so the <ul> stays nested"
+      assert_empty controller.ancestors("p"),
+        "expected autocomplete controller holding a <ul> to sit outside any <p>"
+    end
+  end
+
   test "JSON index and show endpoints respond" do
     post "/session", params: { user_name: @user.user_name, password: "testing" }
 

@@ -1,9 +1,9 @@
-class AddLimitToAccounts < ActiveRecord::Migration
-  def self.up
+class AddLimitToAccounts < ActiveRecord::Migration[8.0]
+  def up
     add_column :accounts, :limit, :integer
   end
 
-  def self.down
+  def down
     remove_column :accounts, :limit
   end
 end

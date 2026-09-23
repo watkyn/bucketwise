@@ -19,7 +19,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_09_10_021926) do
     t.integer "statement_id"
     t.index ["account_id", "occurred_on"], name: "index_account_items_on_account_id_and_occurred_on"
     t.index ["event_id"], name: "index_account_items_on_event_id"
-    t.index ["occurred_on", "statement_id"], name: "index_account_items_on_statement_id_and_occurred_on"
+    t.index ["statement_id", "occurred_on"], name: "index_account_items_on_statement_id_and_occurred_on"
   end
 
   create_table "accounts", force: :cascade do |t|
@@ -31,7 +31,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_09_10_021926) do
     t.datetime "updated_at"
     t.integer "balance", default: 0, null: false
     t.integer "limit"
-    t.index ["name", "subscription_id"], name: "index_accounts_on_subscription_id_and_name", unique: true
+    t.index ["subscription_id", "name"], name: "index_accounts_on_subscription_id_and_name", unique: true
   end
 
   create_table "actors", force: :cascade do |t|
@@ -67,10 +67,10 @@ ActiveRecord::Schema[8.0].define(version: 2026_09_10_021926) do
     t.text "memo"
     t.integer "actor_id"
     t.index ["actor_id"], name: "index_events_on_actor_id"
-    t.index ["actor_name", "subscription_id"], name: "index_events_on_subscription_id_and_actor"
-    t.index ["check_number", "subscription_id"], name: "index_events_on_subscription_id_and_check_number"
-    t.index ["created_at", "subscription_id"], name: "index_events_on_subscription_id_and_created_at"
-    t.index ["occurred_on", "subscription_id"], name: "index_events_on_subscription_id_and_occurred_on"
+    t.index ["subscription_id", "actor_name"], name: "index_events_on_subscription_id_and_actor_name"
+    t.index ["subscription_id", "check_number"], name: "index_events_on_subscription_id_and_check_number"
+    t.index ["subscription_id", "created_at"], name: "index_events_on_subscription_id_and_created_at"
+    t.index ["subscription_id", "occurred_on"], name: "index_events_on_subscription_id_and_occurred_on"
   end
 
   create_table "line_items", force: :cascade do |t|
@@ -107,7 +107,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_09_10_021926) do
     t.date "occurred_on", null: false
     t.integer "amount", null: false
     t.index ["event_id"], name: "index_tagged_items_on_event_id"
-    t.index ["occurred_on", "tag_id"], name: "index_tagged_items_on_tag_id_and_occurred_on"
+    t.index ["tag_id", "occurred_on"], name: "index_tagged_items_on_tag_id_and_occurred_on"
   end
 
   create_table "tags", force: :cascade do |t|
@@ -116,8 +116,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_09_10_021926) do
     t.integer "balance", default: 0, null: false
     t.datetime "created_at"
     t.datetime "updated_at"
-    t.index ["balance", "subscription_id"], name: "index_tags_on_subscription_id_and_balance"
-    t.index ["name", "subscription_id"], name: "index_tags_on_subscription_id_and_name", unique: true
+    t.index ["subscription_id", "balance"], name: "index_tags_on_subscription_id_and_balance"
+    t.index ["subscription_id", "name"], name: "index_tags_on_subscription_id_and_name", unique: true
   end
 
   create_table "user_subscriptions", force: :cascade do |t|

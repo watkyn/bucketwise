@@ -325,13 +325,22 @@ module EventsHelper
   end
 
   def tag_entry_field(name, value, options={})
-    completer_opts = {}
-    completer_opts[:tokens] = "," if options.delete(:multiple)
+    tokens = "," if options.delete(:multiple)
+    options[:data] = (options[:data] || {}).merge(
+      autocomplete_target: "input",
+      action: "input->autocomplete#search keydown->autocomplete#navigate"
+    )
 
-    tag_field = text_field_tag(name, value, options)
-    dropdown = content_tag(:div, "", :style => "display: none", :class => "autocomplete_select", :id => "#{options[:id]}_select")
+    dropdown = content_tag(:ul, "", class: "hidden absolute left-0 top-full z-50 bg-white border border-gray-300 rounded shadow-lg max-h-40 overflow-auto w-full",
+      id: "#{options[:id]}_select", data: { autocomplete_target: "list" })
+    field = safe_join([text_field_tag(name, value, options), dropdown])
+    data = { controller: "autocomplete", autocomplete_items_value: @subscription&.tags&.map(&:name)&.sort || [] }
+    data[:autocomplete_tokens_value] = tokens if tokens
 
-    tag_field + dropdown
+    # A <div> wrapper (never a <span> inside a <p>): browsers eject a <ul>
+    # from paragraph content, which would strand the dropdown outside this
+    # controller so autocomplete#search cannot find its listTarget.
+    content_tag(:div, field, class: "relative inline-block", data: data)
   end
 
   def reallocation_verbs_for(section)

@@ -179,14 +179,22 @@ class EventsHelperTest < ActionView::TestCase
   end
 
   test "tag links are sorted and tag entry fields include their dropdown" do
+    @subscription = subscriptions(:john)
     html = tag_links_for(events(:john_lunch))
     assert_operator html.index("lunch"), :<, html.index("tip")
     assert_includes html, tag_path(tags(:john_lunch))
 
     field = tag_entry_field("event[tags]", "lunch", id: "tag_names", multiple: true)
-    fragment = Nokogiri::HTML.fragment(field)
-    assert_equal "event[tags]", fragment.at_css("input")[:name]
-    assert_equal "tag_names_select", fragment.at_css("div.autocomplete_select")[:id]
+    doc = Nokogiri::HTML(field)
+    assert_equal "event[tags]", doc.at_css("input")[:name]
+    assert_equal "tag_names_select", doc.at_css("ul[data-autocomplete-target='list']")[:id]
+    assert_equal ",", doc.at_css("div[data-autocomplete-tokens-value]")[:"data-autocomplete-tokens-value"]
+    assert_includes doc.at_css("div[data-controller='autocomplete']")[:"data-autocomplete-items-value"], "lunch"
+
+    list = doc.at_css("ul[data-autocomplete-target='list']")
+    controller = list.ancestors("[data-controller~='autocomplete']").first
+    assert controller, "expected tag dropdown to stay inside its autocomplete controller after HTML parsing"
+    assert controller.at_css("input[data-autocomplete-target='input']")
   end
 
   test "reallocation verbs and partial templates map each form section" do
