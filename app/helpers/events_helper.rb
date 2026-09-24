@@ -83,7 +83,7 @@ module EventsHelper
   end
 
   def event_for_form
-    @event || Event.new(:occurred_on => Date.today)
+    @event || Event.new(occurred_on: Date.current)
   end
 
   def event_form_source

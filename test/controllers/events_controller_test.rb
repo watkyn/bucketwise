@@ -487,7 +487,7 @@ class EventsControllerTest < ActionDispatch::IntegrationTest
   private
     def simple_event(account, bucket)
       {
-        occurred_on: Date.today.to_s,
+        occurred_on: Date.current.to_s,
         actor_name: "Somebody",
         line_items: [
           {

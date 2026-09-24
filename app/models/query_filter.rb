@@ -19,7 +19,7 @@ class QueryFilter
       @to = Date.parse(options[:to])
       @has_to = true
     rescue
-      @to = Date.today
+      @to = Date.current
     end
 
     @expenses = options[:expenses]

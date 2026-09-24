@@ -7,6 +7,6 @@ module AccountsHelper
   end
 
   def account_starting_balance_occurred_on
-    @account.starting_balance[:occurred_on].to_date rescue Date.today
+    @account.starting_balance[:occurred_on].to_date rescue Date.current
   end
 end

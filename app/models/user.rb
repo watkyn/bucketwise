@@ -19,13 +19,27 @@ class User < ApplicationRecord
     user = find_by(user_name: user_name)
     return nil unless user
 
-    # Prefer bcrypt
     if user.password_digest.present?
       user.authenticate(password) ? user : nil
     elsif user.password_hash.present? && user.salt.present?
-      # Legacy SHA1 fallback
+      return nil unless password.is_a?(String)
+
       hash = password_hash_for(password, user.salt)
-      hash == user.password_hash ? user : nil
+      return nil unless ActiveSupport::SecurityUtils.secure_compare(hash, user.password_hash)
+
+      # BCrypt only uses the first 72 bytes. Keep longer legacy passwords
+      # authenticatable rather than silently migrating them to a truncated password.
+      if password.bytesize <= 72
+        user.password = password
+        user.update_columns(
+          password_digest: user.password_digest,
+          password_hash: nil,
+          salt: nil,
+          updated_at: Time.current
+        )
+      end
+
+      user
     else
       nil
     end

@@ -40,7 +40,7 @@ class StatementsControllerTest < ActionDispatch::IntegrationTest
   test "create for inaccessible account should 404" do
     assert_no_difference -> { Statement.count } do
       post account_statements_path(accounts(:tim_checking)),
-        params: { statement: { occurred_on: Date.today, ending_balance: 1234_56 } }
+        params: { statement: { occurred_on: Date.current, ending_balance: 1234_56 } }
       assert_response :not_found
     end
   end
@@ -48,11 +48,11 @@ class StatementsControllerTest < ActionDispatch::IntegrationTest
   test "create should create new record and redirect to edit" do
     assert_difference -> { accounts(:john_checking).reload.statements.size } do
       post account_statements_path(accounts(:john_checking)),
-        params: { statement: { occurred_on: Date.today, ending_balance: 1234_56 } }
+        params: { statement: { occurred_on: Date.current, ending_balance: 1234_56 } }
     end
 
     statement = accounts(:john_checking).statements.find_by!(ending_balance: 1234_56)
-    assert_equal Date.today, statement.occurred_on
+    assert_equal Date.current, statement.occurred_on
     assert_redirected_to edit_statement_path(statement)
   end
 
@@ -96,7 +96,7 @@ class StatementsControllerTest < ActionDispatch::IntegrationTest
 
   test "edit shows congratulations and close-out once balanced" do
     statement = accounts(:john_checking).statements.create!(
-      occurred_on: Date.today, ending_balance: statements(:john_pending).starting_balance)
+      occurred_on: Date.current, ending_balance: statements(:john_pending).starting_balance)
     assert statement.balanced?
 
     get edit_statement_path(statement)

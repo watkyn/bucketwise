@@ -7,8 +7,10 @@ Done (committed): Rails 2.3 → 8 port, Hotwire/Turbo/Tailwind UI, RJS → Turbo
 Done (this pass): event autocomplete refresh, bucket-merge line-item
                   consolidation, controller-test conversion and shim/gem
                   removal, reference documentation refresh, Rails 8
-                  migration/server-start compatibility, and demo login repair.
-Tests: bin/rails test = 304 runs, 1176 assertions, green. System tests were
+                  migration/server-start compatibility, demo login repair,
+                  Rails-zone-aware date defaults, and SHA1-to-bcrypt upgrade
+                  on successful legacy login.
+Tests: bin/rails test = 321 runs, 1279 assertions, green. System tests were
        removed; browser behavior is verified by ad hoc manual testing.
 
 ------------------------------------------------------------------------
@@ -82,7 +84,7 @@ ActionDispatch::IntegrationTest hitting real routes; deleted both legacy shims
 and the rails-controller-testing gem, and closed the coverage gaps.
 The former `test/functional/` files now live in `test/controllers/`.
 
-Current check (2026-09-23): bin/rails test = 304 runs, 1176 assertions, green.
+Current check (2026-09-23): bin/rails test = 321 runs, 1279 assertions, green.
 System tests were removed in favor of ad hoc browser testing (no Chrome
 dependency).
 
@@ -166,6 +168,10 @@ KNOWN HAZARDS (do not paper over these):
     intended behavior, and never weaken an assertion just to get green.
   * `assigns(...)` has no integration equivalent — assert what a user can
     actually observe (HTML, redirects, database state).
+  * Legacy SHA1 credentials upgrade to bcrypt after a successful login when
+    the password is within bcrypt's 72-byte limit. Dormant accounts and
+    longer passwords retain their legacy hash until a password-reset policy
+    is chosen; do not silently truncate long passwords during migration.
 
 ========================================================================
 Known route gaps (documented by smoke/probe, not fixed — missing views/actions):

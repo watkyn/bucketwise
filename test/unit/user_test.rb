@@ -13,6 +13,50 @@ class UserTest < ActiveSupport::TestCase
     assert_nil User.authenticate("jjohnson", "test")
   end
 
+  test "successful legacy SHA1 authentication upgrades to bcrypt and clears the legacy hash" do
+    user = users(:john)
+    salt = "legacy salt"
+    legacy_hash = User.password_hash_for("testing", salt)
+    user.update_columns(password_digest: nil, password_hash: legacy_hash, salt: salt)
+
+    assert_equal user, User.authenticate("jjohnson", "testing")
+
+    user.reload
+    assert user.password_digest.present?
+    assert user.authenticate("testing")
+    assert_nil user.password_hash
+    assert_nil user.salt
+  end
+
+  test "failed legacy SHA1 authentication does not change credentials" do
+    user = users(:john)
+    salt = "legacy salt"
+    legacy_hash = User.password_hash_for("testing", salt)
+    user.update_columns(password_digest: nil, password_hash: legacy_hash, salt: salt)
+
+    assert_nil User.authenticate("jjohnson", "wrong")
+
+    user.reload
+    assert_nil user.password_digest
+    assert_equal legacy_hash, user.password_hash
+    assert_equal salt, user.salt
+  end
+
+  test "legacy passwords longer than bcrypt's limit remain authenticatable without truncation" do
+    user = users(:john)
+    password = "a" * 73
+    salt = "legacy salt"
+    legacy_hash = User.password_hash_for(password, salt)
+    user.update_columns(password_digest: nil, password_hash: legacy_hash, salt: salt)
+
+    assert_equal user, User.authenticate("jjohnson", password)
+
+    user.reload
+    assert_nil user.password_digest
+    assert_equal legacy_hash, user.password_hash
+    assert_equal salt, user.salt
+  end
+
   test "creating new user should set password_digest" do
     user = User.create(name: "Tom Thompson",
       email: "tthompson@domain.test", user_name: "tthompson",

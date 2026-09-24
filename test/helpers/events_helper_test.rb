@@ -62,6 +62,7 @@ class EventsHelperTest < ActionView::TestCase
 
     @event = nil
     assert_instance_of Event, event_for_form
+    assert_equal Date.current, event_for_form.occurred_on
     assert_equal subscription_events_path(@subscription, source: "new"), event_form_action
     assert_equal "", event_amount_value
     assert_equal "", tagged_item_name_value(nil)
