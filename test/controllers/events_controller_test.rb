@@ -112,6 +112,40 @@ class EventsControllerTest < ActionDispatch::IntegrationTest
       "expected the create template to refresh the recent entries list"
   end
 
+  test "create via turbo_stream should reuse an existing bucket regardless of name capitalization" do
+    data = simple_event(:john_checking, :john_checking_dining)
+    data[:line_items][0][:bucket_id] = "n:dINING"
+
+    assert_no_difference -> { accounts(:john_checking).buckets.count } do
+      assert_difference -> { subscriptions(:john).events.count }, 1 do
+        post subscription_events_path(subscriptions(:john)),
+          params: { event: data },
+          as: :turbo_stream
+
+        assert_response :ok
+      end
+    end
+
+    assert_equal buckets(:john_checking_dining), Event.order(:id).last.line_items.first.bucket
+  end
+
+  test "create via turbo_stream should create a bucket selected by its temporary name" do
+    data = simple_event(:john_checking, :john_checking_dining)
+    data[:line_items][0][:bucket_id] = "n:Utilities"
+
+    assert_difference -> { accounts(:john_checking).buckets.count }, 1 do
+      post subscription_events_path(subscriptions(:john)),
+        params: { event: data },
+        as: :turbo_stream
+
+      assert_response :ok
+    end
+
+    bucket = accounts(:john_checking).buckets.find_by!(name: "Utilities")
+    assert_equal users(:john), bucket.author
+    assert_equal bucket, Event.order(:id).last.line_items.first.bucket
+  end
+
   test "create via turbo_stream should refresh lists without replacing the form" do
     assert_difference -> { subscriptions(:john).events.count }, 1 do
       post subscription_events_path(subscriptions(:john)),

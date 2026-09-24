@@ -174,10 +174,12 @@ class Event < ApplicationRecord
           bucket_id = item.delete(:bucket_id) || item.delete("bucket_id")
           # Ensure bucket_id is string for regex matching
           bucket_id_str = bucket_id.to_s
-          item[:bucket] = if bucket_id_str =~ /\An:(.*)/
-            account.buckets.find_by(name: $1) || account.buckets.create(name: $1, author: user)
-          elsif bucket_id_str =~ /\Ar:(.*)/
-            account.buckets.for_role($1, user)
+          item[:bucket] = if (match = bucket_id_str.match(/\An:(.*)/))
+            name = match[1]
+            account.buckets.where("LOWER(name) = ?", name.downcase).first ||
+              account.buckets.create(name: name, author: user)
+          elsif (match = bucket_id_str.match(/\Ar:(.*)/))
+            account.buckets.for_role(match[1], user)
           else
             account.buckets.find(bucket_id)
           end

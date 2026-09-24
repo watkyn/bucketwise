@@ -68,6 +68,8 @@ Tests: bin/rails test = 304 runs, 1176 assertions, green. System tests were
 * [x] Bucket merges net same-event line items that collapse onto one bucket
       (any roles); pairs netting to zero are removed, and events left with
       no legs (e.g. a reallocation onto its own bucket) are dropped.
+* [x] Inline bucket selection reuses case-insensitive name matches, avoiding
+      failed event saves when a bucket is entered with different capitalization.
 
 ------------------------------------------------------------------------
 6. TEST SUITE MODERNIZATION — Fizzy-style integration tests          [DONE]
