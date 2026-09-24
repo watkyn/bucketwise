@@ -5,12 +5,14 @@
       <%= "To delete this bucket, you will need to move the transactions from #{h(bucket.name)} into another bucket." %>
     </p>
   </fieldset>
-  <p>Please select that other bucket:</p>
-  <select id="receiver_id" name="receiver_id">
-    <% account.buckets.each do |b| %>
-      <option value="<%= b.id %>"><%= b.name %></option>
-    <% end %>
-  </select>
+  <p class="flex items-center gap-2 flex-wrap">
+    <span>Please select that other bucket:</span>
+    <select id="receiver_id" name="receiver_id">
+      <% account.buckets.each do |b| %>
+        <option value="<%= b.id %>"><%= b.name %></option>
+      <% end %>
+    </select>
+  </p>
   <p>
     <%= submit_tag "Merge and delete this bucket" %>
     or

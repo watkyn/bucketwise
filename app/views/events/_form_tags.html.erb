@@ -6,11 +6,9 @@
 <fieldset id="tags" class="mb-4 <%= event_has_tags? ? "" : "hidden" %>" data-events-form-target="tags">
   <legend>Tags</legend>
 
-  <div class="my-3">
-    Tags for this transaction:
-    <br />
+  <div class="my-3 flex items-center gap-2 flex-wrap">
+    <span>Tags for this transaction:</span>
     <%= tag_entry_field "event[tags][list]", tag_list_for_event, id: "event_tags_list", multiple: true %>
-    <br />
     <small>Enter tag names, separated by commas, that will apply to this entire transaction.</small>
   </div>
 

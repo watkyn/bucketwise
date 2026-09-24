@@ -1,7 +1,7 @@
 <fieldset id="general_information" class="mb-4" data-events-form-target="generalInfo">
   <legend>General Information</legend>
 
-  <p class="my-3">
+  <p class="my-3 flex items-center gap-2 flex-wrap">
     <span class="expense_label mr-2">
       <strong>When</strong>
       did this expense occur?
@@ -17,7 +17,7 @@
     <%= form.date_field :occurred_on %>
   </p>
 
-  <div class="my-3">
+  <div class="my-3 flex items-center gap-2 flex-wrap">
     <span class="expense_label mr-2">
       <strong>Who</strong>
       received the payment?
@@ -41,7 +41,7 @@
     <% end %>
   </div>
 
-  <p class="my-3">
+  <p class="my-3 flex items-center gap-2 flex-wrap">
     <span class="expense_label mr-2">
       <strong>How much</strong>
       was paid?
@@ -64,10 +64,9 @@
 
   <fieldset id="memo" class="mb-4 <%= event_wants_memo? ? "" : "hidden" %>" data-events-form-target="memo">
     <legend>Description</legend>
-    <p class="my-3">
-      Describe this transaction:
-      <br />
-      <%= form.text_area :memo, rows: 2, cols: 70 %>
+    <p class="my-3 flex items-center gap-2 flex-wrap">
+      <span>Describe this transaction:</span>
+      <%= form.text_area :memo, rows: 2, cols: 50 %>
     </p>
   </fieldset>
 </fieldset>

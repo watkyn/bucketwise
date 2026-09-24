@@ -15,15 +15,19 @@
           statement and work forward.
         </p>
 
-        <p>
-          <strong>When</strong>
-          was the statement printed?
+        <p class="flex items-center gap-2 flex-wrap">
+          <span>
+            <strong>When</strong>
+            was the statement printed?
+          </span>
           <%= form.date_field :occurred_on %>
         </p>
 
-        <p>
-          <strong>What</strong>
-          is the ending balance?
+        <p class="flex items-center gap-2 flex-wrap">
+          <span>
+            <strong>What</strong>
+            is the ending balance?
+          </span>
           <%= safe_join([content_tag(:span, "$", class: "mr-1"), form.text_field(:ending_balance, size: 8, class: "number", value: format_cents(statement.ending_balance, unit: ""), "data-action": "input->statement-reconcile#updateEndingBalance focusout->statement-reconcile#formatEndingBalance")]) %>
         </p>
 

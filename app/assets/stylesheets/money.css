@@ -542,7 +542,63 @@ input[type="radio"] {
   color: red;
 }
 
-.form p {
+/* ------------------------------------------------------------------ *
+ * FORM ROW LAYOUT — label left, input right
+ *
+ * Single-line form rows are flex rows so controls sit to the right of
+ * their labels instead of wrapping down a line. Rows may still wrap on
+ * very narrow screens (flex-wrap), but controls never stack by default.
+ * ------------------------------------------------------------------ */
+
+.form fieldset > p:not(.hidden),
+.form fieldset > div.my-3:not(.hidden),
+div.transaction fieldset > p:not(.hidden),
+div.transaction fieldset > div.my-3:not(.hidden) {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  flex-wrap: wrap;
+}
+
+.form fieldset > p.hidden,
+.form fieldset > div.hidden,
+div.transaction fieldset > p.hidden,
+div.transaction fieldset > div.hidden {
+  display: none;
+}
+
+.form fieldset label:not(.option),
+div.transaction fieldset label:not(.option) {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  flex-wrap: wrap;
+  margin: 0;
+}
+
+.form fieldset input[type="text"],
+.form fieldset input[type="date"],
+.form fieldset input[type="number"],
+.form fieldset select,
+div.transaction fieldset input[type="text"],
+div.transaction fieldset input[type="date"],
+div.transaction fieldset input[type="number"],
+div.transaction fieldset select {
+  flex-shrink: 0;
+  min-width: 0;
+}
+
+.form fieldset textarea,
+div.transaction fieldset textarea {
+  min-width: 0;
+}
+
+/* Split line items (buckets, reallocations, partial tags) stay on one row. */
+div.transaction fieldset ol > li:not(.hidden) {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  flex-wrap: wrap;
 }
 
 .form .instructions {
@@ -593,12 +649,13 @@ div#new_account {
 }
 
 div#new_account input.text {
-  display: block;
   font-size: 1rem;
   font-weight: 400;
   color: #111;
-  margin: 0.25em 0;
-  width: 100%;
+  margin: 0;
+  flex: 1 1 auto;
+  width: auto;
+  min-width: 0;
 }
 
 div#new_account div.role {

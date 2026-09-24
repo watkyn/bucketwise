@@ -1,13 +1,15 @@
 <fieldset id="<%= section %>" class="mb-4 <%= section_visible_for_event?(section) ? "" : "hidden" %>" data-events-form-target="<%= section.to_s.camelize(:lower) %>">
   <legend>Reallocate funds</legend>
 
-  <p class="primary my-3">
+  <p class="primary my-3 flex items-center gap-2 flex-wrap">
     <%= hidden_field_tag "account_for_#{section}", account_id_for_section(section) %>
 
-    <strong>Which bucket</strong>
-    are you reallocating funds
-    <strong><%= "#{reallocation_verbs_for(section).first}" %></strong>
-    ?
+    <span>
+      <strong>Which bucket</strong>
+      are you reallocating funds
+      <strong><%= "#{reallocation_verbs_for(section).first}" %></strong>
+      ?
+    </span>
     <%= select_bucket(section, splittable: false, line_item: line_item_for_section('primary')) %>
   </p>
 

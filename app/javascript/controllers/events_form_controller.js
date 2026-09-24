@@ -319,10 +319,16 @@ export default class extends Controller {
       const bucketSelect = li.querySelector("select")
       if (bucketSelect && acctId) {
         this.populateBucket(bucketSelect, acctId, { skipAside: section === "credit_options" })
+        if (populate !== true) {
+          this.selectBucket(bucketSelect, populate.bucket_id)
+        }
       }
     }
 
     const input = li.querySelector("input")
+    if (input && populate !== true) {
+      input.value = Money.formatValue(Math.abs(populate.amount))
+    }
     if (input) input.focus()
   }
 
@@ -403,31 +409,36 @@ export default class extends Controller {
   recall(event) {
     event.preventDefault()
     if (!this.recalledEvents) {
-      this.loadRecalledEvents(event.currentTarget.dataset.url)
-      return
+      return this.loadRecalledEvents(event.currentTarget.dataset.url)
     }
 
+    this.recallNext()
+  }
+
+  recallNext() {
     if (this.recalledEvents.length === 0) {
       alert("No transactions matched the criteria you specified.")
       return
     }
 
     this.currentEvent = (this.currentEvent + 1) % this.recalledEvents.length
-    const evt = this.recalledEvents[this.currentEvent].event
+    const recalled = this.recalledEvents[this.currentEvent]
+    const evt = recalled.event || recalled
     this.rehydrate(evt)
   }
 
   loadRecalledEvents(url) {
     const params = `page=0&size=10&actor=${encodeURIComponent(this.actorNameTarget.value)}`
-    fetch(`${url}?${params}`, {
+    return fetch(`${url}?${params}`, {
       headers: { "Accept": "application/json" }
     })
       .then(r => r.json())
       .then(data => {
         this.recalledEvents = data
         this.currentEvent = -1
-        this.recallEvent()
+        this.recallNext()
       })
+      .catch(err => alert(err.message || "Unable to recall transactions"))
   }
 
   rehydrate(event) {

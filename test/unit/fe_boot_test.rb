@@ -49,6 +49,17 @@ class FeBootTest < ActiveSupport::TestCase
                  "stimulus-loading module must be referenced so controllers auto-load")
   end
 
+  test "recall fetch advances through the JSON response using the current event shape" do
+    controller = Rails.root.join("app/javascript/controllers/events_form_controller.js").read
+
+    assert_match(/this\.recallNext\(\)/, controller,
+                 "recall fetch should advance through the loaded events")
+    assert_match(/recalled\.event\s*\|\|\s*recalled/, controller,
+                 "recall should accept the current bare event array as well as wrapped events")
+    assert_match(/populate\s*!==\s*true/, controller,
+                 "rehydrating split line items should restore their bucket and amount")
+  end
+
   private
 
   # Logs in through the real stack (renderer-rendered assigns don't reach the

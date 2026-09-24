@@ -15,27 +15,33 @@
   <fieldset>
     <legend>Account info</legend>
 
-    <p>
-      <label for="account_name">
-        <strong>Choose a name</strong>
-        for this account:
+    <p class="flex items-center gap-2 flex-wrap">
+      <label for="account_name" class="flex items-center gap-2 flex-wrap m-0">
+        <span>
+          <strong>Choose a name</strong>
+          for this account:
+        </span>
+        <%= form.text_field :name, class: "text", "data-accounts-form-target": "nameField" %>
       </label>
-      <%= form.text_field :name, class: "text", "data-accounts-form-target": "nameField" %>
     </p>
 
-    <p>
-      <label>
-        <strong>What kind</strong>
-        of account is this?
+    <p class="flex items-center gap-2 flex-wrap">
+      <label class="flex items-center gap-2 flex-wrap m-0">
+        <span>
+          <strong>What kind</strong>
+          of account is this?
+        </span>
         <%= form.select :role, [["Checking", "checking"], ["Credit card", "credit-card"], ["Other", "other"]], {}, "data-accounts-form-target": "roleField", "data-action": "change->accounts-form#toggleCreditLimit" %>
       </label>
     </p>
 
     <p id="credit_limit_div" class="hidden" data-accounts-form-target="limitDiv">
-      <label>
-        What is the
-        <strong>credit limit</strong>
-        :
+      <label class="flex items-center gap-2 flex-wrap m-0">
+        <span>
+          What is the
+          <strong>credit limit</strong>
+          :
+        </span>
         <%= safe_join([content_tag(:span, "$", class: "mr-1"), form.text_field(:limit, class: "number", size: 8, "data-accounts-form-target": "creditLimitField")]) %>
       </label>
     </p>
@@ -61,19 +67,23 @@
       </div>
       <%= hidden_field_tag "account[starting_balance][amount]", "", "data-accounts-form-target": "startingBalance" %>
 
-      <p>
-        <label>
-          What is the
-          <strong>current balance</strong>
-          :
+      <p class="flex items-center gap-2 flex-wrap">
+        <label class="flex items-center gap-2 flex-wrap m-0">
+          <span>
+            What is the
+            <strong>current balance</strong>
+            :
+          </span>
           <%= safe_join([content_tag(:span, "$", class: "mr-1"), text_field_tag(:current_balance, account_starting_balance_amount, class: "number", size: 8)]) %>
         </label>
       </p>
 
-      <p>
-        <label>
-          <strong>When</strong>
-          was the statement issued:
+      <p class="flex items-center gap-2 flex-wrap">
+        <label class="flex items-center gap-2 flex-wrap m-0">
+          <span>
+            <strong>When</strong>
+            was the statement issued:
+          </span>
           <%= date_field_tag "account[starting_balance][occurred_on]", account_starting_balance_occurred_on %>
         </label>
       </p>
