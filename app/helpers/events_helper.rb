@@ -217,9 +217,12 @@ module EventsHelper
     return true
   end
 
-  def multi_bucket_visibility_for(section)
-    return nil if @event && @event.line_items.for_role(section).length > 1
-    return "display: none;"
+  def multi_bucket_visible?(section)
+    if @event
+      @event.line_items.for_role(section).length > 1
+    else
+      false
+    end
   end
 
   def for_each_line_item_in(section)

@@ -143,6 +143,39 @@ test("naming a new bucket keeps it selected after Stimulus rereads accounts", ()
   }
 })
 
+test("choosing more than one shows the multiple-bucket fields", () => {
+  const originalDocument = globalThis.document
+  const classList = {
+    values: new Set(["hidden"]),
+    add(name) { this.values.add(name) },
+    remove(name) { this.values.delete(name) },
+    contains(name) { return this.values.has(name) }
+  }
+  const multipleBuckets = { classList }
+  const singleBucket = { classList: { add() {}, remove() {} } }
+  const select = { value: "+", dataset: { section: "payment_source" } }
+  const controller = new controllerModule.default()
+  const addedItems = []
+  controller.addLineItemTo = section => addedItems.push(section)
+  controller.updateBucketsFor = () => {}
+  globalThis.document = {
+    getElementById(id) {
+      if (id === "payment_source.multiple_buckets") return multipleBuckets
+      if (id === "payment_source.single_bucket") return singleBucket
+      return null
+    }
+  }
+
+  try {
+    controller.handleBucketChange({ currentTarget: select })
+
+    assert.equal(multipleBuckets.classList.contains("hidden"), false)
+    assert.deepEqual(addedItems, ["payment_source", "payment_source"])
+  } finally {
+    globalThis.document = originalDocument
+  }
+})
+
 test("recall fetches matching bare JSON events and rehydrates them in sequence", async () => {
   const events = [{ id: 1, role: "deposit" }, { id: 2, role: "deposit" }]
   const recalled = []

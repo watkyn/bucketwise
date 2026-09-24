@@ -125,7 +125,7 @@ class EventsHelperTest < ActionView::TestCase
 
     assert event_wants_memo?
     assert section_has_single_bucket?(:payment_source)
-    assert_equal "display: none;", multi_bucket_visibility_for(:payment_source)
+    refute multi_bucket_visible?(:payment_source)
     assert_equal line_items(:john_lunch_mastercard), line_item_for_section(:payment_source)
     assert_equal accounts(:john_mastercard).id, account_id_for_section(:payment_source)
 
@@ -141,7 +141,7 @@ class EventsHelperTest < ActionView::TestCase
     @event.line_items.build(role: "payment_source")
     @event.line_items.build(role: "payment_source")
     refute section_has_single_bucket?(:payment_source)
-    assert_nil multi_bucket_visibility_for(:payment_source)
+    assert multi_bucket_visible?(:payment_source)
   end
 
   test "action phrases reject unsupported sections" do
@@ -166,6 +166,7 @@ class EventsHelperTest < ActionView::TestCase
     assert fragment.at_css("#account_for_credit_options option[value='#{accounts(:john_checking).id}']")
     refute fragment.at_css("#account_for_credit_options option[value='#{accounts(:john_mastercard).id}']")
     assert fragment.at_css("select.bucket_for_credit_options")
+    assert fragment.at_css("div[id='credit_options.multiple_buckets'].hidden")
 
     reallocation = events(:john_reallocate_from)
     @event = reallocation

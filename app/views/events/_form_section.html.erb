@@ -29,7 +29,7 @@
     </p>
   <% end %>
 
-  <div id="<%= section %>.multiple_buckets" style="<%= multi_bucket_visibility_for(section) %>">
+  <div id="<%= section %>.multiple_buckets" class="<%= multi_bucket_visible?(section) ? "" : "hidden" %>">
     <p class="my-3 flex items-center gap-2 flex-wrap">
       <%= raw multi_bucket_prompt %>
       <span id="<%= section %>.unassigned"></span>
