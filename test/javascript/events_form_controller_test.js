@@ -205,3 +205,29 @@ test("recall fetches matching bare JSON events and rehydrates them in sequence",
     globalThis.fetch = originalFetch
   }
 })
+
+test("validation errors use labels that make sense for the transaction type", async () => {
+  for (const [role, expectedLabel] of [
+    ["expense", "Payee"],
+    ["deposit", "Deposit source"],
+    ["transfer", "Transfer description"]
+  ]) {
+    const controller = new controllerModule.default()
+    controller.element = {
+      querySelector(selector) {
+        return selector === `.${role}_label:not(.hidden)` ? {} : null
+      }
+    }
+    const response = {
+      status: 422,
+      clone() {
+        return { json: async () => ({ actor_name: ["can't be blank"], line_items: ["must be provided"] }) }
+      }
+    }
+
+    assert.equal(
+      await controller.errorMessage(response),
+      `${expectedLabel} can't be blank\nTransaction details must be provided`
+    )
+  }
+})

@@ -624,13 +624,35 @@ export default class extends Controller {
       const errors = await response.clone().json()
       if (errors && typeof errors === "object") {
         const messages = Object.entries(errors)
-          .map(([field, msgs]) => `${field} ${Array.isArray(msgs) ? msgs.join(", ") : msgs}`)
+          .map(([field, msgs]) => `${this.humanizeErrorField(field)} ${Array.isArray(msgs) ? msgs.join(", ") : msgs}`)
         if (messages.length > 0) return messages.join("\n")
       }
     } catch {
       // Not JSON — fall through to the generic message.
     }
     return `Request failed (${response.status})`
+  }
+
+  humanizeErrorField(field) {
+    const labels = {
+      actor_name: this.actorNameErrorLabel(),
+      occurred_on: "Date",
+      line_items: "Transaction details",
+      tagged_items: "Tags",
+      check_number: "Check number",
+      memo: "Description"
+    }
+    if (labels[field]) return labels[field]
+
+    const name = field.replace(/_/g, " ")
+    return name.charAt(0).toUpperCase() + name.slice(1)
+  }
+
+  actorNameErrorLabel() {
+    if (this.element?.querySelector(".expense_label:not(.hidden)")) return "Payee"
+    if (this.element?.querySelector(".deposit_label:not(.hidden)")) return "Deposit source"
+    if (this.element?.querySelector(".transfer_label:not(.hidden)")) return "Transfer description"
+    return "Transaction description"
   }
 
   available(section) {
