@@ -54,6 +54,17 @@ class SubscriptionsControllerTest < ActionDispatch::IntegrationTest
       text: "Checking"
   end
 
+  test "dashboard inline form offers a description above tags for reallocations" do
+    get subscription_path(subscriptions(:john))
+
+    assert_response :ok
+    assert_select "#new_event #reallocate_from"
+    assert_select "#new_event #reallocate_to"
+    assert_select "#new_event #memo_link a", text: /I'd like to add a description for this transaction/
+    assert_select "#new_event #memo.hidden textarea[name='event[memo]']"
+    assert_operator @response.body.index('id="memo_link"'), :<, @response.body.index('id="tags_collapsed"')
+  end
+
   test "show leaves bucket-row plus-minus buttons without a navigate URL for the inline form" do
     get subscription_path(subscriptions(:john))
 

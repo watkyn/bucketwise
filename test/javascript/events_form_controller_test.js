@@ -176,6 +176,31 @@ test("choosing more than one shows the multiple-bucket fields", () => {
   }
 })
 
+test("serialization includes a reallocation description when general information is hidden", () => {
+  const originalDocument = globalThis.document
+  const memoField = { value: "Cover the car repair from savings" }
+  globalThis.document = {
+    getElementById(id) {
+      if (id === "event_memo") return memoField
+      return null
+    }
+  }
+
+  try {
+    const controller = new controllerModule.default()
+    controller.defaultDateValue = "2026-09-23"
+    controller.defaultActorValue = "Bucket reallocation"
+
+    const data = controller.serialize()
+
+    assert.equal(data.event.memo, memoField.value)
+    assert.equal(data.event.actor_name, "Bucket reallocation")
+    assert.deepEqual(data.event.line_items, [])
+  } finally {
+    globalThis.document = originalDocument
+  }
+})
+
 test("recall fetches matching bare JSON events and rehydrates them in sequence", async () => {
   const events = [{ id: 1, role: "deposit" }, { id: 2, role: "deposit" }]
   const recalled = []

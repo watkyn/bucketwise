@@ -20,8 +20,12 @@
   <% end %>
 
   <% form_sections.each do |section| %>
+    <% next if section == "tags" %>
     <%= render_event_form_section(form, section) if event_wants_section?(section) %>
   <% end %>
+
+  <%= render partial: "events/form_memo", locals: { form: form } %>
+  <%= render_event_form_section(form, "tags") if event_wants_section?("tags") %>
 
   <p class="mt-4">
     <% if !event_for_form.new_record? %>

@@ -129,6 +129,27 @@ class EventsControllerTest < ActionDispatch::IntegrationTest
     assert_equal buckets(:john_checking_dining), Event.order(:id).last.line_items.first.bucket
   end
 
+  test "create via API should save an optional description on a bucket reallocation" do
+    event_data = {
+      occurred_on: Date.current.to_s,
+      actor_name: "Bucket reallocation",
+      memo: "Cover the car repair from savings",
+      line_items: [
+        { account_id: accounts(:john_checking).id, bucket_id: buckets(:john_checking_general).id,
+          amount: -1_000, role: "primary" },
+        { account_id: accounts(:john_checking).id, bucket_id: buckets(:john_checking_dining).id,
+          amount: 1_000, role: "reallocate_from" }
+      ]
+    }
+
+    assert_difference -> { subscriptions(:john).events.count }, 1 do
+      post subscription_events_path(subscriptions(:john), format: :json), params: { event: event_data }
+      assert_response :created
+    end
+
+    assert_equal "Cover the car repair from savings", Event.order(:id).last.memo
+  end
+
   test "create via turbo_stream should create a bucket selected by its temporary name" do
     data = simple_event(:john_checking, :john_checking_dining)
     data[:line_items][0][:bucket_id] = "n:Utilities"
@@ -282,6 +303,21 @@ class EventsControllerTest < ActionDispatch::IntegrationTest
       subscription_events_path(subscriptions(:john), source: "new")
     assert_select "#reallocate_from"
     assert_select "#reallocate_to", false
+    assert_select "#memo_link a[data-action='click->events-form#revealMemo']"
+    assert_select "#memo.hidden textarea[name='event[memo]']"
+    assert_select "#memo_link a", text: /I'd like to add a description for this transaction/
+    assert_operator @response.body.index('id="memo_link"'), :<, @response.body.index('id="tags_collapsed"')
+  end
+
+  test "edit reallocation should show its saved description" do
+    event = events(:john_reallocate_from)
+    event.update!(memo: "Move money for the annual bill")
+
+    get edit_event_path(event)
+
+    assert_response :ok
+    assert_select "#memo textarea[name='event[memo]']", text: "Move money for the annual bill"
+    assert_select "#memo_link.hidden"
   end
 
   test "new 'to reallocation' should render correct edit form" do
@@ -293,6 +329,8 @@ class EventsControllerTest < ActionDispatch::IntegrationTest
       subscription_events_path(subscriptions(:john), source: "new")
     assert_select "#reallocate_to"
     assert_select "#reallocate_from", false
+    assert_select "#memo_link a", text: /I'd like to add a description for this transaction/
+    assert_operator @response.body.index('id="memo_link"'), :<, @response.body.index('id="tags_collapsed"')
   end
 
   test "new event templates render reallocation inputs as real elements, not escaped HTML" do
@@ -475,6 +513,17 @@ class EventsControllerTest < ActionDispatch::IntegrationTest
     json = @response.parsed_body
     assert json.key?("id")
     assert_equal "Updated!", event.reload.actor_name
+  end
+
+  test "update via API should change a reallocation description" do
+    event = events(:john_reallocate_from)
+
+    put event_path(event, format: :json), params: {
+      event: { memo: "Set aside for the annual bill" }
+    }
+
+    assert_response :success
+    assert_equal "Set aside for the annual bill", event.reload.memo
   end
 
   test "destroy via API should destroy record and return 200" do

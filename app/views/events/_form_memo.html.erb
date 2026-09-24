@@ -1,0 +1,12 @@
+<p id="memo_link" class="my-3 <%= event_wants_memo? ? "hidden" : "" %>" data-events-form-target="memoLink">
+  &rarr;
+  <%= link_to "I'd like to add a description for this transaction...", "#", "data-action": "click->events-form#revealMemo" %>
+</p>
+
+<fieldset id="memo" class="mb-4 <%= event_wants_memo? ? "" : "hidden" %>" data-events-form-target="memo">
+  <legend>Description</legend>
+  <p class="my-3 flex items-center gap-2 flex-wrap">
+    <span>Describe this transaction:</span>
+    <%= form.text_area :memo, rows: 2, cols: 50 %>
+  </p>
+</fieldset>

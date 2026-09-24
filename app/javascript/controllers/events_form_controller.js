@@ -670,6 +670,8 @@ export default class extends Controller {
       data.event.actor_name = this.defaultActorValue
     }
 
+    this.serializeMemo(data)
+
     const sections = {
       payment_source: { expense: true },
       credit_options: { expense: true },
@@ -699,6 +701,11 @@ export default class extends Controller {
         this.addToRequest(data, field.name, field.value)
       }
     })
+  }
+
+  serializeMemo(data) {
+    const memoField = document.getElementById("event_memo")
+    if (memoField) data.event.memo = memoField.value
   }
 
   serializeSection(data, section, options = {}) {
