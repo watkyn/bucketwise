@@ -220,10 +220,13 @@ export default class extends Controller {
     } else if (selected === "++") {
       const acctId = document.getElementById(`account_for_${section}`)?.value
       const name = prompt("Name your new bucket:")
-      if (name && acctId) {
+      const accounts = this.accountsValue
+      const account = acctId ? accounts[acctId] : null
+      if (name && account) {
         const value = "n:" + name
-        this.accountsValue[acctId].buckets.push({ id: value, name: name })
-        this.accountsValue[acctId].buckets.sort((a, b) => a.name.localeCompare(b.name))
+        account.buckets.push({ id: value, name: name })
+        account.buckets.sort((a, b) => a.name.localeCompare(b.name))
+        this.accountsValue = accounts
         this.updateBucketsFor(section)
         this.selectBucket(select, value)
       } else {
