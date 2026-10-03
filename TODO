@@ -181,3 +181,10 @@ Known route gaps (documented by smoke/probe, not fixed — missing views/actions
        (no actions/views — UI does not link them)
   404 nil-container: top-level /accounts /buckets /tags /statements /events/new
 ==========================================================================
+
+
+
+Features:
+
+- Add the ability to have multiple accounts in the repayment options for a credit card
+- When more than one bucket and it is over or under allocated, have a way to auto sync the difference to a specific bucket.
