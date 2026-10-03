@@ -1,0 +1,64 @@
+# Name of your application. Used to uniquely configure containers.
+service: bucketwise
+
+# Name of the container image.
+# This repo is public, so the first push will auto-create it as a public image.
+image: watkyn/bucketwise
+
+# Deploy to these servers. The IP is injected via the environment
+# (same pattern as mlf-server's CVMLF_IP_ADDRESS): export it before
+# running kamal, e.g. `export BUCKETWISE_IP_ADDRESS=1.2.3.4`.
+servers:
+  web:
+    - <%= ENV["BUCKETWISE_IP_ADDRESS"] %>
+
+# Enable SSL auto certification via Let's Encrypt and allow for multiple apps on a single web server.
+#
+# Using an SSL proxy like this requires turning on config.assume_ssl and config.force_ssl in production.rb!
+# (Done in config/environments/production.rb.)
+proxy:
+  ssl: true
+  hosts:
+    - buckets.homestorelane.com
+  healthcheck:
+    path: /up
+    timeout: 5
+
+# Where you keep your container images.
+# Docker Hub is Kamal's default: omit `server`, set username + token password.
+# Use an access token (https://hub.docker.com/settings/security), not your password.
+registry:
+  username: watkyn
+  password:
+    - KAMAL_REGISTRY_PASSWORD
+
+# Inject ENV variables into containers (secrets come from .kamal/secrets).
+env:
+  secret:
+    - RAILS_MASTER_KEY
+
+# Aliases are triggered with "bin/kamal <alias>".
+aliases:
+  console: app exec --interactive --reuse "bin/rails console"
+  shell: app exec --interactive --reuse "bash"
+  logs: app logs -f
+  dbc: app exec --interactive --reuse "bin/rails dbconsole --include-password"
+
+# Use a host bind mount (same pattern as mlf-server) so the sqlite files can be
+# copied to the server with plain scp, independent of Kamal (see
+# scripts/copy_db_to_server.rb). Make sure this path is backed up off server.
+volumes:
+  - "/root/bucketwise:/rails/storage"
+
+# Bridge fingerprinted assets, like JS and CSS, between versions to avoid
+# hitting 404 on in-flight requests. Combines all files from new and old
+# version inside the asset_path.
+asset_path: /rails/public/assets
+
+# Configure the image builder.
+builder:
+  arch: amd64
+
+# Use a different ssh user than root
+# ssh:
+#   user: app
