@@ -2,8 +2,7 @@
 service: bucketwise
 
 # Name of the container image.
-# This repo is public, so the first push will auto-create it as a public image.
-image: watkyn/bucketwise
+image: <%= ENV.fetch("KAMAL_REGISTRY_USERNAME") %>/bucketwise
 
 # Deploy to these servers. The IP is injected via the environment
 # (same pattern as mlf-server's CVMLF_IP_ADDRESS): export it before
@@ -19,7 +18,7 @@ servers:
 proxy:
   ssl: true
   hosts:
-    - buckets.homestorelane.com
+    - <%= ENV.fetch("BUCKETWISE_HOST") %>
   healthcheck:
     path: /up
     timeout: 5
@@ -28,12 +27,14 @@ proxy:
 # Docker Hub is Kamal's default: omit `server`, set username + token password.
 # Use an access token (https://hub.docker.com/settings/security), not your password.
 registry:
-  username: watkyn
+  username: <%= ENV.fetch("KAMAL_REGISTRY_USERNAME") %>
   password:
     - KAMAL_REGISTRY_PASSWORD
 
 # Inject ENV variables into containers (secrets come from .kamal/secrets).
 env:
+  clear:
+    BUCKETWISE_HOST: <%= ENV.fetch("BUCKETWISE_HOST") %>
   secret:
     - RAILS_MASTER_KEY
 

@@ -4,6 +4,8 @@
 
 ```sh
 export BUCKETWISE_IP_ADDRESS="1.2.3.4"
+export BUCKETWISE_HOST="example.com"
+export KAMAL_REGISTRY_USERNAME="dockerhub-user"
 export KAMAL_REGISTRY_PASSWORD="dckr_pat_..."
 ```
 
