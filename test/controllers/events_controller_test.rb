@@ -320,6 +320,22 @@ class EventsControllerTest < ActionDispatch::IntegrationTest
     assert_select "#memo_link.hidden"
   end
 
+  test "edit should expose plain default actor and date values without extra JSON quotes" do
+    event = events(:john_reallocate_from)
+
+    get edit_event_path(event)
+
+    assert_response :ok
+    assert_includes @response.body,
+      'data-events-form-default-actor-value="Bucket reallocation"',
+      "editing a reallocation must not wrap the default actor in extra double quotes"
+    assert_includes @response.body,
+      %(data-events-form-default-date-value="#{event.occurred_on.strftime("%Y-%m-%d")}"),
+      "editing must not wrap the default date in extra double quotes"
+    refute_includes @response.body, 'data-events-form-default-actor-value="&quot;'
+    refute_includes @response.body, 'data-events-form-default-date-value="&quot;'
+  end
+
   test "new 'to reallocation' should render correct edit form" do
     get new_subscription_event_path(subscriptions(:john)),
       params: { role: :reallocation, to: buckets(:john_checking_general).id }

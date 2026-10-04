@@ -7,7 +7,7 @@
      data-events-form-actors-value="<%= subscription.events.distinct.pluck(:actor_name).compact.to_json %>"
      data-events-form-return-to-value="<%= subscription_path(subscription) %>"
      data-events-form-default-actor-value="Bucket reallocation"
-     data-events-form-default-date-value="<%= Date.today.to_json %>">
+     data-events-form-default-date-value="<%= Date.today %>">
   <div id="links" class="header<%= " hidden" if blank_slate? %>" data-events-form-target="links" data-accounts-form-target="links">
     <h2>
       Record a new

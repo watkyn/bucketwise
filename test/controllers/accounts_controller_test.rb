@@ -34,6 +34,18 @@ class AccountsControllerTest < ActionDispatch::IntegrationTest
     assert_select ".navigation a[href=?]", account_buckets_path(account)
   end
 
+  test "show should expose a plain events-source location without extra JSON quotes" do
+    account = accounts(:john_checking)
+
+    get account_path(account)
+
+    assert_response :ok
+    assert_includes @response.body,
+      %(data-events-source-location-value="accounts/#{account.id}"),
+      "the String location value must not be wrapped in extra double quotes"
+    refute_includes @response.body, 'data-events-source-location-value="&quot;'
+  end
+
   test "new should load subscription and render page" do
     get new_subscription_account_path(subscriptions(:john))
 

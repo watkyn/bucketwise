@@ -73,6 +73,16 @@ class SubscriptionsControllerTest < ActionDispatch::IntegrationTest
     assert_select "tr#bucket_#{bucket.id}[data-buckets-new-event-url-value='']", 1
   end
 
+  test "layout should expose a plain events-source location without extra JSON quotes" do
+    get subscription_path(subscriptions(:john))
+
+    assert_response :ok
+    assert_includes @response.body,
+      'data-events-source-location-value="subscriptions"',
+      "the String location value must not be wrapped in extra double quotes"
+    refute_includes @response.body, 'data-events-source-location-value="&quot;'
+  end
+
   test "show should render account links in recent entries as real links, not escaped HTML" do
     get subscription_path(subscriptions(:john))
     assert_response :ok

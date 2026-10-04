@@ -7,7 +7,7 @@
 
 <%# Port of legacy destroy.js.rjs: refresh whichever summary the row was
   deleted from, based on the `from` location sent by event-row#delete. %>
-<% from = params[:from].to_s.delete('"') %>
+<% from = params[:from].to_s %>
 <% if from.include?("subscriptions") || from.include?("events") || from.blank? %>
 <turbo-stream action="replace" target="accounts_summary">
   <template>
