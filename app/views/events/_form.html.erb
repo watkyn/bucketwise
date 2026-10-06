@@ -1,7 +1,7 @@
 <div id="templates" class="hidden">
   <% form_sections.each do |section| %>
     <div id="template.<%= section %>">
-      <%= render partial: template_partial_for(section), locals: { section: section, line_item: nil, reallocation_item: nil, tagged_item: nil } %>
+      <%= render partial: template_partial_for(section), locals: { section: section, line_item: nil, reallocation_item: nil, tagged_item: nil, repayment_accounts: (repayment_accounts if section == "credit_options") } %>
     </div>
   <% end %>
 </div>

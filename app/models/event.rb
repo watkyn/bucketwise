@@ -258,12 +258,10 @@ class Event < ApplicationRecord
         return false
       end
 
-      aside = roles.select { |role| role == "aside" }
-      if aside.length > 1
-        errors.add :line_items, "may include at most one `aside' role (#{aside.length} found)"
-        return false
-      end
-
+      # Repayment reserves (aside legs) may be split across several
+      # accounts, one reserve per repayment account, so no uniqueness
+      # limit applies here. (Aside legs only belong to expense groups,
+      # so other scenarios still reject them as mismatched roles.)
       discriminant = roles.detect { |role| role != "primary" }
       if discriminant.nil?
         errors.add :line_items, "must include at least one non-primary role"
@@ -307,6 +305,45 @@ class Event < ApplicationRecord
           return false
         elsif payment.abs != aside
           errors.add :line_items, "for payment_source and aside must balance"
+          return false
+        else
+          return ensure_repayment_accounts_balance
+        end
+      end
+      true
+    end
+
+    # Every repayment account must net to zero on its own: its
+    # credit_options legs draw buckets down and its aside legs reserve
+    # the same total in its Aside bucket. Totals alone could pass while
+    # attributing one account's reserve to another, which would corrupt
+    # each account's available balance.
+    def ensure_repayment_accounts_balance
+      @line_items_to_realize.each do |item|
+        role = (item[:role] || item["role"]).to_s
+        amount = (item[:amount] || item["amount"]).to_i
+        if role == "credit_options" && amount >= 0
+          errors.add :line_item, "with credit_options role must have a negative amount"
+          return false
+        elsif role == "aside" && amount <= 0
+          errors.add :line_item, "with aside role must have a positive amount"
+          return false
+        elsif role == "payment_source" && amount >= 0
+          errors.add :line_item, "with payment_source role must have a negative amount"
+          return false
+        end
+      end
+
+      balances = Hash.new(0)
+      @line_items_to_realize.each do |item|
+        role = (item[:role] || item["role"]).to_s
+        next if role == "payment_source"
+        account_id = (item[:account_id] || item["account_id"]).to_i
+        balances[account_id] += (item[:amount] || item["amount"]).to_i
+      end
+      balances.each do |account_id, net|
+        if net != 0
+          errors.add :line_items, "repayment legs for account #{account_id} must net to zero"
           return false
         end
       end

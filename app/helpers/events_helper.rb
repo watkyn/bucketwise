@@ -82,6 +82,25 @@ module EventsHelper
       :"data-section" => section
   end
 
+  # Accounts a credit-card expense may be repaid from: anything that
+  # is not itself a credit card (checking, savings, untyped accounts).
+  def repayment_accounts
+    subscription.accounts.reject { |account| account.credit_card? }
+  end
+
+  # Per-row repayment account picker for credit_options legs in
+  # multi-bucket mode. Rows carry their own account (a class, never an
+  # id, since one section holds many rows); the section-level select
+  # remains as the single-bucket value and the default for new rows.
+  def select_repayment_account(line_item, accounts)
+    selection = line_item&.account_id || accounts.first&.id
+    select_tag "event[credit_options][account_id]",
+      options_for_select(accounts.map { |account| [account.name, account.id] }, selection),
+      :class => "account_for_credit_options_row",
+      :"data-action" => "change->events-form#handleRowAccountChange",
+      :"data-section" => "credit_options"
+  end
+
   def event_for_form
     @event || Event.new(occurred_on: Date.current)
   end
@@ -311,7 +330,7 @@ module EventsHelper
 
     else
       accounts = subscription.accounts
-      accounts = accounts.select { |a| a.role == "checking" } if section == :credit_options
+      accounts = repayment_accounts if section == :credit_options
 
       values = { :section          => section,
                  :form             => form,
@@ -359,6 +378,7 @@ module EventsHelper
     case section
     when "tags" then "events/tagged_item"
     when "reallocate_from", "reallocate_to" then "events/reallocation_item"
+    when "credit_options" then "events/credit_line_item"
     else "events/line_item"
     end
   end

@@ -179,9 +179,10 @@ export default class extends Controller {
     if (multipleBuckets) multipleBuckets.classList.add("hidden")
     if (lineItems) lineItems.innerHTML = ""
     if (singleBucket) singleBucket.classList.remove("hidden")
+    const accountRow = document.getElementById(`${section}.account`)
+    if (accountRow) accountRow.classList.remove("hidden")
 
     this.updateBucketsFor(section, true)
-
     const checkOptions = document.getElementById(`${section}.check_options`)
     const repaymentOptions = document.getElementById(`${section}.repayment_options`)
     const creditOptions = document.getElementById("credit_options")
@@ -216,6 +217,11 @@ export default class extends Controller {
       const singleBucket = document.getElementById(`${section}.single_bucket`)
       if (multipleBuckets) multipleBuckets.classList.remove("hidden")
       if (singleBucket) singleBucket.classList.add("hidden")
+      if (section === "credit_options") {
+        // Repayment rows carry their own account, so the section-level
+        // payback picker steps aside in multi-bucket mode.
+        document.getElementById("credit_options.account")?.classList.add("hidden")
+      }
       this.updateBucketsFor(section)
     } else if (selected === "++") {
       const acctId = document.getElementById(`account_for_${section}`)?.value
@@ -252,10 +258,39 @@ export default class extends Controller {
     const disabled = acctField.tagName === "SELECT" && acctField.value === ""
     const acctId = disabled ? null : acctField.value
 
+    if (section === "credit_options") {
+      // The single-bucket select follows the section account, but each
+      // multi-bucket row carries its own repayment account, so rows
+      // follow their row account instead.
+      const singleBucket = document.getElementById("credit_options.single_bucket")
+      const singleSelect = singleBucket?.querySelector("select")
+      if (singleSelect) {
+        this.populateBucket(singleSelect, acctId, { reset, disabled, skipAside })
+      }
+      const lineItems = document.getElementById("credit_options.line_items")
+      lineItems?.querySelectorAll("li").forEach(row => {
+        const rowAcct = row.querySelector("select.account_for_credit_options_row")?.value
+        const bucketSelect = row.querySelector("select.bucket_for_credit_options")
+        if (bucketSelect) {
+          this.populateBucket(bucketSelect, rowAcct || null, { reset, disabled: !rowAcct, skipAside })
+        }
+      })
+      return
+    }
+
     const bucketSelects = this.element.querySelectorAll(`#${section} select.bucket_for_${section}`)
     bucketSelects.forEach(select => {
       this.populateBucket(select, acctId, { reset, disabled, skipAside })
     })
+  }
+
+  handleRowAccountChange(event) {
+    const select = event.currentTarget
+    const row = select.closest("li")
+    const bucketSelect = row?.querySelector("select.bucket_for_credit_options")
+    if (bucketSelect) {
+      this.populateBucket(bucketSelect, select.value || null, { reset: true, disabled: !select.value, skipAside: true })
+    }
   }
 
   populateBucket(select, acctId, options = {}) {
@@ -317,13 +352,34 @@ export default class extends Controller {
     ol.appendChild(li)
 
     if (populate) {
-      const acctSelect = document.getElementById(`account_for_${section}`)
-      const acctId = acctSelect?.value
-      const bucketSelect = li.querySelector("select")
-      if (bucketSelect && acctId) {
-        this.populateBucket(bucketSelect, acctId, { skipAside: section === "credit_options" })
-        if (populate !== true) {
-          this.selectBucket(bucketSelect, populate.bucket_id)
+      if (section === "credit_options") {
+        // New rows default to the section account; recalled rows keep
+        // the account they were recorded against.
+        const rowAcctSelect = li.querySelector("select.account_for_credit_options_row")
+        const sectionAcct = document.getElementById("account_for_credit_options")?.value
+        let rowAcct = null
+        if (populate !== true && populate.account_id) {
+          rowAcct = String(populate.account_id)
+        } else if (sectionAcct) {
+          rowAcct = sectionAcct
+        }
+        if (rowAcctSelect && rowAcct) rowAcctSelect.value = rowAcct
+        const bucketSelect = li.querySelector("select.bucket_for_credit_options")
+        if (bucketSelect && rowAcct) {
+          this.populateBucket(bucketSelect, rowAcct, { skipAside: true })
+          if (populate !== true) {
+            this.selectBucket(bucketSelect, populate.bucket_id)
+          }
+        }
+      } else {
+        const acctSelect = document.getElementById(`account_for_${section}`)
+        const acctId = acctSelect?.value
+        const bucketSelect = li.querySelector("select")
+        if (bucketSelect && acctId) {
+          this.populateBucket(bucketSelect, acctId, { skipAside: section === "credit_options" })
+          if (populate !== true) {
+            this.selectBucket(bucketSelect, populate.bucket_id)
+          }
         }
       }
     }
@@ -515,6 +571,9 @@ export default class extends Controller {
       const singleBucket = document.getElementById(`${section}.single_bucket`)
       if (multipleBuckets) multipleBuckets.classList.remove("hidden")
       if (singleBucket) singleBucket.classList.add("hidden")
+      if (section === "credit_options") {
+        document.getElementById("credit_options.account")?.classList.add("hidden")
+      }
 
       items.forEach(item => {
         this.addLineItemTo(section, item)
@@ -724,6 +783,10 @@ export default class extends Controller {
     }
 
     const singleBucket = document.getElementById(`${section}.single_bucket`)
+    if (section === "credit_options" && (!singleBucket || singleBucket.classList.contains("hidden"))) {
+      this.serializeCreditOptions(data, accountId)
+      return
+    }
     if (singleBucket && !singleBucket.classList.contains("hidden")) {
       const bucketId = singleBucket.querySelector("select")?.value
       this.addLineItemRecord(data, accountId, bucketId, expense, section)
@@ -742,6 +805,30 @@ export default class extends Controller {
       const total = Money.parse("expense_total")
       this.addLineItemRecord(data, accountId, "r:aside", total, "aside")
     }
+  }
+
+  // Multi-account repayment: each row repays from its own account,
+  // and each account used gets its own Aside reserve leg so the
+  // account nets to zero (the backend rejects misattributed reserves).
+  serializeCreditOptions(data, sectionAccountId) {
+    const totals = {}
+    const lineItems = document.getElementById("credit_options.line_items")
+    if (!lineItems) return
+
+    lineItems.querySelectorAll("li").forEach(row => {
+      const field = row.querySelector("input[type=text]")
+      if (field && field.value.trim() !== "") {
+        const rowAccountId = row.querySelector("select.account_for_credit_options_row")?.value || sectionAccountId
+        const bucketId = row.querySelector("select.bucket_for_credit_options")?.value
+        const amount = -Money.parse(field)
+        totals[rowAccountId] = (totals[rowAccountId] || 0) + amount
+        this.addLineItemRecord(data, rowAccountId, bucketId, amount, "credit_options")
+      }
+    })
+
+    Object.entries(totals).forEach(([accountId, total]) => {
+      this.addLineItemRecord(data, accountId, "r:aside", Math.abs(total), "aside")
+    })
   }
 
   addLineItems(data, accountId, section, options = {}) {

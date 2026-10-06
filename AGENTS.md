@@ -23,8 +23,7 @@ Two external references govern work in this repo:
    git show master:app/models/event.rb        # any path on the frozen branch
    git log master --oneline                   # original history
    ```
-   The Rails 8 port lives on `upgrade-again` (current working branch). Parity with `master`'s behavior
-   is the goal; `TODO` tracks remaining parity gaps.
+   The Rails 8 port lives on `upgrade-again` (current working branch).
 
 ## What is BucketWise?
 
@@ -61,8 +60,12 @@ changing event/line-item flows.
   Stimulus-driven (`app/javascript/`), style is Tailwind.
 - JSON API on `respond_to` blocks (XML API was removed in the Rails 8 port).
 - `QueryFilter` provides shared filtering — string/symbol key handling matters (has regression tests).
-- Known route gaps (missing views/actions, documented in `TODO`) are intentional for now — don't
-  "fix" them by inventing new pages without asking.
+- Known route gaps are intentional for now — don't "fix" them by inventing new pages
+  without asking. 406 HTML: `subscriptions/:id/{accounts,events,tags}` index, `tags#new`,
+  `accounts/:id/events`, `events/:id` show (turbo_stream only). 404 (no actions/views,
+  UI does not link them): `accounts#edit`, `buckets#edit`, `tags#edit`,
+  `subscriptions#new/#edit`, plus nil-container top-level `/accounts` `/buckets` `/tags`
+  `/statements` `/events/new`.
 
 ## Development commands
 
@@ -106,4 +109,3 @@ Tailwind CSS · propshaft · Puma. No HAML, no XML API, no RJS (removed during t
   clauses, class methods → public → private ordering, find similar existing code before inventing.
 - When porting or questioning legacy behavior, read the old code first with `git show master:...`,
   then keep/adjust the Rails 8 tests accordingly.
-- Current parity status and open gaps live in `TODO` — update it as work lands.

@@ -165,9 +165,13 @@ class EventsHelperTest < ActionView::TestCase
 
     assert_equal "Repayment Options", fragment.at_css("legend").text
     assert fragment.at_css("#account_for_credit_options option[value='#{accounts(:john_checking).id}']")
+    assert fragment.at_css("#account_for_credit_options option[value='#{accounts(:john_savings).id}']"),
+      "expected savings to be a repayment choice, got: #{html}"
     refute fragment.at_css("#account_for_credit_options option[value='#{accounts(:john_mastercard).id}']")
     assert fragment.at_css("select.bucket_for_credit_options")
     assert fragment.at_css("div[id='credit_options.multiple_buckets'].hidden")
+    refute fragment.at_css("p[id='credit_options.account'].hidden"),
+      "expected the section-level payback picker to stay visible in single-bucket mode"
 
     reallocation = events(:john_reallocate_from)
     @event = reallocation
@@ -183,6 +187,31 @@ class EventsHelperTest < ActionView::TestCase
     assert tags_fragment.at_css("fieldset#tags")
     assert_equal "lunch", tags_fragment.at_css("#event_tags_list")["value"]
     assert_equal 1, tags_fragment.css("#tagged_items li").length
+  end
+
+  test "repayment section with legs on several accounts renders a per-row account selector" do
+    @subscription = subscriptions(:john)
+    @event = events(:john_lunch)
+    @event.line_items.build(role: "credit_options",
+      account: accounts(:john_savings), bucket: buckets(:john_savings_general),
+      amount: -100)
+    form = ActionView::Helpers::FormBuilder.new(:event, @event, self, {})
+
+    html = render_event_form_section(form, :credit_options)
+    fragment = Nokogiri::HTML.fragment(html)
+    rows = fragment.css("ol[id='credit_options.line_items'] li")
+
+    assert_equal 2, rows.length
+    assert fragment.at_css("p[id='credit_options.account'].hidden"),
+      "expected the section-level payback picker to step aside once repayment spans several accounts"
+    assert_equal [accounts(:john_checking).id, accounts(:john_savings).id].sort,
+      rows.map { |row| row.at_css("select.account_for_credit_options_row option[selected]")["value"].to_i }.sort
+    rows.each do |row|
+      options = row.css("select.account_for_credit_options_row option").map { |o| o["value"] }
+      assert_includes options, accounts(:john_checking).id.to_s
+      assert_includes options, accounts(:john_savings).id.to_s
+      refute_includes options, accounts(:john_mastercard).id.to_s
+    end
   end
 
   test "tag links are sorted and tag entry fields include their dropdown" do
@@ -213,6 +242,7 @@ class EventsHelperTest < ActionView::TestCase
     assert_equal "events/reallocation_item", template_partial_for("reallocate_from")
     assert_equal "events/reallocation_item", template_partial_for("reallocate_to")
     assert_equal "events/line_item", template_partial_for("payment_source")
+    assert_equal "events/credit_line_item", template_partial_for("credit_options")
     assert_predicate emit_account_data_assignments, :html_safe?
     assert_empty emit_account_data_assignments
   end

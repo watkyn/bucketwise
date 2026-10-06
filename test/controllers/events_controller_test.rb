@@ -497,6 +497,37 @@ class EventsControllerTest < ActionDispatch::IntegrationTest
     assert @response.parsed_body.key?("actor_name")
   end
 
+  test "create via API with multi-account repayment should return 201 and zero-net repayment accounts" do
+    data = simple_event(:john_mastercard, :john_mastercard_general)
+    data[:line_items] = [
+      { account_id: accounts(:john_mastercard).id.to_s,
+        bucket_id: buckets(:john_mastercard_general).id.to_s,
+        amount: "-10000", role: "payment_source" },
+      { account_id: accounts(:john_checking).id.to_s,
+        bucket_id: buckets(:john_checking_dining).id.to_s,
+        amount: "-6000", role: "credit_options" },
+      { account_id: accounts(:john_savings).id.to_s,
+        bucket_id: buckets(:john_savings_general).id.to_s,
+        amount: "-4000", role: "credit_options" },
+      { account_id: accounts(:john_checking).id.to_s,
+        bucket_id: buckets(:john_checking_aside).id.to_s,
+        amount: "6000", role: "aside" },
+      { account_id: accounts(:john_savings).id.to_s,
+        bucket_id: "r:aside",
+        amount: "4000", role: "aside" }
+    ]
+
+    assert_difference -> { Event.count }, 1 do
+      post subscription_events_path(subscriptions(:john), format: :json),
+        params: { event: data }
+      assert_response :created
+    end
+
+    event = Event.find(@response.parsed_body["id"])
+    assert_equal [["Checking", 0], ["Mastercard", -10000], ["Savings", 0]],
+      event.account_items.map { |i| [i.account.name, i.amount] }.sort
+  end
+
   test "create via API should return 201 and new event record" do
     assert_difference -> { Event.count }, 1 do
       post subscription_events_path(subscriptions(:john), format: :json),

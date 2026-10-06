@@ -12,7 +12,7 @@ const executableSource = controllerSource
   .replace("export default class extends Controller {", "class EventsFormController extends Controller {")
 
 const controllerModule = await import(`data:text/javascript;base64,${Buffer.from(
-  `const Controller = class {};\nconst Money = {};\n${executableSource}\nexport default EventsFormController`
+  `const Controller = class {};\nconst Money = new Proxy({}, { get: (_, prop) => (...args) => globalThis.__MoneyStub[prop](...args) });\n${executableSource}\nexport default EventsFormController`
 ).toString("base64")}`)
 
 function stimulusObjectValue(initial) {
@@ -176,6 +176,44 @@ test("choosing more than one shows the multiple-bucket fields", () => {
   }
 })
 
+test("choosing more than one payback account hides the section-level picker", () => {
+  const originalDocument = globalThis.document
+  function hiddenSet(hidden = true) {
+    const values = new Set(hidden ? ["hidden"] : [])
+    return {
+      values,
+      add(name) { this.values.add(name) },
+      remove(name) { this.values.delete(name) },
+      contains(name) { return this.values.has(name) }
+    }
+  }
+  const multipleBuckets = { classList: hiddenSet() }
+  const singleBucket = { classList: hiddenSet(false) }
+  const accountRow = { classList: hiddenSet(false) }
+  const select = { value: "+", dataset: { section: "credit_options" } }
+  const controller = new controllerModule.default()
+  controller.addLineItemTo = () => {}
+  controller.updateBucketsFor = () => {}
+  globalThis.document = {
+    getElementById(id) {
+      if (id === "credit_options.multiple_buckets") return multipleBuckets
+      if (id === "credit_options.single_bucket") return singleBucket
+      if (id === "credit_options.account") return accountRow
+      return null
+    }
+  }
+
+  try {
+    controller.handleBucketChange({ currentTarget: select })
+
+    assert.equal(multipleBuckets.classList.contains("hidden"), false)
+    assert.equal(singleBucket.classList.contains("hidden"), true)
+    assert.equal(accountRow.classList.contains("hidden"), true)
+  } finally {
+    globalThis.document = originalDocument
+  }
+})
+
 test("serialization includes a reallocation description when general information is hidden", () => {
   const originalDocument = globalThis.document
   const memoField = { value: "Cover the car repair from savings" }
@@ -228,6 +266,138 @@ test("recall fetches matching bare JSON events and rehydrates them in sequence",
     ])
   } finally {
     globalThis.fetch = originalFetch
+  }
+})
+
+test("multi-account repayment serializes one reserve per account", () => {
+  const originalDocument = globalThis.document
+  const originalMoneyStub = globalThis.__MoneyStub
+  globalThis.__MoneyStub = {
+    parse(value) {
+      if (typeof value === "string") return 10000
+      return Math.round(parseFloat(value.value) * 100)
+    }
+  }
+
+  function creditRow(accountId, bucketId, amount) {
+    return {
+      querySelector(selector) {
+        if (selector.includes("input")) return { value: amount }
+        if (selector.includes("account_for")) return { value: accountId }
+        if (selector.includes("bucket_for")) return { value: bucketId }
+        return null
+      }
+    }
+  }
+
+  const rows = [creditRow("7", "21", "60.00"), creditRow("9", "31", "40.00")]
+  const visible = { classList: { contains() { return false } } }
+  const hidden = { classList: { contains() { return true } } }
+  globalThis.document = {
+    getElementById(id) {
+      switch (id) {
+        case "credit_options": return visible
+        case "account_for_credit_options": return { value: "7" }
+        case "expense_total": return {}
+        case "credit_options.single_bucket": return hidden
+        case "credit_options.line_items": return { querySelectorAll() { return rows } }
+        default: return null
+      }
+    }
+  }
+
+  try {
+    const controller = new controllerModule.default()
+    controller.defaultDateValue = "2026-09-23"
+    controller.defaultActorValue = "Splitting the bill"
+
+    const data = controller.serialize()
+
+    assert.deepEqual(data.event.line_items, [
+      { account_id: "7", bucket_id: "21", amount: -6000, role: "credit_options" },
+      { account_id: "9", bucket_id: "31", amount: -4000, role: "credit_options" },
+      { account_id: "7", bucket_id: "r:aside", amount: 6000, role: "aside" },
+      { account_id: "9", bucket_id: "r:aside", amount: 4000, role: "aside" }
+    ])
+  } finally {
+    globalThis.document = originalDocument
+    if (originalMoneyStub === undefined) {
+      delete globalThis.__MoneyStub
+    } else {
+      globalThis.__MoneyStub = originalMoneyStub
+    }
+  }
+})
+
+test("changing a repayment row account repopulates that row buckets", () => {
+  const controller = new controllerModule.default()
+  const calls = []
+  controller.populateBucket = (...args) => { calls.push(args) }
+
+  const bucketSelect = { name: "repayment buckets" }
+  const row = {
+    querySelector(selector) {
+      if (selector.includes("bucket_for")) return bucketSelect
+      return null
+    }
+  }
+  const select = { value: "5", closest: () => row }
+
+  controller.handleRowAccountChange({ currentTarget: select })
+
+  assert.deepEqual(calls, [[bucketSelect, "5", { reset: true, disabled: false, skipAside: true }]])
+})
+
+test("recalling a split repayment hides the section-level picker", () => {
+  const originalDocument = globalThis.document
+  function hiddenSet(hidden = true) {
+    const values = new Set(hidden ? ["hidden"] : [])
+    return {
+      values,
+      add(name) { this.values.add(name) },
+      remove(name) { this.values.delete(name) },
+      contains(name) { return this.values.has(name) }
+    }
+  }
+  const sectionEl = { classList: hiddenSet() }
+  const multipleBuckets = { classList: hiddenSet() }
+  const singleBucket = { classList: hiddenSet(false) }
+  const accountRow = { classList: hiddenSet(false) }
+  const acctSelect = { value: "" }
+  const added = []
+  const controller = new controllerModule.default()
+  controller.accountsValue = {
+    7: { id: 7, name: "Checking", role: "checking", buckets: [] },
+    9: { id: 9, name: "Savings", role: null, buckets: [] }
+  }
+  controller.updateBucketsFor = () => {}
+  controller.addLineItemTo = (section, item) => { added.push([section, item]) }
+  globalThis.document = {
+    getElementById(id) {
+      switch (id) {
+        case "credit_options": return sectionEl
+        case "account_for_credit_options": return acctSelect
+        case "credit_options.check_options": return null
+        case "credit_options.multiple_buckets": return multipleBuckets
+        case "credit_options.single_bucket": return singleBucket
+        case "credit_options.account": return accountRow
+        default: return null
+      }
+    }
+  }
+
+  try {
+    const items = [
+      { role: "credit_options", account_id: 7, bucket_id: 21, amount: -6000 },
+      { role: "credit_options", account_id: 9, bucket_id: 31, amount: -4000 }
+    ]
+    controller.rehydrateSection("credit_options", { line_items: items })
+
+    assert.equal(accountRow.classList.contains("hidden"), true)
+    assert.deepEqual(added.map(([section]) => section), ["credit_options", "credit_options"])
+    assert.deepEqual(added.map(([, item]) => item.account_id), [7, 9])
+  } finally {
+    globalThis.document = originalDocument
   }
 })
 

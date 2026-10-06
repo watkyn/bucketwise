@@ -311,6 +311,62 @@ class EventTest < ActiveSupport::TestCase
     end
   end
 
+  test "create expense with repayment split across multiple accounts should pass validation" do
+    @event_base[:line_items] = [
+      { :account_id => accounts(:john_mastercard).id,
+        :bucket_id  => buckets(:john_mastercard_general).id,
+        :amount     => -100_00,
+        :role       => 'payment_source' },
+      { :account_id => accounts(:john_checking).id,
+        :bucket_id  => buckets(:john_checking_dining).id,
+        :amount     => -60_00,
+        :role       => 'credit_options' },
+      { :account_id => accounts(:john_savings).id,
+        :bucket_id  => buckets(:john_savings_general).id,
+        :amount     => -40_00,
+        :role       => 'credit_options' },
+      { :account_id => accounts(:john_checking).id,
+        :bucket_id  => buckets(:john_checking_aside).id,
+        :amount     => 60_00,
+        :role       => 'aside' },
+      { :account_id => accounts(:john_savings).id,
+        :bucket_id  => "r:aside",
+        :amount     => 40_00,
+        :role       => 'aside' }
+    ]
+
+    event = subscriptions(:john).events.create(@event_base.merge(user: users(:john)))
+    assert_empty event.errors.full_messages
+    assert_equal [["Checking", 0], ["Mastercard", -100_00], ["Savings", 0]],
+      event.account_items.map { |i| [i.account.name, i.amount] }.sort
+  end
+
+  test "create expense with repayment reserves on the wrong account should not pass validation" do
+    @event_base[:line_items] = [
+      { :account_id => accounts(:john_mastercard).id,
+        :bucket_id  => buckets(:john_mastercard_general).id,
+        :amount     => -100_00,
+        :role       => 'payment_source' },
+      { :account_id => accounts(:john_checking).id,
+        :bucket_id  => buckets(:john_checking_dining).id,
+        :amount     => -60_00,
+        :role       => 'credit_options' },
+      { :account_id => accounts(:john_savings).id,
+        :bucket_id  => buckets(:john_savings_general).id,
+        :amount     => -40_00,
+        :role       => 'credit_options' },
+      { :account_id => accounts(:john_checking).id,
+        :bucket_id  => buckets(:john_checking_aside).id,
+        :amount     => 100_00,
+        :role       => 'aside' }
+    ]
+
+    assert_no_difference "Event.count" do
+      event = subscriptions(:john).events.create(@event_base.merge(user: users(:john)))
+      assert event.errors[:line_items].any?
+    end
+  end
+
   test "create with existing buckets should associate line items with those buckets" do
     event = subscriptions(:john).events.create(@event_base.merge(user: users(:john)))
     assert_equal [-25_75, -15_25], event.line_items.map(&:amount)
