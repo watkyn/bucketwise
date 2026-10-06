@@ -1,7 +1,7 @@
 <fieldset id="<%= section %>" class="mb-4 <%= section_visible_for_event?(section) ? "" : "hidden" %>" data-events-form-target="<%= section.to_s.camelize(:lower) %>">
   <legend><%= title %></legend>
 
-  <p id="<%= section %>.account" class="my-3 flex items-center gap-2 flex-wrap <%= section == :credit_options && multi_bucket_visible?(section) ? "hidden" : "" %>">
+  <p id="<%= section %>.account" class="my-3 flex items-center gap-2 flex-wrap <%= section_account_visible?(section) ? "" : "hidden" %>">
     <%= raw account_prompt %>
     <%= select_account(section, accounts, selected_account && selected_account.id) %>
     <% if section_wants_check_options?(section) %>
@@ -36,11 +36,7 @@
     </p>
     <ol id="<%= section %>.line_items" class="my-2 space-y-2">
       <% for_each_line_item_in(section) do |item| %>
-        <% if section == :credit_options %>
-          <li><%= render partial: "events/credit_line_item", locals: { section: section, line_item: item, repayment_accounts: accounts } %></li>
-        <% else %>
-          <li><%= render partial: "events/line_item", object: item, locals: { section: section } %></li>
-        <% end %>
+        <li><%= render_line_item_row(section, item, accounts) %></li>
       <% end %>
     </ol>
     <p class="my-3"><%= link_to "More buckets, please!", "#", "data-action": "click->events-form#addLineItem", "data-section": section %></p>

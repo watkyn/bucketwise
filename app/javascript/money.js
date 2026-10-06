@@ -5,9 +5,6 @@ export const Money = {
   },
 
   parse(fieldOrValue, keepNegative) {
-    // Accepts an element id ("expense_total"), a form element, or null.
-    // Element support matters: updateUnassignedFor/addLineItems pass inputs
-    // directly, and a missing selector must yield 0, not a TypeError.
     const value = typeof fieldOrValue === "string"
       ? document.getElementById(fieldOrValue)?.value || ""
       : fieldOrValue?.value ?? "";

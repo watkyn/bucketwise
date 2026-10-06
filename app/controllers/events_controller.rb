@@ -50,8 +50,6 @@ class EventsController < ApplicationController
   rescue ActiveRecord::RecordInvalid => error
     @event = error.record
     respond_to do |format|
-      # Don't render the success turbo-stream template here: the client parses
-      # the JSON errors and alerts them (see events-form#submit).
       format.turbo_stream { render json: @event.errors, status: :unprocessable_entity }
       format.json { render json: @event.errors, status: :unprocessable_entity }
     end
@@ -101,10 +99,6 @@ class EventsController < ApplicationController
         @container = @tag = Tag.find(params[:tag_id])
         @subscription = user.subscriptions.find(@tag.subscription_id)
       elsif request.format.html?
-        # Bare GET /events (no container). Intended behavior: HTML requests
-        # from a logged-in user redirect to their root subscription dashboard
-        # (nicer than a 404/500 for this entry point); API requests get an
-        # explicit 400 since a container is required to list events.
         root = user.subscriptions.first
         redirect_to root ? subscription_path(root) : subscriptions_path
       else
@@ -151,7 +145,6 @@ class EventsController < ApplicationController
         tagged_items: tagged_item_keys,
         line_item: line_item_keys,
         tagged_item: tagged_item_keys).to_h.with_indifferent_access
-      # Normalize legacy singular keys (old Rails 2 XML: line_item/tagged_item) to plural
       permitted[:line_items] ||= permitted.delete(:line_item) if permitted[:line_item]
       permitted[:tagged_items] ||= permitted.delete(:tagged_item) if permitted[:tagged_item]
       permitted.slice(:occurred_on, :actor_name, :check_number, :memo, :role, :line_items, :tagged_items)

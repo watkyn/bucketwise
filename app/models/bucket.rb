@@ -15,7 +15,6 @@ class Bucket < ApplicationRecord
     filter_scope(filter)
   end
 
-  # Keep old name as alias but handle Ruby 3 Enumerable conflict
   def self.filter(filter_obj=nil, &block)
     if block_given?
       super
@@ -73,9 +72,7 @@ class Bucket < ApplicationRecord
     scope
   end
 
-  # For historical named_scope compatibility
   def self.options_for_filter(filter)
-    # Return relation-like hash for backwards compat, but prefer filter_scope
     return {} unless filter.any?
     filter_scope(filter)
   end
@@ -151,11 +148,6 @@ class Bucket < ApplicationRecord
 
   private
 
-    # Removes events left with no line items after a merge netted away
-    # their same-bucket legs (e.g. a reallocation onto its own bucket).
-    # Line items are already gone via delete (no balance callbacks), so
-    # only the account items (kept exact by hand) and tagged items
-    # (destroyed so tag balances adjust) remain to be cleaned up.
     def drop_emptied_events(event_ids)
       Event.where(id: event_ids).each do |event|
         if LineItem.where(event_id: event.id).none?

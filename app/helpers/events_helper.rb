@@ -1,17 +1,10 @@
 module EventsHelper
   def emit_account_data_assignments
-    # Modern: no need for RJS update_page, just return empty
-    # Original did update_page with page.events.accounts/tags/actors for JS
-    # Now just return empty string; JS will fetch via JSON if needed
     "".html_safe
   end
 
   def accounts_with_buckets
-    # This rule is so that standard buckets (like "aside") that have not
-    # yet been created get sorted to the bottom. Until they're "real" they
-    # are second-class citizens, but we still want to let people select them
-    # if they need them.
-
+    # Uncreated standard buckets sort last.
     sorter = Proc.new do |bucket|
       [Integer === bucket.id ? 0 : 1, bucket.name.downcase]
     end
@@ -82,16 +75,18 @@ module EventsHelper
       :"data-section" => section
   end
 
-  # Accounts a credit-card expense may be repaid from: anything that
-  # is not itself a credit card (checking, savings, untyped accounts).
   def repayment_accounts
     subscription.accounts.reject { |account| account.credit_card? }
   end
 
-  # Per-row repayment account picker for credit_options legs in
-  # multi-bucket mode. Rows carry their own account (a class, never an
-  # id, since one section holds many rows); the section-level select
-  # remains as the single-bucket value and the default for new rows.
+  def accounts_for_section(section)
+    if section.to_sym == :credit_options
+      repayment_accounts
+    else
+      subscription.accounts
+    end
+  end
+
   def select_repayment_account(line_item, accounts)
     selection = line_item&.account_id || accounts.first&.id
     select_tag "event[credit_options][account_id]",
@@ -244,6 +239,16 @@ module EventsHelper
     end
   end
 
+  def section_account_visible?(section)
+    section.to_sym != :credit_options || !multi_bucket_visible?(section)
+  end
+
+  def render_line_item_row(section, item, accounts = nil)
+    locals = { :section => section, :line_item => item }
+    locals[:repayment_accounts] = accounts || repayment_accounts if section.to_sym == :credit_options
+    render partial: template_partial_for(section), locals: locals
+  end
+
   def for_each_line_item_in(section)
     (@event && @event.line_items.for_role(section) || []).each do |item|
       yield item
@@ -329,12 +334,9 @@ module EventsHelper
         :locals => { :form => form, :section => section }
 
     else
-      accounts = subscription.accounts
-      accounts = repayment_accounts if section == :credit_options
-
       values = { :section          => section,
                  :form             => form,
-                 :accounts         => accounts,
+                 :accounts         => accounts_for_section(section),
                  :selected_account => form.object && form.object.account_for(section) }
 
       render :partial => "events/form_section",
@@ -359,9 +361,7 @@ module EventsHelper
     data = { controller: "autocomplete", autocomplete_items_value: @subscription&.tags&.map(&:name)&.sort || [] }
     data[:autocomplete_tokens_value] = tokens if tokens
 
-    # A <div> wrapper (never a <span> inside a <p>): browsers eject a <ul>
-    # from paragraph content, which would strand the dropdown outside this
-    # controller so autocomplete#search cannot find its listTarget.
+    # Browsers eject <ul> from <p>, so the wrapper must be a <div>.
     content_tag(:div, field, class: "relative inline-block", data: data)
   end
 
@@ -375,7 +375,7 @@ module EventsHelper
   end
 
   def template_partial_for(section)
-    case section
+    case section.to_s
     when "tags" then "events/tagged_item"
     when "reallocate_from", "reallocate_to" then "events/reallocation_item"
     when "credit_options" then "events/credit_line_item"

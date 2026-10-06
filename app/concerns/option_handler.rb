@@ -1,8 +1,6 @@
 module OptionHandler
   private
 
-    # For appending info to serialization options hash, where attributes
-    # may be arrays, hashes, or singleton values.
     def append_to_options(options, attribute, extras)
       case options[attribute]
       when Array

@@ -10,8 +10,6 @@ class Actor < ApplicationRecord
   end
 
   def self.normalize(name)
-    # Legacy entry point - tries to find globally then create.
-    # For proper subscription-scoped lookup, use normalize_for(subscription, name)
     name = name.strip
     sort_name = normalize_name(name)
 

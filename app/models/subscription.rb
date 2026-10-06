@@ -55,7 +55,6 @@ class Subscription < ApplicationRecord
   has_many :user_subscriptions, dependent: :destroy
   has_many :users, through: :user_subscriptions
 
-  # removes everything from the subscription, without deleting the subscription
   def clean
     transaction do
       LineItem.where(event_id: events.select(:id)).delete_all
@@ -72,7 +71,6 @@ class Subscription < ApplicationRecord
     end
   end
 
-  # an optimized destroy to avoid costly dependency cascades
   def destroy
     transaction do
       clean

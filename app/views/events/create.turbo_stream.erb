@@ -14,8 +14,4 @@
   </template>
 </turbo-stream>
 
-<%# NOTE: the event form lives inside #new_event and already contains a hidden
-  #success_notice. Do NOT replace #new_event here — that would destroy the form
-  and leave the notice inside a hidden container. The events-form Stimulus
-  controller resets the form and reveals the in-form notice client-side
-  after rendering these streams. %>
+<%# Keep #new_event intact; the Stimulus controller resets the form client-side. %>

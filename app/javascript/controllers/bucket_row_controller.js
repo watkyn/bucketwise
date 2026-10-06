@@ -54,8 +54,6 @@ export default class extends Controller {
     }
   }
 
-  // Pages without a dedicated new-event page (e.g. the subscription
-  // dashboard) reveal the inline reallocation form instead of navigating.
   revealReallocation(direction, accountId, bucketId) {
     const form = document.querySelector('[data-controller~="events-form"]')
     const controller = form && this.application.getControllerForElementAndIdentifier(form, "events-form")
@@ -90,9 +88,6 @@ export default class extends Controller {
 
   deleteBucket(event) {
     event.preventDefault()
-    // These targets live on the page-level controller scope (e.g. buckets/show
-    // wraps #delete_form and #data). Index rows reuse this controller for
-    // hover/rename only, so degrade gracefully if the scope has no targets.
     if (this.hasDataTarget) this.dataTarget.classList.add("hidden")
     if (this.hasDeleteFormTarget) this.deleteFormTarget.classList.remove("hidden")
   }

@@ -57,11 +57,7 @@ class Event < ApplicationRecord
 
   def line_items=(list)
     if list.is_a?(Array) && list.any? { |item| item.is_a?(Hash) }
-      @line_items_to_realize = list.map { |h| h.deep_symbolize_keys rescue h }
-      # Normalize keys to symbols for consistency
-      @line_items_to_realize = @line_items_to_realize.map do |h|
-        h.each_with_object({}) { |(k,v), m| m[k.to_sym] = v }
-      end
+      @line_items_to_realize = list.map { |item| item.to_h.symbolize_keys }
     else
       original_line_items_assignment(list)
     end
@@ -69,13 +65,12 @@ class Event < ApplicationRecord
 
   def tagged_items=(list)
     if list.is_a?(Array) && list.any? { |item| item.is_a?(Hash) }
-      @tagged_items_to_realize = list.map { |h| h.is_a?(Hash) ? h.each_with_object({}) { |(k,v), m| m[k.to_sym] = v } : h }
+      @tagged_items_to_realize = list.map { |item| item.to_h.symbolize_keys }
     else
       original_tagged_items_assignment(list)
     end
   end
 
-  # delete all stuff, which is account_items and line_items
   def das
     line_items.delete_all
     account_items.delete_all
@@ -103,15 +98,11 @@ class Event < ApplicationRecord
 
   def as_json(options={})
     methods = Array(options[:methods]).dup
-    # Computed methods assume persisted account_items/line_items; unsaved
-    # template events (GET events#new) serialize plain attributes instead.
     methods |= [:balance, :value, :role] if persisted?
     methods << :amount if amount
     super(options.merge(methods: methods))
   end
 
-  # Build placeholder line_items/tagged_items for unsaved events so the JSON
-  # "new" template response matches the shape the old XML API returned.
   def build_template_line_items
     return self unless new_record?
     return self if line_items.any?
@@ -169,25 +160,20 @@ class Event < ApplicationRecord
         summaries = Hash.new(0)
         @line_items_to_realize.each do |item|
           item = item.dup
-          account = subscription.accounts.find(item[:account_id] || item["account_id"])
+          account = subscription.accounts.find(item[:account_id])
 
-          bucket_id = item.delete(:bucket_id) || item.delete("bucket_id")
-          # Ensure bucket_id is string for regex matching
-          bucket_id_str = bucket_id.to_s
-          item[:bucket] = if (match = bucket_id_str.match(/\An:(.*)/))
+          bucket_id = item.delete(:bucket_id).to_s
+          item[:bucket] = if (match = bucket_id.match(/\An:(.*)/))
             name = match[1]
             account.buckets.where("LOWER(name) = ?", name.downcase).first ||
               account.buckets.create(name: name, author: user)
-          elsif (match = bucket_id_str.match(/\Ar:(.*)/))
+          elsif (match = bucket_id.match(/\Ar:(.*)/))
             account.buckets.for_role(match[1], user)
           else
             account.buckets.find(bucket_id)
           end
 
-          # Remove string keys duplicates
           item = item.slice(:account_id, :bucket, :amount, :role, :account)
-          # Handle amount as integer
-          item[:amount] = item[:amount].to_i if item[:amount]
           created = line_items.create(item.merge(occurred_on: occurred_on))
           summaries[account] += created.amount
         end
@@ -206,14 +192,13 @@ class Event < ApplicationRecord
 
         @tagged_items_to_realize.each do |item|
           item = item.dup
-          tag_id_val = item[:tag_id] || item["tag_id"]
-          if tag_id_val.to_s =~ /\An:(.*)/
+          tag_id_val = item[:tag_id].to_s
+          if tag_id_val =~ /\An:(.*)/
             item[:tag_id] = subscription.tags.find_or_create_by(name: $1).id
           else
             subscription.tags.find(tag_id_val)
             item[:tag_id] = tag_id_val
           end
-          # Ensure amount handling
           item = item.slice(:tag_id, :amount, :tag)
           tagged_items.create(item.merge(occurred_on: occurred_on))
         end
@@ -237,12 +222,11 @@ class Event < ApplicationRecord
 
     def ensure_line_item_roles_are_valid
       @line_items_to_realize.each do |item|
-        role_val = item[:role] || item["role"]
-        if role_val.blank?
+        if item[:role].blank?
           errors.add(:line_item, "is missing the required `role' attribute")
           return false
-        elsif !LineItem::VALID_ROLES.include?(role_val.to_s)
-          errors.add(:line_item, "contains unrecognized role #{role_val.inspect}")
+        elsif !LineItem::VALID_ROLES.include?(item[:role].to_s)
+          errors.add(:line_item, "contains unrecognized role #{item[:role].inspect}")
           return false
         end
       end
@@ -250,7 +234,7 @@ class Event < ApplicationRecord
     end
 
     def ensure_line_items_use_consistent_roles
-      roles = @line_items_to_realize.map { |item| (item[:role] || item["role"]).to_s }
+      roles = @line_items_to_realize.map { |item| item[:role].to_s }
       primary = roles.select { |role| role == "primary" }
 
       if primary.length > 1
@@ -258,10 +242,7 @@ class Event < ApplicationRecord
         return false
       end
 
-      # Repayment reserves (aside legs) may be split across several
-      # accounts, one reserve per repayment account, so no uniqueness
-      # limit applies here. (Aside legs only belong to expense groups,
-      # so other scenarios still reject them as mismatched roles.)
+      # Aside reserves split one per repayment account.
       discriminant = roles.detect { |role| role != "primary" }
       if discriminant.nil?
         errors.add :line_items, "must include at least one non-primary role"
@@ -278,80 +259,66 @@ class Event < ApplicationRecord
     end
 
     def ensure_expense_is_valid
-      unless @line_items_to_realize.any? { |item| (item[:role] || item["role"]).to_s == "payment_source" }
+      unless pending_items_for_role("payment_source").any?
         errors.add :line_items, "must include a payment_source role for expense scenarios"
         return false
       end
-      payment = credit = aside = 0
-      @line_items_to_realize.each do |item|
-        case (item[:role] || item["role"]).to_s
-        when "payment_source" then payment += (item[:amount] || item["amount"]).to_i
-        when "credit_options" then credit += (item[:amount] || item["amount"]).to_i
-        when "aside"          then aside += (item[:amount] || item["amount"]).to_i
-        end
-      end
-      if payment >= 0
-        errors.add :line_items, "in payment_source role must have a negative amount"
+      return false unless ensure_expense_leg_signs_are_valid
+      return true unless pending_items_for_role("credit_options").any?
+
+      payment = pending_amount_for_role("payment_source")
+      credit = pending_amount_for_role("credit_options")
+      aside = pending_amount_for_role("aside")
+
+      if payment != credit
+        errors.add :line_items, "for payment_source and credit_options must sum to identical balance"
         return false
-      elsif @line_items_to_realize.any? { |item| (item[:role] || item["role"]).to_s == "credit_options" }
-        if credit >= 0
-          errors.add :line_items, "in credit_options role must have a negative amount"
+      elsif payment.abs != aside
+        errors.add :line_items, "for payment_source and aside must balance"
+        return false
+      end
+
+      ensure_repayment_accounts_balance
+    end
+
+    # Check signs per leg so split legs cannot cancel out.
+    def ensure_expense_leg_signs_are_valid
+      @line_items_to_realize.each do |item|
+        role = item[:role].to_s
+        amount = item[:amount].to_i
+
+        if (role == "payment_source" || role == "credit_options") && amount >= 0
+          errors.add :line_items, "in #{role} role must have a negative amount"
           return false
-        elsif aside <= 0
+        elsif role == "aside" && amount <= 0
           errors.add :line_items, "in aside role must have a positive amount"
           return false
-        elsif payment != credit
-          errors.add :line_items, "for payment_source and credit_options must sum to identical balance"
-          return false
-        elsif payment.abs != aside
-          errors.add :line_items, "for payment_source and aside must balance"
-          return false
-        else
-          return ensure_repayment_accounts_balance
         end
       end
+
       true
     end
 
-    # Every repayment account must net to zero on its own: its
-    # credit_options legs draw buckets down and its aside legs reserve
-    # the same total in its Aside bucket. Totals alone could pass while
-    # attributing one account's reserve to another, which would corrupt
-    # each account's available balance.
+    # Each repayment account must net to zero to keep balances exact.
     def ensure_repayment_accounts_balance
-      @line_items_to_realize.each do |item|
-        role = (item[:role] || item["role"]).to_s
-        amount = (item[:amount] || item["amount"]).to_i
-        if role == "credit_options" && amount >= 0
-          errors.add :line_item, "with credit_options role must have a negative amount"
-          return false
-        elsif role == "aside" && amount <= 0
-          errors.add :line_item, "with aside role must have a positive amount"
-          return false
-        elsif role == "payment_source" && amount >= 0
-          errors.add :line_item, "with payment_source role must have a negative amount"
-          return false
-        end
-      end
-
       balances = Hash.new(0)
       @line_items_to_realize.each do |item|
-        role = (item[:role] || item["role"]).to_s
-        next if role == "payment_source"
-        account_id = (item[:account_id] || item["account_id"]).to_i
-        balances[account_id] += (item[:amount] || item["amount"]).to_i
+        next if item[:role].to_s == "payment_source"
+        balances[item[:account_id].to_i] += item[:amount].to_i
       end
+
       balances.each do |account_id, net|
         if net != 0
           errors.add :line_items, "repayment legs for account #{account_id} must net to zero"
           return false
         end
       end
+
       true
     end
 
     def ensure_deposit_is_valid
-      if @line_items_to_realize.any? { |item| (item[:amount] || item["amount"]).to_i <= 0 }
+      if @line_items_to_realize.any? { |item| item[:amount].to_i <= 0 }
         errors.add :line_items, "for deposit must all have positive amounts"
         return false
       end
@@ -359,18 +326,18 @@ class Event < ApplicationRecord
     end
 
     def ensure_transfer_is_valid
-      roles = @line_items_to_realize.map { |item| (item[:role] || item["role"]).to_s }.uniq.sort
+      roles = @line_items_to_realize.map { |item| item[:role].to_s }.uniq.sort
       if roles != %w[transfer_from transfer_to]
         errors.add :line_items, "must contain both transfer_from and transfer_to roles in a transfer scenario"
         return false
       end
-      accounts = @line_items_to_realize.map { |item| (item[:account_id] || item["account_id"]).to_i }
+      accounts = @line_items_to_realize.map { |item| item[:account_id].to_i }
       if accounts.uniq.length != 2
         errors.add :line_items, "must reference exactly two accounts in a transfer scenario"
         return false
       end
       balances = @line_items_to_realize.inject(Hash.new(0)) do |map, item|
-        map[(item[:account_id] || item["account_id"]).to_i] += (item[:amount] || item["amount"]).to_i
+        map[item[:account_id].to_i] += item[:amount].to_i
         map
       end
       if balances.values.sum != 0
@@ -378,12 +345,12 @@ class Event < ApplicationRecord
         return false
       end
       @line_items_to_realize.each do |item|
-        role_val = (item[:role] || item["role"]).to_s
-        amt = (item[:amount] || item["amount"]).to_i
-        if role_val == "transfer_from" && amt >= 0
+        role = item[:role].to_s
+        amount = item[:amount].to_i
+        if role == "transfer_from" && amount >= 0
           errors.add :line_item, "with transfer_from role must have a negative amount"
           return false
-        elsif role_val == "transfer_to" && amt <= 0
+        elsif role == "transfer_to" && amount <= 0
           errors.add :line_item, "with transfer_to role must have a positive amount"
           return false
         end
@@ -392,17 +359,17 @@ class Event < ApplicationRecord
     end
 
     def ensure_reallocation_is_valid
-      unless @line_items_to_realize.any? { |item| (item[:role] || item["role"]).to_s == "primary" }
+      unless pending_items_for_role("primary").any?
         errors.add :line_items, "must include a `primary' role for bucket reallocation scenario"
         return false
       end
-      accounts = @line_items_to_realize.map { |item| (item[:account_id] || item["account_id"]).to_i }.uniq
+      accounts = @line_items_to_realize.map { |item| item[:account_id].to_i }.uniq
       if accounts.length != 1
         errors.add :line_items, "for bucket reallocation scenario must reference exactly one account"
         return false
       end
       balances = @line_items_to_realize.inject(Hash.new(0)) do |map, item|
-        map[(item[:role] || item["role"]).to_s] += (item[:amount] || item["amount"]).to_i
+        map[item[:role].to_s] += item[:amount].to_i
         map
       end
       if balances.values.sum != 0
@@ -410,5 +377,13 @@ class Event < ApplicationRecord
         return false
       end
       true
+    end
+
+    def pending_items_for_role(role)
+      @line_items_to_realize.select { |item| item[:role].to_s == role }
+    end
+
+    def pending_amount_for_role(role)
+      pending_items_for_role(role).sum { |item| item[:amount].to_i }
     end
 end

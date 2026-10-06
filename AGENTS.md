@@ -107,5 +107,6 @@ Tailwind CSS · propshaft · Puma. No HAML, no XML API, no RJS (removed during t
 - Prefer idiomatic Rails 8 (`form_with`, ERB, `respond_to` only where actually branching).
 - Match Fizzy's style (see `~/dev/fizzy/STYLE.md`) for new code: expanded conditionals over clever guard
   clauses, class methods → public → private ordering, find similar existing code before inventing.
+- Prefer no code comments. Add a one-line comment only when needed to explain why, never what.
 - When porting or questioning legacy behavior, read the old code first with `git show master:...`,
   then keep/adjust the Rails 8 tests accordingly.

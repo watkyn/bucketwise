@@ -16,13 +16,10 @@ class TaggedItem < ApplicationRecord
     when /\A\s*\d+\s*\z/ then super(value.to_i)
     else
       @tag_to_translate = value
-      # don't call super yet; will be handled in before_create
     end
   end
 
   def as_json(options={})
-    # render json: ..., location: ... passes a frozen options hash through
-    # to_json → as_json, so work on a copy.
     options = options.dup
     options[:except] = Array(options[:except]) + [:event_id, :occurred_on]
     options[:except] << :tag_id if persisted?
@@ -36,7 +33,6 @@ class TaggedItem < ApplicationRecord
       if @tag_to_translate && @tag_to_translate =~ /\An:(.*)/
         self.tag_id = event.subscription.tags.find_or_create_by(name: $1).id
       else
-        # make sure the given tag id exists in the given subscription
         event.subscription.tags.find(tag_id)
       end
     end

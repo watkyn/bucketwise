@@ -9,7 +9,6 @@ class User < ApplicationRecord
   validates :user_name, uniqueness: true, allow_nil: true
   validates :user_name, presence: true
 
-  # Keep legacy SHA1 method for migration if password_digest blank but password_hash present
   def self.password_hash_for(password, salt)
     require 'digest/sha1'
     Digest::SHA1.hexdigest(salt + password)
@@ -27,8 +26,7 @@ class User < ApplicationRecord
       hash = password_hash_for(password, user.salt)
       return nil unless ActiveSupport::SecurityUtils.secure_compare(hash, user.password_hash)
 
-      # BCrypt only uses the first 72 bytes. Keep longer legacy passwords
-      # authenticatable rather than silently migrating them to a truncated password.
+      # BCrypt truncates at 72 bytes; never migrate longer passwords.
       if password.bytesize <= 72
         user.password = password
         user.update_columns(
@@ -45,7 +43,6 @@ class User < ApplicationRecord
     end
   end
 
-  # Override to hide password_digest
   def as_json(options={})
     options[:except] = Array(options[:except]) + [:password_digest, :password_hash, :salt]
     super(options)

@@ -1,11 +1,6 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  // NOTE: nubbin/deleteForm/data targets are intentionally NOT declared:
-  // every action below scopes via getElementById, so per-row instances work
-  // without in-row targets. Don't add data-*-target lookups without also
-  // adding the targets to _row.html.haml.
-
   showNubbin(event) {
     const id = this.element.dataset.eventId
     const nubbin = document.getElementById(`nubbin_event_${id}`)

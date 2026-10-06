@@ -58,7 +58,6 @@ class Statement < ApplicationRecord
         AccountItem.where(account_id: account_id, id: ids).update_all(statement_id: id)
       end
 
-      # Reset association cache
       account_items.reset if account_items.loaded?
 
       if @ids_to_clear

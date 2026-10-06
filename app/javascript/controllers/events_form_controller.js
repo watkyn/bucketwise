@@ -218,8 +218,6 @@ export default class extends Controller {
       if (multipleBuckets) multipleBuckets.classList.remove("hidden")
       if (singleBucket) singleBucket.classList.add("hidden")
       if (section === "credit_options") {
-        // Repayment rows carry their own account, so the section-level
-        // payback picker steps aside in multi-bucket mode.
         document.getElementById("credit_options.account")?.classList.add("hidden")
       }
       this.updateBucketsFor(section)
@@ -259,9 +257,6 @@ export default class extends Controller {
     const acctId = disabled ? null : acctField.value
 
     if (section === "credit_options") {
-      // The single-bucket select follows the section account, but each
-      // multi-bucket row carries its own repayment account, so rows
-      // follow their row account instead.
       const singleBucket = document.getElementById("credit_options.single_bucket")
       const singleSelect = singleBucket?.querySelector("select")
       if (singleSelect) {
@@ -353,8 +348,6 @@ export default class extends Controller {
 
     if (populate) {
       if (section === "credit_options") {
-        // New rows default to the section account; recalled rows keep
-        // the account they were recorded against.
         const rowAcctSelect = li.querySelector("select.account_for_credit_options_row")
         const sectionAcct = document.getElementById("account_for_credit_options")?.value
         let rowAcct = null
@@ -625,8 +618,6 @@ export default class extends Controller {
         },
         body: JSON.stringify(data)
       }).then(async response => {
-        // Update actions (turbo_stream redirect) land here after fetch follows
-        // the redirect: navigate instead of misinterpreting HTML as a stream.
         if (response.redirected) {
           window.location.href = response.url
           return null
@@ -639,8 +630,6 @@ export default class extends Controller {
         if (html === null) return
         Turbo.renderStreamMessage(html)
         this.refreshAutocompleteItems(data.event)
-        // The create stream only refreshes the lists; the form stays in the
-        // DOM. Clear it for the next entry and reveal the in-form notice.
         this.reset()
         if (this.hasNewEventTarget) this.newEventTarget.classList.remove("hidden")
         if (this.hasSuccessNoticeTarget) this.successNoticeTarget.classList.remove("hidden")
@@ -687,7 +676,6 @@ export default class extends Controller {
         if (messages.length > 0) return messages.join("\n")
       }
     } catch {
-      // Not JSON — fall through to the generic message.
     }
     return `Request failed (${response.status})`
   }
@@ -807,9 +795,6 @@ export default class extends Controller {
     }
   }
 
-  // Multi-account repayment: each row repays from its own account,
-  // and each account used gets its own Aside reserve leg so the
-  // account nets to zero (the backend rejects misattributed reserves).
   serializeCreditOptions(data, sectionAccountId) {
     const totals = {}
     const lineItems = document.getElementById("credit_options.line_items")
