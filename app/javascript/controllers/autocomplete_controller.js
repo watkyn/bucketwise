@@ -86,6 +86,10 @@ export default class extends Controller {
     } else if (event.key === "Enter" && this.currentIndex >= 0) {
       event.preventDefault()
       this.select(this.filteredItems[this.currentIndex])
+    } else if (event.key === "Tab" && this.filteredItems.length > 0) {
+      event.preventDefault()
+      const index = this.currentIndex >= 0 ? this.currentIndex : 0
+      this.select(this.filteredItems[index])
     } else if (event.key === "Escape") {
       this.hide()
     }
