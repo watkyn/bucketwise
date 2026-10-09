@@ -6,7 +6,7 @@
 
   <h2>
     <%= balance_cell(account, classes: %w(total balance), tag: "span") %>
-    <%= "Buckets in #{h(account.name)}" %>
+    <%= "Buckets in #{account.name}" %>
   </h2>
 
   <%= link_to filter, "#", id: :filter_nubbin, "data-action": "click->filter-form#display" %>

@@ -216,4 +216,15 @@ class BucketsControllerTest < ActionDispatch::IntegrationTest
       assert_response :success
     end
   end
+
+  test "navigation escapes account names exactly once" do
+    account = accounts(:john_checking)
+    account.update!(name: "Tony's Savings")
+
+    get bucket_path(buckets(:john_checking_general))
+
+    assert_response :ok
+    assert_select ".navigation a", text: "Transactions in Tony's Savings"
+    assert_select ".navigation a", text: "Buckets in Tony's Savings"
+  end
 end

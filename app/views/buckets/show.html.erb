@@ -6,8 +6,8 @@
   <div id="data" class="content" data-bucket-row-target="data">
     <div class="navigation">
       <%= link_to "Dashboard", subscription_path(subscription) %>
-      <%= link_to "Transactions in #{h(account.name)}", account_path(account) %>
-      <%= link_to "Buckets in #{h(account.name)}", account_buckets_path(account) %>
+      <%= link_to "Transactions in #{account.name}", account_path(account) %>
+      <%= link_to "Buckets in #{account.name}", account_buckets_path(account) %>
     </div>
 
     <h2 id="<%= dom_id(bucket, :name) %>">
