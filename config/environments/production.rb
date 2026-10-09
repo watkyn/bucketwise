@@ -56,8 +56,14 @@ Rails.application.configure do
   # Set this to true and configure the email server for immediate delivery to raise delivery errors.
   # config.action_mailer.raise_delivery_errors = false
 
+  # BUCKETWISE_HOST is a comma-separated list; the first host is canonical.
+  allowed_hosts = ENV.fetch("BUCKETWISE_HOST", "example.com").split(",").map(&:strip).reject(&:empty?)
+  if allowed_hosts.empty?
+    allowed_hosts = [ "example.com" ]
+  end
+
   # Set host to be used by links generated in mailer templates.
-  config.action_mailer.default_url_options = { host: ENV.fetch("BUCKETWISE_HOST", "example.com") }
+  config.action_mailer.default_url_options = { host: allowed_hosts.first }
 
   # Specify outgoing SMTP server. Remember to add smtp/* credentials via rails credentials:edit.
   # config.action_mailer.smtp_settings = {
@@ -79,9 +85,7 @@ Rails.application.configure do
   config.active_record.attributes_for_inspect = [ :id ]
 
   # Enable DNS rebinding protection and other `Host` header attacks.
-  config.hosts = [
-    ENV.fetch("BUCKETWISE_HOST", "example.com")
-  ]
+  config.hosts = allowed_hosts
 
   # Skip DNS rebinding protection for the default health check endpoint.
   config.host_authorization = { exclude: ->(request) { request.path == "/up" } }

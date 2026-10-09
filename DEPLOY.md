@@ -4,10 +4,15 @@
 
 ```sh
 export BUCKETWISE_IP_ADDRESS="1.2.3.4"
-export BUCKETWISE_HOST="example.com"
+export BUCKETWISE_HOST="example.com,buckets.example.com"
 export KAMAL_REGISTRY_USERNAME="dockerhub-user"
 export KAMAL_REGISTRY_PASSWORD="dckr_pat_..."
 ```
+
+`BUCKETWISE_HOST` is comma-separated; the first host is canonical (mailer URLs
+use it) and all hosts get proxy routes and Rails `config.hosts` entries. Every
+host needs a DNS `A` record pointing at the server before deploying, so Let's
+Encrypt can provision a cert for it.
 
 ## Architecture
 

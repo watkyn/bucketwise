@@ -18,7 +18,9 @@ servers:
 proxy:
   ssl: true
   hosts:
-    - <%= ENV.fetch("BUCKETWISE_HOST") %>
+<% ENV.fetch("BUCKETWISE_HOST").split(",").map(&:strip).reject(&:empty?).each do |host| %>
+    - <%= host %>
+<% end %>
   healthcheck:
     path: /up
     timeout: 5

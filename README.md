@@ -30,3 +30,11 @@ bin/rails subscription:create USER_ID=<id>
 ```sh
 bin/rails test
 ```
+
+## Maintenance page (Kamal)
+
+```sh
+bin/kamal app maintenance --message "Upgrading, back soon"
+# ... do work ...
+bin/kamal app live
+```
