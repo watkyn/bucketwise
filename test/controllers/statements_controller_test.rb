@@ -21,6 +21,22 @@ class StatementsControllerTest < ActionDispatch::IntegrationTest
     assert_select "ul li a[href=?]", statement_path(statements(:john_pending)), 0
   end
 
+  test "index should list balanced statements most-recent-first" do
+    older = accounts(:john_checking).statements.create!(
+      occurred_on: statements(:john).occurred_on - 1.month, ending_balance: 0)
+    older.update_column(:balanced_at, Time.current)
+    same_date = accounts(:john_checking).statements.create!(
+      occurred_on: statements(:john).occurred_on, ending_balance: 0)
+    same_date.update_column(:balanced_at, Time.current)
+
+    get account_statements_path(accounts(:john_checking))
+
+    assert_response :ok
+    links = assert_select("ul li a").map { |element| element["href"] }
+    assert_equal [statement_path(same_date), statement_path(statements(:john)),
+      statement_path(older)], links
+  end
+
   test "new for inaccessible account should 404" do
     get new_account_statement_path(accounts(:tim_checking))
     assert_response :not_found

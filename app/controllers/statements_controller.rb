@@ -3,7 +3,7 @@ class StatementsController < ApplicationController
   before_action :find_statement, only: %w[show edit update destroy]
 
   def index
-    @statements = account.statements.balanced
+    @statements = account.statements.balanced.order(occurred_on: :desc, id: :desc)
   end
 
   def new

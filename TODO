@@ -1,3 +1,2 @@
-- When more than one bucket and it is over or under allocated, have a way to auto sync the difference to a specific bucket.
 - most recent statements should be at the top sorted by date
 - default the date for saving and checking reconciling to be the last day of the previous month (or the expected month to be balanced)
