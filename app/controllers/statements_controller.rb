@@ -7,7 +7,8 @@ class StatementsController < ApplicationController
   end
 
   def new
-    @statement = account.statements.build(ending_balance: account.balance, occurred_on: Date.current)
+    @statement = account.statements.build(ending_balance: account.balance,
+      occurred_on: default_occurred_on)
   end
 
   def create
@@ -56,6 +57,14 @@ class StatementsController < ApplicationController
     end
 
   private
+
+    def default_occurred_on
+      if account.role == "credit-card"
+        Date.current
+      else
+        Date.current.prev_month.end_of_month
+      end
+    end
 
     def statement_params
       params.require(:statement).permit(:occurred_on, :ending_balance, :cleared, cleared: [])

@@ -61,6 +61,18 @@ class StatementsControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "new defaults occurred_on to last day of previous month except for credit cards" do
+    get new_account_statement_path(accounts(:john_checking))
+    assert_response :ok
+    assert_select "input[name=?][value=?]", "statement[occurred_on]",
+      Date.current.prev_month.end_of_month.to_s
+
+    get new_account_statement_path(accounts(:john_mastercard))
+    assert_response :ok
+    assert_select "input[name=?][value=?]", "statement[occurred_on]",
+      Date.current.to_s
+  end
+
   test "create should create new record and redirect to edit" do
     assert_difference -> { accounts(:john_checking).reload.statements.size } do
       post account_statements_path(accounts(:john_checking)),
