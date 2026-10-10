@@ -96,6 +96,14 @@ module EventsHelper
       :"data-section" => "credit_options"
   end
 
+  def absorb_remainder_button
+    link_to "🎯", "#",
+      :"data-action" => "click->events-form#absorbRemainder",
+      :class => "absorb-remainder hidden",
+      :"data-tip" => "Absorb the remaining difference into this bucket",
+      :"aria-label" => "Absorb the remaining difference into this bucket"
+  end
+
   def event_for_form
     @event || Event.new(occurred_on: Date.current)
   end

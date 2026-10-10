@@ -27,6 +27,7 @@ export default class extends Controller {
     this.nextID = 0
     this.recalledEvents = null
     this.currentEvent = -1
+    this.updateUnassigned()
   }
 
   revealExpense(event) {
@@ -382,6 +383,7 @@ export default class extends Controller {
       input.value = Money.formatValue(Math.abs(populate.amount))
     }
     if (input) input.focus()
+    this.updateUnassigned()
   }
 
   removeLineItem(event) {
@@ -418,20 +420,35 @@ export default class extends Controller {
     }
   }
 
+  remainderFor(section) {
+    return Money.parse("expense_total") - this.computeTotalForLineItems(section)
+  }
+
+  absorbRemainder(event) {
+    event.preventDefault()
+    const row = event.currentTarget.closest("li")
+    const list = row ? row.closest("ol") : null
+    if (!list) return
+
+    const unassigned = this.remainderFor(list.id.split(".")[0])
+    if (unassigned === 0) return
+
+    const input = row.querySelector("input[type=text]")
+    if (!input) return
+    const newAmount = Money.parse(input) + unassigned
+    if (newAmount <= 0) return
+    input.value = Money.formatValue(newAmount)
+    this.updateUnassigned()
+  }
+
   updateUnassignedFor(section) {
     const sectionEl = document.getElementById(section)
     if (!sectionEl) return
 
     const total = Money.parse("expense_total")
-    let lineTotal = 0
+    const unassigned = this.remainderFor(section)
     const lineItems = document.getElementById(`${section}.line_items`)
-    if (lineItems) {
-      lineItems.querySelectorAll("input[type=text]").forEach(field => {
-        lineTotal += Money.parse(field)
-      })
-    }
-
-    const unassigned = total - lineTotal
+    const rows = lineItems ? Array.from(lineItems.querySelectorAll("li")) : []
     const unassignedEl = document.getElementById(`${section}.unassigned`)
     if (!unassignedEl) return
 
@@ -442,6 +459,29 @@ export default class extends Controller {
     } else {
       unassignedEl.innerHTML = ""
     }
+
+    this.updateAbsorbButtons(rows, unassigned)
+  }
+
+  updateAbsorbButtons(rows, unassigned) {
+    const balanced = rows.length > 1 && unassigned !== 0
+    let tip = "Absorb the remaining difference into this bucket"
+    if (unassigned > 0) {
+      tip = `Absorb $${Money.dollars(unassigned)} into this bucket`
+    } else if (unassigned < 0) {
+      tip = `Remove $${Money.dollars(unassigned)} overage from this bucket`
+    }
+    rows.forEach(row => {
+      const button = row.querySelector(".absorb-remainder")
+      if (button) {
+        const input = row.querySelector("input[type=text]")
+        const rowAmount = input ? Money.parse(input) : 0
+        const show = balanced && rowAmount + unassigned > 0
+        button.classList.toggle("hidden", !show)
+        button.setAttribute("data-tip", tip)
+        button.setAttribute("aria-label", tip)
+      }
+    })
   }
 
   updateAmount() {

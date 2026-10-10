@@ -1006,3 +1006,24 @@ body.login .notice {
   margin: 0;
   font-size: 1em;
 }
+
+.absorb-remainder {
+  position: relative;
+}
+
+.absorb-remainder:hover::after,
+.absorb-remainder:focus-visible::after {
+  content: attr(data-tip);
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  margin-left: 8px;
+  background: #222;
+  color: #fff;
+  padding: 0.25em 0.6em;
+  border-radius: 6px;
+  font-size: 0.8em;
+  white-space: nowrap;
+  z-index: 10;
+}

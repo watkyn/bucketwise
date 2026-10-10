@@ -2,4 +2,5 @@
 <%= bucket_action_phrase_for(section) %>
 <%= select_repayment_account(line_item, repayment_accounts) %>
 <%= select_bucket(section, splittable: false, line_item: line_item) %>
+<%= absorb_remainder_button %>
 <%= link_to "[x]", "#", "data-action": "click->events-form#removeLineItem" %>

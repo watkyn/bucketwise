@@ -189,8 +189,7 @@ class EventsHelperTest < ActionView::TestCase
     assert_equal 1, tags_fragment.css("#tagged_items li").length
   end
 
-  test "repayment section with legs on several accounts renders a per-row account selector" do
-    @subscription = subscriptions(:john)
+  test "repayment section with legs on several accounts renders a per-row account selector" do    @subscription = subscriptions(:john)
     @event = events(:john_lunch)
     @event.line_items.build(role: "credit_options",
       account: accounts(:john_savings), bucket: buckets(:john_savings_general),
@@ -212,6 +211,24 @@ class EventsHelperTest < ActionView::TestCase
       assert_includes options, accounts(:john_savings).id.to_s
       refute_includes options, accounts(:john_mastercard).id.to_s
     end
+  end
+
+  test "split rows carry an icon-only target button for the remainder" do
+    @subscription = subscriptions(:john)
+
+    payment_html = render_line_item_row(:payment_source, line_items(:john_lunch_mastercard))
+    payment_button = Nokogiri::HTML.fragment(payment_html).at_css("a.absorb-remainder")
+    assert payment_button, "expected a remainder target on payment rows, got: #{payment_html}"
+    assert_equal "🎯", payment_button.text
+    assert_equal "click->events-form#absorbRemainder", payment_button["data-action"]
+    assert_equal "Absorb the remaining difference into this bucket", payment_button["data-tip"]
+    assert_equal "Absorb the remaining difference into this bucket", payment_button["aria-label"]
+    assert_nil payment_button["title"]
+
+    credit_html = render_line_item_row(:credit_options, line_items(:john_lunch_checking_dining))
+    credit_button = Nokogiri::HTML.fragment(credit_html).at_css("a.absorb-remainder")
+    assert credit_button, "expected a remainder target on repayment rows, got: #{credit_html}"
+    assert_equal "click->events-form#absorbRemainder", credit_button["data-action"]
   end
 
   test "tag links are sorted and tag entry fields include their dropdown" do

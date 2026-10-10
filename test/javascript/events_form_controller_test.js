@@ -426,3 +426,170 @@ test("validation errors use labels that make sense for the transaction type", as
     )
   }
 })
+
+function absorbTestSetup(amounts, totalCents) {
+  const originalDocument = globalThis.document
+  const originalMoneyStub = globalThis.__MoneyStub
+  globalThis.__MoneyStub = {
+    parse(fieldOrValue) {
+      if (typeof fieldOrValue === "string") return totalCents
+      const unsigned = String(fieldOrValue.value ?? "").replace(/[^-+\d.]/g, "").replace(/^-/, "")
+      return Math.round(parseFloat(unsigned || "0") * 100)
+    },
+    dollars(cents) {
+      return (Math.abs(cents) / 100).toFixed(2)
+    },
+    formatValue(cents) {
+      return (cents / 100).toFixed(2)
+    }
+  }
+
+  const list = { id: "payment_source.line_items", inputs: [] }
+  function makeRow(amount) {
+    const input = { value: amount }
+    const hidden = new Set(["hidden"])
+    const button = {
+      classList: {
+        toggle(name, force) {
+          if (force) hidden.add(name)
+          else hidden.delete(name)
+        },
+        contains(name) { return hidden.has(name) }
+      },
+      title: "",
+      ariaLabel: "",
+      dataTip: "",
+      setAttribute(name, value) {
+        if (name === "aria-label") this.ariaLabel = value
+        if (name === "data-tip") this.dataTip = value
+      },
+      closest(selector) {
+        if (selector === "li") return row
+        return null
+      }
+    }
+    const row = {
+      input,
+      button,
+      querySelector(selector) {
+        if (selector === "input[type=text]") return input
+        if (selector === ".absorb-remainder") return button
+        return null
+      },
+      closest(selector) {
+        if (selector === "ol") return list
+        return null
+      }
+    }
+    list.inputs.push(input)
+    return row
+  }
+
+  const rows = amounts.map(makeRow)
+  list.querySelectorAll = selector => selector === "li" ? rows : list.inputs
+  const message = { html: "" }
+  const unassignedEl = {}
+  Object.defineProperty(unassignedEl, "innerHTML", {
+    get() { return message.html },
+    set(value) { message.html = value }
+  })
+  globalThis.document = {
+    getElementById(id) {
+      if (id === "payment_source") return {}
+      if (id === "payment_source.line_items") return list
+      if (id === "payment_source.unassigned") return unassignedEl
+      return null
+    }
+  }
+
+  return {
+    rows,
+    message,
+    restore() {
+      globalThis.document = originalDocument
+      if (originalMoneyStub === undefined) delete globalThis.__MoneyStub
+      else globalThis.__MoneyStub = originalMoneyStub
+    }
+  }
+}
+
+test("target button absorbs the unallocated remainder into its own row", () => {
+  const setup = absorbTestSetup(["40.00", "45.00"], 10000)
+  try {
+    const controller = new controllerModule.default()
+    controller.updateUnassigned()
+
+    for (const row of setup.rows) {
+      assert.equal(row.button.classList.contains("hidden"), false)
+      assert.equal(row.button.dataTip, "Absorb $15.00 into this bucket")
+      assert.equal(row.button.ariaLabel, "Absorb $15.00 into this bucket")
+    }
+    assert.match(setup.message.html, /15\.00.*remains unallocated/)
+
+    controller.absorbRemainder({ preventDefault() {}, currentTarget: setup.rows[0].button })
+
+    assert.equal(setup.rows[0].input.value, "55.00")
+    assert.equal(setup.rows[1].input.value, "45.00")
+    for (const row of setup.rows) {
+      assert.equal(row.button.classList.contains("hidden"), true)
+    }
+    assert.equal(setup.message.html, "")
+  } finally {
+    setup.restore()
+  }
+})
+
+test("target button sheds the overage from its own row", () => {
+  const setup = absorbTestSetup(["60.00", "55.00"], 10000)
+  try {
+    const controller = new controllerModule.default()
+    controller.updateUnassigned()
+
+    assert.equal(setup.rows[0].button.dataTip, "Remove $15.00 overage from this bucket")
+    assert.match(setup.message.html, /overallocated/)
+
+    controller.absorbRemainder({ preventDefault() {}, currentTarget: setup.rows[0].button })
+
+    assert.equal(setup.rows[0].input.value, "45.00")
+    assert.equal(setup.rows[1].input.value, "55.00")
+  } finally {
+    setup.restore()
+  }
+})
+
+test("target button stays hidden with a single row or a balanced split", () => {
+  for (const [amounts, total] of [[["40.00"], 10000], [["60.00", "40.00"], 10000]]) {
+    const setup = absorbTestSetup(amounts, total)
+    try {
+      const controller = new controllerModule.default()
+      controller.updateUnassigned()
+
+      for (const row of setup.rows) {
+        assert.equal(row.button.classList.contains("hidden"), true)
+      }
+    } finally {
+      setup.restore()
+    }
+  }
+})
+
+test("target button refuses an absorption that would empty a row or drive it negative", () => {
+  for (const amounts of [["10.00", "120.00"], ["30.00", "100.00"]]) {
+    const setup = absorbTestSetup(amounts, 10000)
+    try {
+      const controller = new controllerModule.default()
+      controller.updateUnassigned()
+
+      assert.equal(setup.rows[0].button.classList.contains("hidden"), true)
+      assert.equal(setup.rows[1].button.classList.contains("hidden"), false)
+
+      controller.absorbRemainder({ preventDefault() {}, currentTarget: setup.rows[0].button })
+
+      assert.equal(setup.rows[0].input.value, amounts[0])
+      assert.equal(setup.rows[1].input.value, amounts[1])
+      assert.match(setup.message.html, /overallocated/)
+    } finally {
+      setup.restore()
+    }
+  }
+})
