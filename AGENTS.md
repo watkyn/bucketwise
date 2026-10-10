@@ -80,8 +80,7 @@ bin/rails db:setup              # create DB + load schema
 Seed/bootstrap on an empty DB:
 
 ```sh
-bin/rails user:create
-bin/rails subscription:create USER_ID=<id>
+bin/rails user:create            # creates a user plus their subscription
 bin/rails demo:build            # demo data (dev login: bw.demo/demo)
 ```
 

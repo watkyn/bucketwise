@@ -18,11 +18,10 @@ bin/rails db:setup     # (alternative) create the database and load the schema
 bin/dev                # start Puma + Tailwind watcher on http://localhost:3000
 ```
 
-If the database is empty, create a user and a subscription first:
+If the database is empty, create a user (this also creates their subscription):
 
 ```sh
 bin/rails user:create
-bin/rails subscription:create USER_ID=<id>
 ```
 
 ## Tests
@@ -31,10 +30,3 @@ bin/rails subscription:create USER_ID=<id>
 bin/rails test
 ```
 
-## Maintenance page (Kamal)
-
-```sh
-bin/kamal app maintenance --message "Upgrading, back soon"
-# ... do work ...
-bin/kamal app live
-```

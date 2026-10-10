@@ -1,26 +1,43 @@
 namespace :user do
+  def ask(prompt)
+    $stdout.print prompt
+    $stdin.gets.to_s.strip
+  end
+
+  def ask_password(prompt)
+    require "io/console"
+    if $stdin.tty?
+      $stdin.getpass(prompt).to_s.strip
+    else
+      ask(prompt)
+    end
+  end
+
   desc "Create a new user."
-  task :create => :environment do
-    require 'highline'
+  task create: :environment do
+    name = ENV["NAME"] || ask("Name: ")
+    email = ENV["EMAIL"] || ask("E-mail: ")
+    user_name = ENV["USERNAME"] || ask("User name: ")
+    password = ENV["PASSWORD"] || ask_password("Password: ")
+    abort "Password cannot be blank" if password.blank?
 
-    ui = HighLine.new
-
-    name = ui.ask("Name: ")
-    email = ui.ask("E-mail: ")
-    user_name = ui.ask("User name: ")
-    password = ui.ask("Password: ")
-
-    user = User.create(:name => name, :email => email,
-      :user_name => user_name, :password => password)
+    user = User.create!(name: name, email: email,
+      user_name: user_name, password: password)
 
     puts "User `#{user_name}' created: ##{user.id}"
+
+    unless ENV["SKIP_SUBSCRIPTION"]
+      subscription = Subscription.create!(owner: user)
+      user.subscriptions << subscription
+      puts "Subscription ##{subscription.id} created for `#{user_name}'"
+    end
   end
 
   desc "List users (PAGE env var selects which page of users)"
-  task :list => :environment do
-    page = ENV['PAGE'].to_i
+  task list: :environment do
+    page = ENV["PAGE"].to_i
 
-    users = User.find(:all, :limit => 25, :offset => page * 25, :order => :user_name)
+    users = User.order(:user_name).limit(25).offset(page * 25)
 
     puts "page ##{page}"
     puts "---------------"
@@ -35,8 +52,8 @@ namespace :user do
   end
 
   desc "Report info about particular user (USERNAME env var)."
-  task :show => :environment do
-    user = User.find_by_user_name(ENV['USERNAME'])
+  task show: :environment do
+    user = User.find_by(user_name: ENV["USERNAME"])
 
     if user
       puts "##{user.id}: \"#{user.name}\" <#{user.email}>"
@@ -46,8 +63,8 @@ namespace :user do
   end
 
   desc "List all subscriptions for the given user (USER_ID env var)"
-  task :subscriptions => :environment do
-    user = User.find(ENV['USER_ID'])
+  task subscriptions: :environment do
+    user = User.find(ENV["USER_ID"])
 
     if user.subscriptions.empty?
       puts "No subscriptions for `#{user.user_name}' ##{user.id}"
@@ -60,17 +77,17 @@ namespace :user do
   end
 
   desc "Grant access to a specific subscription id (USER_ID env var, SUBSCRIPTION_ID env var)."
-  task :grant => :environment do
-    subscription = Subscription.find(ENV['SUBSCRIPTION_ID'])
-    user = User.find(ENV['USER_ID'])
+  task grant: :environment do
+    subscription = Subscription.find(ENV["SUBSCRIPTION_ID"])
+    user = User.find(ENV["USER_ID"])
     user.subscriptions << subscription
     puts "user `#{user.user_name}' granted access to subscription ##{subscription.id}"
   end
 
   desc "Revoke access to a specific subscription id (USER_ID env var, SUBSCRIPTION_ID env var)."
-  task :revoke => :environment do
-    subscription = Subscription.find(ENV['SUBSCRIPTION_ID'])
-    user = User.find(ENV['USER_ID'])
+  task revoke: :environment do
+    subscription = Subscription.find(ENV["SUBSCRIPTION_ID"])
+    user = User.find(ENV["USER_ID"])
     user.subscriptions.delete(subscription)
     puts "user `#{user.user_name}' revoked access to subscription ##{subscription.id}"
   end

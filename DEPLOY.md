@@ -44,3 +44,12 @@ bin/kamal shell
 bin/kamal logs
 bin/kamal dbc
 ```
+
+## Maintenance page
+
+```sh
+bin/kamal app maintenance --message "Upgrading, back soon"
+# ... do work ...
+bin/kamal app live
+```
+
