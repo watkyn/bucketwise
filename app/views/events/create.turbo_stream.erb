@@ -1,11 +1,3 @@
-<turbo-stream action="replace" target="recent_entries">
-  <template>
-    <table id="recent_entries" class="entries">
-      <%= render(partial: "events/event", collection: subscription.events.recent.last, formats: [:html]) %>
-    </table>
-  </template>
-</turbo-stream>
-
 <turbo-stream action="replace" target="accounts_summary">
   <template>
     <table id="accounts_summary">

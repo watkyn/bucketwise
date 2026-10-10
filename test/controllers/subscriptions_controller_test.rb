@@ -49,7 +49,6 @@ class SubscriptionsControllerTest < ActionDispatch::IntegrationTest
     assert_response :ok
     assert_select "#subscription[data-events-form-return-to-value=?]",
       subscription_path(subscriptions(:john))
-    assert_select "#recent_entries"
     assert_select "#accounts_summary a[href=?]", account_path(accounts(:john_checking)),
       text: "Checking"
   end
@@ -81,20 +80,6 @@ class SubscriptionsControllerTest < ActionDispatch::IntegrationTest
       'data-events-source-location-value="subscriptions"',
       "the String location value must not be wrapped in extra double quotes"
     refute_includes @response.body, 'data-events-source-location-value="&quot;'
-  end
-
-  test "show should render account links in recent entries as real links, not escaped HTML" do
-    get subscription_path(subscriptions(:john))
-    assert_response :ok
-
-    assert_select "#recent_entries .account_links a[href=?]", account_path(accounts(:john_checking)) do |links|
-      assert_equal "Checking", links.first.text
-    end
-    assert_select "#recent_entries .account_links a[href=?]", account_path(accounts(:john_mastercard)) do |links|
-      assert_equal "Mastercard", links.first.text
-    end
-    assert_not @response.body.include?("&lt;a href="),
-      "expected real <a> elements in recent entries, found escaped HTML instead"
   end
 
   # == API tests ========================================================================

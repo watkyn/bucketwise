@@ -108,8 +108,8 @@ class EventsControllerTest < ActionDispatch::IntegrationTest
     created = Event.last
     assert_equal "Somebody", created.actor_name
     assert_equal subscriptions(:john), created.subscription
-    assert_includes @response.body, %(<turbo-stream action="replace" target="recent_entries">),
-      "expected the create template to refresh the recent entries list"
+    assert_includes @response.body, %(<turbo-stream action="replace" target="accounts_summary">),
+      "expected the create template to refresh the accounts summary"
   end
 
   test "create via turbo_stream should reuse an existing bucket regardless of name capitalization" do
@@ -175,7 +175,6 @@ class EventsControllerTest < ActionDispatch::IntegrationTest
       assert_response :ok
     end
 
-    assert_includes @response.body, %(target="recent_entries"), "expected recent_entries stream"
     assert_includes @response.body, %(target="accounts_summary"), "expected accounts_summary stream"
     refute_includes @response.body, %(target="new_event"),
       "must not replace #new_event (the form lives there)"
@@ -190,7 +189,7 @@ class EventsControllerTest < ActionDispatch::IntegrationTest
       assert_response :unprocessable_entity
     end
 
-    refute_includes @response.body, "recent_entries", "error must not render success streams"
+    refute_includes @response.body, "accounts_summary", "error must not render success streams"
     assert JSON.parse(@response.body).key?("actor_name")
   end
 
