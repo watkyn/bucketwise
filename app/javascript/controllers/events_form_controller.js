@@ -36,6 +36,7 @@ export default class extends Controller {
     this.revealBasicForm()
     this.showLabels("expense_label")
     if (this.hasPaymentSourceTarget) this.paymentSourceTarget.classList.remove("hidden")
+    if (this.hasActorNameTarget) this.actorNameTarget.focus()
   }
 
   revealDeposit(event) {
@@ -44,6 +45,7 @@ export default class extends Controller {
     this.revealBasicForm()
     this.showLabels("deposit_label")
     if (this.hasDepositTarget) this.depositTarget.classList.remove("hidden")
+    if (this.hasActorNameTarget) this.actorNameTarget.focus()
   }
 
   revealTransfer(event) {
@@ -53,6 +55,7 @@ export default class extends Controller {
     this.showLabels("transfer_label")
     if (this.hasTransferFromTarget) this.transferFromTarget.classList.remove("hidden")
     if (this.hasTransferToTarget) this.transferToTarget.classList.remove("hidden")
+    if (this.hasActorNameTarget) this.actorNameTarget.focus()
   }
 
   revealReallocation(direction, accountId, bucketId) {

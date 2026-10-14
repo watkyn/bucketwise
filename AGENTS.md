@@ -4,26 +4,13 @@ This file provides guidance to AI coding agents working with this repository.
 
 ## References
 
-Two external references govern work in this repo:
-
-1. **Fizzy — the reference implementation.**
-   [basecamp/fizzy](https://github.com/basecamp/fizzy) (37signals' open-source Rails app), local clone at
-   `~/dev/fizzy`. For architecture decisions, project structure, coding style, and
-   Rails-idiomatic patterns, look at how Fizzy does it first. Key files to consult:
-   - `~/dev/fizzy/AGENTS.md` — architecture overview and conventions
-   - `~/dev/fizzy/STYLE.md` — coding style guide (follow it unless BucketWise conventions conflict)
-
-2. **`master` branch — the behavioral reference ("what it used to do").**
-   `master` is frozen at `a12e77c` and preserves the original Rails 2.3 application. It is read-only
-   history: never commit to it, never merge it forward mechanically. When unsure how BucketWise is
-   *supposed* to behave (accounting rules, event validation, balances, edge cases), check the old code.
-   A read-only worktree lives at `../bucketwise-master` (detached at `a12e77c`); read files there
-   directly, or use `git show master:<path>` from this checkout. For one-offs:
-   ```sh
-   git show master:app/models/event.rb        # any path on the frozen branch
-   git log master --oneline                   # original history
-   ```
-   The Rails 8 port lives on `upgrade-again` (current working branch).
+**Fizzy is the go-to reference for how to do Rails things.**
+For architecture decisions, project structure, coding style, and
+Rails-idiomatic patterns, look at how Fizzy does it first:
+[basecamp/fizzy](https://github.com/basecamp/fizzy) (37signals' open-source Rails app), local clone at
+`~/dev/fizzy`. Key files to consult:
+- `~/dev/fizzy/AGENTS.md` — architecture overview and conventions
+- `~/dev/fizzy/STYLE.md` — coding style guide (follow it unless BucketWise conventions conflict)
 
 ## What is BucketWise?
 
@@ -58,7 +45,7 @@ changing event/line-item flows.
 
 - Event create/edit flows through Turbo Streams (`events#create` renders `turbo_stream`); forms are
   Stimulus-driven (`app/javascript/`), style is Tailwind.
-- JSON API on `respond_to` blocks (XML API was removed in the Rails 8 port).
+- JSON API on `respond_to` blocks; there is no XML API.
 - `QueryFilter` provides shared filtering — string/symbol key handling matters (has regression tests).
 - Known route gaps are intentional for now — don't "fix" them by inventing new pages
   without asking. 406 HTML: `subscriptions/:id/{accounts,events,tags}` index, `tags#new`,
@@ -90,8 +77,8 @@ Utilities: `bin/rails data:subscription:dump ID=<id>` / `data:subscription:load 
 ## Testing notes
 
 - Layout: `test/unit`, `test/helpers`, `test/controllers`, `test/integration`.
-- Controller tests use `ActionDispatch::IntegrationTest` and real routes; there are no Rails 2-era
-  controller-test shims or `rails-controller-testing` dependency.
+- Controller tests use `ActionDispatch::IntegrationTest` and real routes; there is no
+  `rails-controller-testing` dependency.
 - Green baseline: `bin/rails test` must stay green. Browser behavior is verified by ad hoc manual testing, not Chrome system tests.
 - Bug-fix discipline: every bug fix starts with a failing test that proves the bug. Write the test,
   watch it fail, then fix, then watch it pass. Never ship a bug fix without its regression test.
@@ -99,7 +86,7 @@ Utilities: `bin/rails data:subscription:dump ID=<id>` / `data:subscription:load 
 ## Stack
 
 Ruby 3.4.8 · Rails 8.0 · SQLite 3 (`storage/*.sqlite3`) · Hotwire (Turbo + Stimulus via importmap) ·
-Tailwind CSS · propshaft · Puma. No HAML, no XML API, no RJS (removed during the port).
+Tailwind CSS · propshaft · Puma. No HAML, no XML API, no RJS.
 
 ## Conventions
 
@@ -107,5 +94,5 @@ Tailwind CSS · propshaft · Puma. No HAML, no XML API, no RJS (removed during t
 - Match Fizzy's style (see `~/dev/fizzy/STYLE.md`) for new code: expanded conditionals over clever guard
   clauses, class methods → public → private ordering, find similar existing code before inventing.
 - Prefer no code comments. Add a one-line comment only when needed to explain why, never what.
-- When porting or questioning legacy behavior, read the old code first with `git show master:...`,
-  then keep/adjust the Rails 8 tests accordingly.
+- When questioning long-standing behavior, check git history first
+  (`git log --oneline -- <path>`, `git log -p -- <path>`), then keep/adjust the tests accordingly.
