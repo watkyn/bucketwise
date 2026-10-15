@@ -119,4 +119,29 @@ class PageSmokeTest < ActionDispatch::IntegrationTest
     get "/events"
     assert_response :redirect
   end
+
+  test "percent toggle is wired to the events-form controller" do
+    post "/session", params: { user_name: @user.user_name, password: "testing" }
+
+    [
+      "/subscriptions/#{@subscription.id}",
+      "/subscriptions/#{@subscription.id}/events/new"
+    ].each do |path|
+      get path
+      assert_response :success, "expected 200 for #{path}"
+
+      assert_select "#percent_toggle", count: 1
+      assert_select "#percent_toggle[data-events-form-target='percentToggle']"
+      assert_select "#percent_toggle[type='button']"
+      assert_select "#percent_toggle[title='Use percentages']"
+      assert_select "#percent_toggle[aria-pressed='false'][aria-label='Split amounts by percentage']"
+
+      action = css_select("#percent_toggle").first["data-action"]
+      assert_includes action, "events-form#togglePercentMode",
+        "expected percent toggle to call togglePercentMode on #{path}"
+
+      assert_select "#template\\.payment_source span.line-item-unit", text: "$"
+      assert_select "#template\\.payment_source span.line-item-computed"
+    end
+  end
 end

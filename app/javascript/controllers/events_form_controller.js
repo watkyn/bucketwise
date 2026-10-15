@@ -1,6 +1,8 @@
 import { Controller } from "@hotwired/stimulus"
 import { Money } from "money"
 
+const percentSections = ["payment_source", "deposit", "transfer_from", "transfer_to"]
+
 export default class extends Controller {
   static targets = [
     "form", "newEvent", "successNotice",
@@ -8,8 +10,7 @@ export default class extends Controller {
     "transferFrom", "transferTo", "reallocateFrom", "reallocateTo",
     "tags", "tagsCollapsed", "tagItems", "tagItemsCollapsed", "taggedItems",
     "memo", "memoLink", "recallEvent",
-    "expenseTotal", "actorName", "checkNumber",
-    "actorNameSelect", "expenseLink", "depositLink", "transferLink",
+    "expenseTotal", "actorName", "percentToggle",
     "links"
   ]
 
@@ -22,6 +23,8 @@ export default class extends Controller {
     defaultDate: String,
     source: String
   }
+
+  percentOn = false
 
   connect() {
     this.nextID = 0
@@ -56,6 +59,82 @@ export default class extends Controller {
     if (this.hasTransferFromTarget) this.transferFromTarget.classList.remove("hidden")
     if (this.hasTransferToTarget) this.transferToTarget.classList.remove("hidden")
     if (this.hasActorNameTarget) this.actorNameTarget.focus()
+  }
+
+  visibleSplitSections() {
+    return percentSections.filter(section => this.available(section))
+  }
+
+  lineItemRows(section) {
+    return Array.from(document.getElementById(`${section}.line_items`)?.querySelectorAll("li") || [])
+  }
+
+  togglePercentMode(event) {
+    if (event) event.preventDefault()
+    const sections = this.visibleSplitSections()
+    if (sections.length === 0) return
+    const toPercent = !this.percentOn
+    if (toPercent && Money.parse("expense_total") === 0) return
+
+    sections.forEach(section => {
+      this.lineItemRows(section).forEach(row => {
+        const input = row.querySelector("input[type=text]")
+        if (input && input.value.trim() !== "") {
+          const cents = this.rowCents(section, input)
+          input.value = toPercent ? this.percentForCents(cents) : Money.formatValue(cents)
+        }
+      })
+    })
+    this.percentOn = toPercent
+    this.updateUnassigned()
+    this.syncPercentToggle()
+  }
+
+  applyRowMode(section, row) {
+    const percent = this.percentOn
+    const unit = row.querySelector(".line-item-unit")
+    if (unit) unit.textContent = percent ? "%" : "$"
+    const computed = row.querySelector(".line-item-computed")
+    if (computed) {
+      computed.classList.toggle("hidden", !percent)
+      if (percent) {
+        const input = row.querySelector("input[type=text]")
+        if (input) computed.textContent = `≈ $${Money.dollars(this.rowCents(section, input))}`
+      }
+    }
+  }
+
+  syncPercentToggle() {
+    if (!this.hasPercentToggleTarget) return
+    const on = this.percentOn
+    const el = this.percentToggleTarget
+    el.style.backgroundColor = on ? "black" : "white"
+    el.style.color = on ? "white" : "#9ca3af"
+    el.style.borderColor = on ? "black" : "#e5e7eb"
+    el.style.fontWeight = on ? "700" : "400"
+    el.title = on ? "Use dollar amounts" : "Use percentages"
+    el.setAttribute("aria-pressed", String(on))
+  }
+
+  percentForCents(cents) {
+    const total = Money.parse("expense_total")
+    const percent = cents / total * 100
+
+    // Keep enough precision to round-trip the original cents.
+    for (let precision = 2; precision <= 12; precision++) {
+      const rounded = Number(percent.toFixed(precision))
+      if (Math.round(total * rounded / 100) === cents) return String(rounded)
+    }
+    return String(percent)
+  }
+
+  rowCents(section, field) {
+    if (this.percentOn) {
+      const total = Money.parse("expense_total")
+      const percent = Number(field.value.trim())
+      return Number.isFinite(percent) ? Math.round(total * Math.abs(percent) / 100) : 0
+    }
+    return Money.parse(field)
   }
 
   revealReallocation(direction, accountId, bucketId) {
@@ -133,6 +212,9 @@ export default class extends Controller {
 
   reset() {
     if (this.hasFormTarget) this.formTarget.reset()
+    for (const section of [...percentSections, "credit_options", "reallocate_from", "reallocate_to"]) {
+      this.resetSection(section)
+    }
     this.hideAllSections()
     if (this.hasMemoTarget) this.memoTarget.classList.add("hidden")
     if (this.hasMemoLinkTarget) this.memoLinkTarget.classList.remove("hidden")
@@ -142,6 +224,19 @@ export default class extends Controller {
     if (this.hasTagsTarget) this.tagsTarget.classList.add("hidden")
     if (this.hasTagsCollapsedTarget) this.tagsCollapsedTarget.classList.remove("hidden")
     if (this.hasRecallEventTarget) this.recallEventTarget.classList.add("hidden")
+    this.updateUnassigned()
+  }
+
+  resetSection(section) {
+    const lineItems = document.getElementById(`${section}.line_items`)
+    if (lineItems) lineItems.innerHTML = ""
+
+    for (const control of ["account", "single_bucket"]) {
+      document.getElementById(`${section}.${control}`)?.classList.remove("hidden")
+    }
+    for (const control of ["multiple_buckets", "check_options", "repayment_options"]) {
+      document.getElementById(`${section}.${control}`)?.classList.add("hidden")
+    }
   }
 
   revealMemo(event) {
@@ -383,7 +478,9 @@ export default class extends Controller {
 
     const input = li.querySelector("input")
     if (input && populate !== true) {
-      input.value = Money.formatValue(Math.abs(populate.amount))
+      const cents = Math.abs(populate.amount)
+      const total = Money.parse("expense_total")
+      input.value = (this.percentOn && total !== 0) ? this.percentForCents(cents) : Money.formatValue(cents)
     }
     if (input) input.focus()
     this.updateUnassigned()
@@ -433,14 +530,17 @@ export default class extends Controller {
     const list = row ? row.closest("ol") : null
     if (!list) return
 
-    const unassigned = this.remainderFor(list.id.split(".")[0])
+    const section = list.id.split(".")[0]
+    const unassigned = this.remainderFor(section)
     if (unassigned === 0) return
 
     const input = row.querySelector("input[type=text]")
     if (!input) return
-    const newAmount = Money.parse(input) + unassigned
+    if (this.percentOn && Money.parse("expense_total") === 0) return
+
+    const newAmount = this.rowCents(section, input) + unassigned
     if (newAmount <= 0) return
-    input.value = Money.formatValue(newAmount)
+    input.value = this.percentOn ? this.percentForCents(newAmount) : Money.formatValue(newAmount)
     this.updateUnassigned()
   }
 
@@ -450,8 +550,8 @@ export default class extends Controller {
 
     const total = Money.parse("expense_total")
     const unassigned = this.remainderFor(section)
-    const lineItems = document.getElementById(`${section}.line_items`)
-    const rows = lineItems ? Array.from(lineItems.querySelectorAll("li")) : []
+    const rows = this.lineItemRows(section)
+    rows.forEach(row => this.applyRowMode(section, row))
     const unassignedEl = document.getElementById(`${section}.unassigned`)
     if (!unassignedEl) return
 
@@ -463,10 +563,10 @@ export default class extends Controller {
       unassignedEl.innerHTML = ""
     }
 
-    this.updateAbsorbButtons(rows, unassigned)
+    this.updateAbsorbButtons(section, rows, unassigned)
   }
 
-  updateAbsorbButtons(rows, unassigned) {
+  updateAbsorbButtons(section, rows, unassigned) {
     const balanced = rows.length > 1 && unassigned !== 0
     let tip = "Absorb the remaining difference into this bucket"
     if (unassigned > 0) {
@@ -478,7 +578,7 @@ export default class extends Controller {
       const button = row.querySelector(".absorb-remainder")
       if (button) {
         const input = row.querySelector("input[type=text]")
-        const rowAmount = input ? Money.parse(input) : 0
+        const rowAmount = input ? this.rowCents(section, input) : 0
         const show = balanced && rowAmount + unassigned > 0
         button.classList.toggle("hidden", !show)
         button.setAttribute("data-tip", tip)
@@ -593,6 +693,9 @@ export default class extends Controller {
         if (checkOptions) checkOptions.classList.remove("hidden")
         const checkNumber = document.getElementById("event_check_number")
         if (checkNumber) checkNumber.value = event.check_number || ""
+      }
+      if (section === "payment_source" && account.role === "credit-card" && !event.line_items.some(item => item.role === "credit_options")) {
+        document.getElementById(`${section}.repayment_options`)?.classList.remove("hidden")
       }
     }
 
@@ -868,7 +971,7 @@ export default class extends Controller {
       const bucketId = row.querySelector("select")?.value
       const field = row.querySelector("input[type=text]")
       if (field && field.value.trim() !== "") {
-        const amount = (options.expense ? -1 : 1) * Money.parse(field)
+        const amount = (options.expense ? -1 : 1) * this.rowCents(section, field)
         value += amount
         this.addLineItemRecord(data, accountId, bucketId, amount, section)
       }
@@ -936,7 +1039,7 @@ export default class extends Controller {
     const lineItems = document.getElementById(`${section}.line_items`)
     if (lineItems) {
       lineItems.querySelectorAll("input[type=text]").forEach(field => {
-        total += Money.parse(field)
+        total += this.rowCents(section, field)
       })
     }
     return total

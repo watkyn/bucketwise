@@ -15,6 +15,9 @@ const controllerModule = await import(`data:text/javascript;base64,${Buffer.from
   `const Controller = class {};\nconst Money = new Proxy({}, { get: (_, prop) => (...args) => globalThis.__MoneyStub[prop](...args) });\n${executableSource}\nexport default EventsFormController`
 ).toString("base64")}`)
 
+const moneySource = await readFile(new URL("../../app/javascript/money.js", import.meta.url), "utf8")
+const { Money } = await import(`data:text/javascript;base64,${Buffer.from(moneySource).toString("base64")}`)
+
 function stimulusObjectValue(initial) {
   let stored = JSON.stringify(initial)
   return {
@@ -591,5 +594,483 @@ test("target button refuses an absorption that would empty a row or drive it neg
     } finally {
       setup.restore()
     }
+  }
+})
+
+function percentTestSetup(rowValues, total = "3000.00") {
+  const originalDocument = globalThis.document
+  const originalMoneyStub = globalThis.__MoneyStub
+  globalThis.__MoneyStub = Money
+
+  function classList(hidden = true) {
+    const names = new Set(hidden ? ["hidden"] : [])
+    return {
+      add(name) { names.add(name) },
+      remove(name) { names.delete(name) },
+      toggle(name, force) {
+        if (force) names.add(name)
+        else names.delete(name)
+      },
+      contains(name) { return names.has(name) }
+    }
+  }
+
+  function makeRow(value) {
+    const input = { value, focus() {} }
+    const bucket = { value: "10" }
+    const unit = { textContent: "$" }
+    const computed = {
+      textContent: "",
+      classList: classList()
+    }
+    return {
+      input,
+      unit,
+      computed,
+      querySelector(selector) {
+        if (selector === "input[type=text]" || selector === "input") return input
+        if (selector === "select") return bucket
+        if (selector === ".line-item-unit") return unit
+        if (selector === ".line-item-computed") return computed
+        return null
+      }
+    }
+  }
+
+  const rows = rowValues.map(makeRow)
+  const list = {
+    querySelectorAll: selector => selector === "li" ? rows : rows.map(row => row.input),
+    appendChild(row) { rows.push(row) },
+    set innerHTML(value) {
+      assert.equal(value, "")
+      rows.length = 0
+    }
+  }
+  const visibleSection = { classList: classList(false) }
+  const totalField = { value: total }
+  const nodes = {
+    expense_total: totalField,
+    payment_source: visibleSection,
+    "payment_source.line_items": list,
+    "payment_source.unassigned": { innerHTML: "" },
+    "template.payment_source": { innerHTML: "" }
+  }
+  globalThis.document = {
+    getElementById(id) { return nodes[id] || null },
+    createElement() { return makeRow("") }
+  }
+
+  const controller = new controllerModule.default()
+  controller.hasPercentToggleTarget = true
+  controller.percentToggleTarget = {
+    style: {},
+    title: "",
+    attributes: { "aria-pressed": "false" },
+    setAttribute(name, value) { this.attributes[name] = String(value) }
+  }
+
+  return {
+    rows,
+    controller,
+    totalField,
+    nodes,
+    classList,
+    restore() {
+      globalThis.document = originalDocument
+      if (originalMoneyStub === undefined) delete globalThis.__MoneyStub
+      else globalThis.__MoneyStub = originalMoneyStub
+    }
+  }
+}
+
+test("percent rows resolve against the header total", () => {
+  const setup = percentTestSetup(["10", "20.50"])
+  try {
+    setup.controller.percentOn = true
+
+    assert.equal(setup.controller.computeTotalForLineItems("payment_source"), 91500)
+    assert.equal(setup.controller.rowCents("payment_source", { value: "10" }), 30000)
+  } finally {
+    setup.restore()
+  }
+})
+
+test("dollar rows are unaffected when percent mode is off", () => {
+  const setup = percentTestSetup(["300.00", "615.00"])
+  try {
+    assert.equal(setup.controller.computeTotalForLineItems("payment_source"), 91500)
+  } finally {
+    setup.restore()
+  }
+})
+
+test("percent toggle converts a split to percent and back", () => {
+  const setup = percentTestSetup(["1350.00", "1650.00"])
+  try {
+    const click = { preventDefault() {} }
+
+    setup.controller.togglePercentMode(click)
+
+    assert.equal(setup.controller.percentOn, true)
+    assert.deepEqual(setup.rows.map(row => row.input.value), ["45", "55"])
+    assert.deepEqual(setup.rows.map(row => row.unit.textContent), ["%", "%"])
+    assert.equal(setup.controller.percentToggleTarget.title, "Use dollar amounts")
+    assert.equal(setup.controller.percentToggleTarget.style.backgroundColor, "black")
+    assert.equal(setup.controller.percentToggleTarget.style.color, "white")
+    assert.equal(setup.controller.percentToggleTarget.style.borderColor, "black")
+
+    setup.controller.togglePercentMode(click)
+
+    assert.equal(setup.controller.percentOn, false)
+    assert.deepEqual(setup.rows.map(row => row.input.value), ["1,350.00", "1,650.00"])
+    assert.deepEqual(setup.rows.map(row => row.unit.textContent), ["$", "$"])
+    assert.equal(setup.controller.percentToggleTarget.title, "Use percentages")
+    assert.equal(setup.controller.percentToggleTarget.style.color, "#9ca3af")
+    assert.equal(setup.controller.percentToggleTarget.style.borderColor, "#e5e7eb")
+  } finally {
+    setup.restore()
+  }
+})
+
+test("uneven percents keep only the decimals they need", () => {
+  const setup = percentTestSetup(["1.00", "2.00"], "3.00")
+  try {
+    setup.controller.togglePercentMode({ preventDefault() {} })
+
+    assert.deepEqual(setup.rows.map(row => row.input.value), ["33.33", "66.67"])
+  } finally {
+    setup.restore()
+  }
+})
+
+test("percent conversions preserve cents", () => {
+  const setup = percentTestSetup(["1000.00", "2000.00"])
+  try {
+    setup.controller.togglePercentMode({ preventDefault() {} })
+    assert.equal(setup.controller.rowCents("payment_source", setup.rows[0].input), 100000)
+    assert.equal(setup.controller.computeTotalForLineItems("payment_source"), 300000)
+
+    setup.controller.togglePercentMode({ preventDefault() {} })
+    assert.deepEqual(setup.rows.map(row => row.input.value), ["1,000.00", "2,000.00"])
+  } finally {
+    setup.restore()
+  }
+})
+
+test("a zero total does not erase dollar amounts when percent mode is requested", () => {
+  const setup = percentTestSetup(["40.00", "60.00"], "0")
+  try {
+    setup.controller.togglePercentMode({ preventDefault() {} })
+
+    assert.deepEqual(setup.rows.map(row => row.input.value), ["40.00", "60.00"])
+    assert.ok(!setup.controller.percentOn)
+  } finally {
+    setup.restore()
+  }
+})
+
+test("reset clears split rows but leaves the percent toggle to the user", () => {
+  const setup = percentTestSetup(["1350.00", "1650.00"])
+  try {
+    setup.controller.togglePercentMode()
+    assert.ok(!setup.rows[0].computed.classList.contains("hidden"))
+
+    setup.controller.reset()
+
+    assert.equal(setup.rows.length, 0)
+    assert.equal(setup.controller.percentOn, true)
+    assert.equal(setup.controller.percentToggleTarget.attributes["aria-pressed"], "true")
+  } finally {
+    setup.restore()
+  }
+})
+
+test("percent remainder absorption clears the difference to the cent", () => {
+  const setup = absorbTestSetup(["33.33", "66.67"], 300000)
+  try {
+    const controller = new controllerModule.default()
+    controller.percentOn = true
+    setup.rows[1].input.value = "66.666"
+    controller.absorbRemainder({ preventDefault() {}, currentTarget: setup.rows[0].button })
+
+    assert.equal(controller.remainderFor("payment_source"), 0)
+  } finally {
+    setup.restore()
+  }
+})
+
+test("invalid percent input resolves to zero rather than poisoning totals", () => {
+  const setup = percentTestSetup([".", "10oops", "Infinity", " "])
+  try {
+    setup.controller.percentOn = true
+
+    assert.equal(setup.controller.computeTotalForLineItems("payment_source"), 0)
+  } finally {
+    setup.restore()
+  }
+})
+
+test("percent labels and serialized cents follow changes to the header total", () => {
+  const setup = percentTestSetup(["1350.00", "1650.00"])
+  try {
+    setup.controller.togglePercentMode()
+    setup.totalField.value = "100.01"
+    setup.controller.updateAmount()
+
+    assert.deepEqual(setup.rows.map(row => row.computed.textContent), ["≈ $45.00", "≈ $55.01"])
+
+    const data = { event: { line_items: [] } }
+    setup.controller.addLineItems(data, "1", "payment_source", { expense: true })
+    assert.deepEqual(data.event.line_items.map(item => item.amount), [-4500, -5501])
+  } finally {
+    setup.restore()
+  }
+})
+
+test("recall keeps dollar amounts and leaves percent mode off", () => {
+  for (const amounts of [[135000, 165000], [135000, 100000]]) {
+    const setup = percentTestSetup([])
+    try {
+      setup.controller.accountsValue = {}
+      setup.controller.updateBucketsFor = () => {}
+      setup.controller.rehydrateSection("payment_source", {
+        line_items: amounts.map(amount => ({ role: "payment_source", account_id: 1, bucket_id: 10, amount: -amount }))
+      })
+
+      assert.equal(setup.controller.percentOn, false)
+      assert.deepEqual(setup.rows.map(row => row.input.value), amounts.map(amount => Money.formatValue(amount)))
+    } finally {
+      setup.restore()
+    }
+  }
+
+  const single = percentTestSetup([])
+  try {
+    single.controller.accountsValue = {}
+    single.controller.updateBucketsFor = () => {}
+    single.controller.rehydrateSection("payment_source", {
+      line_items: [{ role: "payment_source", account_id: 1, bucket_id: 10, amount: -300000 }]
+    })
+
+    assert.equal(single.controller.percentOn, false)
+    assert.equal(single.rows.length, 0)
+  } finally {
+    single.restore()
+  }
+})
+
+test("recall leaves the percent toggle to the user", () => {
+  const setup = percentTestSetup([])
+  Object.assign(setup.nodes, {
+    event_occurred_on: { value: "" },
+    event_actor_name: { value: "" },
+    event_memo: { value: "" },
+    account_for_payment_source: { value: "" },
+    "payment_source.single_bucket": { classList: setup.classList(false), querySelector: () => ({}) },
+    "payment_source.multiple_buckets": { classList: setup.classList() }
+  })
+  const { controller } = setup
+  controller.element = { querySelectorAll: () => [] }
+  controller.hasExpenseTotalTarget = true
+  controller.expenseTotalTarget = setup.totalField
+  controller.accountsValue = {}
+  controller.updateBucketsFor = () => {}
+  controller.populateBucket = () => {}
+  controller.togglePercentMode({ preventDefault() {} })
+  assert.equal(controller.percentToggleTarget.attributes["aria-pressed"], "true")
+
+  try {
+    controller.rehydrate({
+      role: "expense",
+      value: 300000,
+      memo: "",
+      tagged_items: [],
+      line_items: [
+        { role: "payment_source", account_id: 1, bucket_id: 10, amount: -135000 },
+        { role: "payment_source", account_id: 1, bucket_id: 11, amount: -165000 }
+      ]
+    })
+
+    assert.equal(controller.percentOn, true)
+    assert.equal(controller.percentToggleTarget.attributes["aria-pressed"], "true")
+    assert.deepEqual(setup.rows.map(row => row.input.value), ["45", "55"])
+    assert.equal(controller.computeTotalForLineItems("payment_source"), 300000)
+  } finally {
+    setup.restore()
+  }
+})
+
+test("recall across event types never changes the toggle", () => {
+  const setup = percentTestSetup([])
+  const depositRows = []
+  const depositList = {
+    querySelectorAll: selector => selector === "li" ? depositRows : depositRows.map(row => row.input),
+    appendChild(row) { depositRows.push(row) },
+    set innerHTML(value) {
+      assert.equal(value, "")
+      depositRows.length = 0
+    }
+  }
+  Object.assign(setup.nodes, {
+    event_occurred_on: { value: "" },
+    event_actor_name: { value: "" },
+    event_memo: { value: "" },
+    account_for_deposit: { value: "" },
+    "deposit.line_items": depositList,
+    "deposit.unassigned": { innerHTML: "" },
+    "template.deposit": { innerHTML: "" },
+    "deposit.single_bucket": { classList: setup.classList(false), querySelector: () => ({}) },
+    "deposit.multiple_buckets": { classList: setup.classList() }
+  })
+  setup.nodes.deposit = { classList: setup.classList() }
+  const { controller } = setup
+  controller.element = { querySelectorAll: () => [] }
+  controller.hasExpenseTotalTarget = true
+  controller.expenseTotalTarget = setup.totalField
+  controller.hasPaymentSourceTarget = true
+  controller.paymentSourceTarget = setup.nodes.payment_source
+  controller.hasDepositTarget = true
+  controller.depositTarget = setup.nodes.deposit
+  controller.accountsValue = {}
+  controller.updateBucketsFor = () => {}
+  controller.populateBucket = () => {}
+  controller.percentOn = true
+  controller.syncPercentToggle()
+  assert.equal(controller.percentToggleTarget.attributes["aria-pressed"], "true")
+
+  try {
+    controller.rehydrate({
+      role: "deposit",
+      value: 300000,
+      memo: "",
+      tagged_items: [],
+      line_items: [
+        { role: "deposit", account_id: 1, bucket_id: 10, amount: 135000 },
+        { role: "deposit", account_id: 1, bucket_id: 11, amount: 165000 }
+      ]
+    })
+
+    assert.equal(controller.percentOn, true)
+    assert.equal(controller.percentToggleTarget.attributes["aria-pressed"], "true")
+    assert.deepEqual(depositRows.map(row => row.input.value), ["45", "55"])
+    assert.equal(controller.computeTotalForLineItems("deposit"), 300000)
+  } finally {
+    setup.restore()
+  }
+})
+
+test("each recall replaces the form with the previous transaction instead of accumulating split rows", async () => {
+  const setup = percentTestSetup([])
+  const originalFetch = globalThis.fetch
+  const { controller, nodes, classList } = setup
+  const bucket = { value: "" }
+  const events = [
+    { id: 3, amounts: [6000, 4000] },
+    { id: 2, amounts: [2000, 3000, 5000] },
+    { id: 1, amounts: [10000] }
+  ].map(({ id, amounts }) => ({
+    id, role: "expense", value: 10000, memo: `Transaction ${id}`, tagged_items: [],
+    line_items: amounts.map((amount, index) => ({
+      role: "payment_source", account_id: id === 1 ? 2 : 1, bucket_id: index + 10, amount: -amount
+    }))
+  }))
+  const requested = []
+  globalThis.fetch = async url => {
+    requested.push(url)
+    return { json: async () => events }
+  }
+  Object.assign(nodes, {
+    event_occurred_on: { value: "2026-10-14" },
+    event_actor_name: { value: "Groceries", focus() {} },
+    event_memo: { value: "" },
+    account_for_payment_source: {
+      get value() { return this._value || "" },
+      set value(value) { this._value = String(value) }
+    },
+    "payment_source.single_bucket": { classList: classList(false), querySelector: () => bucket },
+    "payment_source.multiple_buckets": { classList: classList() },
+    "payment_source.check_options": { classList: classList(), querySelector: () => null },
+    "payment_source.repayment_options": { classList: classList() }
+  })
+  controller.element = { querySelectorAll: () => [] }
+  controller.hasPaymentSourceTarget = true
+  controller.paymentSourceTarget = nodes.payment_source
+  controller.hasExpenseTotalTarget = true
+  controller.expenseTotalTarget = setup.totalField
+  controller.hasActorNameTarget = true
+  controller.actorNameTarget = nodes.event_actor_name
+  controller.hasRecallEventTarget = true
+  controller.recallEventTarget = { classList: classList() }
+  controller.hasFormTarget = true
+  controller.formTarget = {
+    reset() {
+      setup.totalField.value = ""
+      nodes.event_occurred_on.value = ""
+      nodes.event_actor_name.value = ""
+      setup.rows.forEach(row => { row.input.value = "" })
+    }
+  }
+  controller.accountsValue = {
+    1: { id: 1, role: "checking", buckets: [] },
+    2: { id: 2, role: "credit-card", buckets: [] }
+  }
+  controller.updateBucketsFor = () => {}
+  controller.populateBucket = () => {}
+  controller.selectBucket = (select, value) => { select.value = String(value) }
+  controller.connect()
+
+  try {
+    const click = { preventDefault() {}, currentTarget: { dataset: { url: "/subscriptions/1/events" } } }
+    for (const index of [0, 1, 2, 0]) {
+      await controller.recall(click)
+
+      const expected = events[index]
+      assert.equal(controller.currentEvent, index)
+      assert.equal(nodes.event_memo.value, expected.memo)
+      assert.equal(nodes.event_occurred_on.value, "2026-10-14")
+      assert.equal(nodes.event_actor_name.value, "Groceries")
+      const split = expected.line_items.length > 1
+      assert.equal(setup.rows.length, split ? expected.line_items.length : 0)
+      assert.equal(nodes["payment_source.single_bucket"].classList.contains("hidden"), split)
+      assert.equal(nodes["payment_source.multiple_buckets"].classList.contains("hidden"), !split)
+      assert.equal(nodes["payment_source.check_options"].classList.contains("hidden"), index === 2)
+      assert.equal(nodes["payment_source.repayment_options"].classList.contains("hidden"), index !== 2)
+      assert.equal(controller.percentToggleTarget.attributes["aria-pressed"], "false")
+      assert.deepEqual(controller.serialize().event.line_items, expected.line_items.map(item => ({
+        ...item, account_id: String(item.account_id), bucket_id: String(item.bucket_id)
+      })))
+    }
+    assert.equal(requested.length, 1)
+  } finally {
+    globalThis.fetch = originalFetch
+    setup.restore()
+  }
+})
+
+test("reset clears every section's dynamic rows and restores single-bucket and account controls", () => {
+  const setup = percentTestSetup([])
+  try {
+    for (const section of ["payment_source", "credit_options", "deposit", "transfer_from", "transfer_to", "reallocate_from", "reallocate_to"]) {
+      const { nodes, classList } = setup
+      nodes[`${section}.line_items`] = { innerHTML: "old rows" }
+      for (const control of ["account", "single_bucket", "multiple_buckets", "check_options", "repayment_options"]) {
+        nodes[`${section}.${control}`] = { classList: classList(control === "account" || control === "single_bucket") }
+      }
+    }
+    setup.controller.updateUnassigned = () => {}
+
+    setup.controller.reset()
+
+    for (const section of ["payment_source", "credit_options", "deposit", "transfer_from", "transfer_to", "reallocate_from", "reallocate_to"]) {
+      assert.equal(setup.nodes[`${section}.line_items`].innerHTML, "")
+      for (const control of ["account", "single_bucket"]) {
+        assert.ok(!setup.nodes[`${section}.${control}`].classList.contains("hidden"))
+      }
+      for (const control of ["multiple_buckets", "check_options", "repayment_options"]) {
+        assert.ok(setup.nodes[`${section}.${control}`].classList.contains("hidden"))
+      }
+    }
+  } finally {
+    setup.restore()
   }
 })

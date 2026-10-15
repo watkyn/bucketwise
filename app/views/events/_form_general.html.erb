@@ -55,6 +55,7 @@
       was transferred?
     </span>
     <%= safe_join([content_tag(:span, "$", class: "mr-1"), text_field_tag(:amount, event_amount_value, size: 8, id: "expense_total", class: "number", "data-events-form-target": "expenseTotal", "data-action": "input->events-form#updateAmount")]) %>
+    <button type="button" id="percent_toggle" class="ml-auto text-xs border rounded px-1.5 py-0.5" style="background-color: white; color: #9ca3af; border-color: #e5e7eb;" title="Use percentages" aria-label="Split amounts by percentage" aria-pressed="false" data-events-form-target="percentToggle" data-action="click->events-form#togglePercentMode">%</button>
   </p>
 
 </fieldset>
