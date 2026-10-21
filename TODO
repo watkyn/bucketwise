@@ -1,2 +1,3 @@
 - be able to clean up old transaction that didn't get reconciled. how best to handle that
 - I want to be able to edit an event live in the reconiliation workflow
+- how to find transactions by name or money. a separate page that searches just your account for a name wildcard or an amount. it only searches for transactions that have not been reconciled.

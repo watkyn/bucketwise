@@ -36,6 +36,9 @@
 .DS_Store
 *.swp
 
+# Database backups pulled from the server (scripts/backup_db_from_server.rb).
+/backups/
+
 # Legacy (pre-port) ignores kept for safety.
 db/*.sqlite3
 db/*.sqlite3-*
